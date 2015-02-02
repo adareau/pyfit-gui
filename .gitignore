@@ -4,4 +4,4 @@ fit\ examples/*
 save/*
 settings/*
 fringeater/*.m
-*pyc
+*.pyc
