@@ -545,6 +545,19 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
             self.ui.plotWindow.cuty_axes.set_ylim(y.min(),y.max())
             self.ui.plotWindow.cutx_axes.set_xlim(x.min(),x.max())
             '''
+            cut_x = self.ui.plotWindow.cutX
+            cut_x.xdata = x
+            cut_x.ydata = data_cutx
+            cut_x.xfit = xfit
+            cut_x.yfit = fitObj.fit.formula((xfit,cy),*fit_params)
+            cut_x.update_plot()
+            
+            cut_y = self.ui.plotWindow.cutY
+            cut_y.xdata = data_cuty
+            cut_y.ydata = y
+            cut_y.xfit = fitObj.fit.formula((cx,yfit),*fit_params)
+            cut_y.yfit = yfit
+            cut_y.update_plot()
 
 
     def load_fit(self, draw=True):

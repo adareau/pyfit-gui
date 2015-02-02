@@ -99,8 +99,8 @@ class CutScreen(QWidget):
     def setup_widget(self):
         
         self.plot = CurvePlot(self)
-        self.data_cut = make.curve(self.xdata,self.ydata)
-        self.data_fit = make.curve(self.xfit, self.yfit)
+        self.data_cut = make.curve(self.xdata,self.ydata, color="b")
+        self.data_fit = make.curve(self.xfit, self.yfit, color="r")
         
         self.plot.add_item(self.data_cut)
         self.plot.add_item(self.data_fit)
@@ -108,6 +108,16 @@ class CutScreen(QWidget):
         vlayout = QVBoxLayout()
         vlayout.addWidget(self.plot)
         self.setLayout(vlayout)
+        
+    def update_plot(self):
+
+        self.data_cut.set_data(self.xdata, self.ydata)
+        self.data_fit.set_data(self.xfit, self.yfit)
+        
+        self.plot.set_plot_limits(self.xdata.min(), self.xdata.max(), 
+                                  self.ydata.min(), self.ydata.max())
+        self.plot.replot()
+        
         
 
 # New class : LabelledRectangle = same as AnnotatedRectangle but with fixed text label
