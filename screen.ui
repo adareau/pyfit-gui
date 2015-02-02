@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>screen</class>
+ <widget class="QWidget" name="screen">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>671</width>
+    <height>500</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <widget class="QWidget" name="">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>671</width>
+     <height>501</height>
+    </rect>
+   </property>
+   <layout class="QGridLayout" name="gridLayout" rowstretch="1,3" columnstretch="5,1" rowminimumheight="0,0">
+    <item row="0" column="0">
+     <widget class="CutScreen" name="cutX" native="true"/>
+    </item>
+    <item row="1" column="0">
+     <widget class="ImageScreen" name="imageScreen" native="true"/>
+    </item>
+    <item row="1" column="1">
+     <widget class="CutScreen" name="cutY" native="true"/>
+    </item>
+    <item row="0" column="1">
+     <widget class="QWidget" name="mini" native="true"/>
+    </item>
+   </layout>
+  </widget>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>ImageScreen</class>
+   <extends>QWidget</extends>
+   <header>GuiqwtScreen_v2</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>CutScreen</class>
+   <extends>QWidget</extends>
+   <header>GuiqwtScreen_v2</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>
