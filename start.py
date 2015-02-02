@@ -91,10 +91,11 @@ class StartQT4(QtGui.QMainWindow):
         
         for t in self.ui.plotWindow.tools:
             self.ui.plotWindow.manager.add_tool(t)
-            
+        
+        # ROI management
         self.roi_tool = self.ui.plotWindow.manager.get_tool(ROISelectTool)
         self.ui.plotWindow.screen.plot.add_item(self.roi_tool.rect)
-        
+        self.data.rectROI = self.roi_tool.rect
         
         #self.ui.plotWindow.manager.register_all_curve_tools()
         
@@ -328,11 +329,16 @@ class StartQT4(QtGui.QMainWindow):
 
         self.ui.plotWindow.draw()
         '''
-        
+        self.draw_ROI(draw=False)
         self.ui.plotWindow.screen.data = data
         self.ui.plotWindow.screen.update_image()
         
+        if load_fit:self.load_fit(draw=False)
+     
         
+        self.draw_ROI(draw=False)
+        
+       
         
     ### ROI and background
     # ROI ----------------------------------
@@ -344,7 +350,7 @@ class StartQT4(QtGui.QMainWindow):
             self.data.ed_rectROI.disconnect()
         
     
-    def draw_ROI(self,draw=True):
+    def draw_ROI_old(self,draw=True):
         
         r = self.data.current_fit.picture.ROI
         if r==[]:return
@@ -364,13 +370,23 @@ class StartQT4(QtGui.QMainWindow):
             self.data.ed_rectROI.connect()
         
         if draw: self.ui.plotWindow.draw()
+    
+    def draw_ROI(self, draw=True):
+        
+        r = self.data.current_fit.picture.ROI
+        ROI_rect = self.data.rectROI
+        ROI_rect.set_rect(r[0],r[2],r[1],r[3])
+        self.ui.plotWindow.screen.plot.replot()
+        
         
     def get_ROI(self): 
         
         ROI = self.data.rectROI
+        '''
         if ROI is not None:
             r = (ROI.xy[0],ROI.xy[0]+ROI.get_width(),ROI.xy[1],ROI.xy[1]+ROI.get_height())
             self.data.current_fit.picture.ROI = r
+        '''
     
     def zoom_to_ROI(self):
         
@@ -508,7 +524,8 @@ class StartQT4(QtGui.QMainWindow):
             
             #self.ui.plotWindow.cuty_axes.cla()
             #self.ui.plotWindow.cutx_axes.cla()
-            
+            #XXX Display
+            '''
             self.ui.plotWindow.refreshLabelsAndTicks()
             
             self.ui.plotWindow.cuty_axes.plot(data_cuty,y,'.b',markersize=4)
@@ -520,7 +537,7 @@ class StartQT4(QtGui.QMainWindow):
             
             self.ui.plotWindow.cuty_axes.set_ylim(y.min(),y.max())
             self.ui.plotWindow.cutx_axes.set_xlim(x.min(),x.max())
-            
+            '''
         
     
     def load_fit(self,draw=True):

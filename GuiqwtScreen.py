@@ -122,6 +122,7 @@ class LabelledRectangle(AnnotatedRectangle):
     # Override get_text to return always the same text
     def get_text(self):
         return self.label_txt
+
     
 class RegionSelectTool(tools.RectangleTool):
     def __init__(self, *args, **kwargs):
@@ -147,7 +148,8 @@ class RegionSelectTool(tools.RectangleTool):
         self.rect.move_local_point_to(0,p0)
         self.rect.move_local_point_to(2,p1)
         #self.set_shape_style(self.rect)
-        
+        print(p0)
+        print(p1)
         
         plot.replot()
         
@@ -160,12 +162,13 @@ class ROISelectTool(RegionSelectTool):
         self.name = "ROI"
         self.rect.label_txt = self.name
         
+        '''
         line = LineStyleParam()
         line.set_style_from_matlab(':')
         line.color="#ff0000"
         
         self.rect.shape.shapeparam.line.update_param(line.build_pen())
-        
+        '''
         
          
         
