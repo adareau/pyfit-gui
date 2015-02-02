@@ -148,8 +148,6 @@ class RegionSelectTool(tools.RectangleTool):
         self.rect.move_local_point_to(0,p0)
         self.rect.move_local_point_to(2,p1)
         #self.set_shape_style(self.rect)
-        print(p0)
-        print(p1)
         
         plot.replot()
         

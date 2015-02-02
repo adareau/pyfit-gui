@@ -381,12 +381,11 @@ class StartQT4(QtGui.QMainWindow):
         
     def get_ROI(self): 
         
-        ROI = self.data.rectROI
-        '''
-        if ROI is not None:
-            r = (ROI.xy[0],ROI.xy[0]+ROI.get_width(),ROI.xy[1],ROI.xy[1]+ROI.get_height())
-            self.data.current_fit.picture.ROI = r
-        '''
+        ROI_rect = self.data.rectROI
+        r = ROI_rect.get_rect()
+
+        self.data.current_fit.picture.ROI = (r[0],r[2],r[1],r[3])
+
     
     def zoom_to_ROI(self):
         
