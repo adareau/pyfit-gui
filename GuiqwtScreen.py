@@ -235,6 +235,7 @@ class GuiqwtScreen(QWidget):
         self.manager.add_plot(self.cutY.plot)
         
         roi = ROISelectTool
+        
         self.tools=[tools.SelectTool,tools.RectZoomTool,
                     tools.ColormapTool, roi]
                     

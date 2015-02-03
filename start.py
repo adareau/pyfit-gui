@@ -12,6 +12,8 @@ import os
 import copy
 import time
 
+from guiqwt._scaler import INTERP_NEAREST, INTERP_LINEAR
+
 import pyfit as pf
 from GuiqwtScreen import GuiqwtScreen, RegionSelectTool, ROISelectTool
 
@@ -359,6 +361,11 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         colormap_scale = (self.settings.colormap_min*1.0,
                           self.settings.colormap_max*1.0)
         screen.image.set_lut_range(colormap_scale)
+        
+        interpolation_type = str(self.ui.display_interpolation.currentText())
+        interp = self.data.interpolations_dic[interpolation_type]
+        screen.image.set_interpolation(interp)
+        
         screen.update_image()
         
         screen.plot.update_colormap_axis(screen.image)
@@ -1273,8 +1280,9 @@ class GuiData():
 
         self.colormaps = ['jet', 'binary', 'hot', 'gray', 'Blues', 'Greens',
                           'rainbow']
-        self.interpolations = ['none', 'bilinear', 'bicubic', 'gaussian',
-                               'hermite']
+        self.interpolations = ['none', 'linear']
+        self.interpolations_dic = {'none' : INTERP_NEAREST,
+                                   'linear' : INTERP_LINEAR}
 
         self.tictoc_start = time.time()
 
