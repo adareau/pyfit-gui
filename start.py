@@ -350,12 +350,19 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         self.ui.plotWindow.draw()
         '''
         self.draw_ROI(draw=False)
-
-        self.ui.plotWindow.screen.x = xm[0, :]*1.0
-        self.ui.plotWindow.screen.y = ym[:, 0]*1.0
-        self.ui.plotWindow.screen.data = data 
-        self.ui.plotWindow.screen.update_image()
-
+        
+        screen = self.ui.plotWindow.screen
+        screen.x = xm[0, :]*1.0
+        screen.y = ym[:, 0]*1.0
+        screen.data = data
+        
+        colormap_scale = (self.settings.colormap_min*1.0,
+                          self.settings.colormap_max*1.0)
+        screen.image.set_lut_range(colormap_scale)
+        screen.update_image()
+        
+        screen.plot.update_colormap_axis(screen.image)
+        
         if load_fit: self.load_fit(draw=False)
 
 
@@ -532,22 +539,6 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
             data_cutx = fitObj.data_fit[index_cy, :]
 
 
-            #self.ui.plotWindow.cuty_axes.cla()
-            #self.ui.plotWindow.cutx_axes.cla()
-            #XXX Display
-            '''
-            self.ui.plotWindow.refreshLabelsAndTicks()
-
-            self.ui.plotWindow.cuty_axes.plot(data_cuty,y,'.b',markersize=4)
-            self.ui.plotWindow.cuty_axes.plot(fitObj.fit.formula((cx,yfit),*fit_params),
-                                              yfit,'r')
-
-            self.ui.plotWindow.cutx_axes.plot(x,data_cutx,'.b',markersize=4)
-            self.ui.plotWindow.cutx_axes.plot(xfit,fitObj.fit.formula((xfit,cy),*fit_params),'r')
-
-            self.ui.plotWindow.cuty_axes.set_ylim(y.min(),y.max())
-            self.ui.plotWindow.cutx_axes.set_xlim(x.min(),x.max())
-            '''
             cut_x = self.ui.plotWindow.cutX
             cut_x.xdata = x
             cut_x.ydata = data_cutx
