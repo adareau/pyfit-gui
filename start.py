@@ -350,7 +350,10 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         self.ui.plotWindow.draw()
         '''
         self.draw_ROI(draw=False)
-        self.ui.plotWindow.screen.data = data
+
+        self.ui.plotWindow.screen.x = xm[0, :]*1.0
+        self.ui.plotWindow.screen.y = ym[:, 0]*1.0
+        self.ui.plotWindow.screen.data = data 
         self.ui.plotWindow.screen.update_image()
 
         if load_fit: self.load_fit(draw=False)
