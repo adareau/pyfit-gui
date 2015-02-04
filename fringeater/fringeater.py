@@ -17,7 +17,7 @@ from scipy.linalg import inv
 
 
 
-def LoadRefImages(file_list,background,min_intensity=0):   
+def LoadRefImages(file_list,background,min_intensity):   
     """
 
     loads images, extracts background area and builds the B matrix
@@ -81,7 +81,7 @@ def LoadRefImages(file_list,background,min_intensity=0):
         
         if not (os.path.isfile(p_atoms) and os.path.isfile(p_noatoms)): continue
             
-        print('load image '+str(count)+' out of '+str(N)+'... '),
+        print 'load image '+str(count)+' out of '+str(N)+'... ',
         
         data_atoms = pl.imread(p_atoms)
         if len(data_atoms.shape)>2: data_atoms = data_atoms[:,:,0]# some pictures are saved in RGB, then we only take one layer
@@ -91,7 +91,7 @@ def LoadRefImages(file_list,background,min_intensity=0):
         
         # Check whether the shot is valid
         if np.mean(data_noatoms[background])<min_intensity:
-            print('[BAD SHOT => NOT USED]')
+            print '[BAD SHOT => NOT USED]'
             continue
             
         atom_list.append(data_atoms)
@@ -99,12 +99,12 @@ def LoadRefImages(file_list,background,min_intensity=0):
         
         R.append(data_noatoms[background])
         
-        print('[DONE]')
+        print '[DONE]'
         
         count+=1
         
     # Compute B matrix
-    print('compute B')
+    print 'compute B'
     
     R = np.array(R)
     B = R.dot(R.T)

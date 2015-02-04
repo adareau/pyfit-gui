@@ -57,8 +57,19 @@ file_list_2 = [(p.replace('.png','_1.png'),p.replace('.png','_2.png')) for p in 
 
 background = []
 
-data,REF = fr.LoadRefImages(file_list_1,background1)
+t_list = []
+data = []
+REF = []
 
+t0 = time.time()
+for i in np.arange(1):
+    del data
+    del REF
+    
+    data,REF = fr.LoadRefImages(file_list_1,background1,0)
+
+print(time.time()-t0)
+    
 
 
 od_list = []
