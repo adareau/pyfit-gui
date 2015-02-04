@@ -1125,7 +1125,7 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
 
         index = self.ui.file_list.selectedIndexes()[0]
 
-        name = index.data().toString()
+        name = index.data()
         name = str(name)
         root = str(self.settings.current_folder)
         #path = os.path.join(root,name)
