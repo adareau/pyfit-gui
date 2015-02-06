@@ -169,6 +169,8 @@ class ROISelectTool(RegionSelectTool):
         
         self.name = "ROI"
         self.rect.label_txt = self.name
+        self.TIP = _("Select ROI")
+        self.TITLE = _("ROI")
         
         '''
         line = LineStyleParam()
@@ -179,7 +181,12 @@ class ROISelectTool(RegionSelectTool):
         '''
         
          
+class BKGNDSelectTool(RegionSelectTool):
+    def __init__(self, *args, **kwargs):
+        super(BKGNDSelectTool,self).__init__(*args, **kwargs)
         
+        self.name = "BKGND"
+        self.rect.label_txt = self.name        
         
         
     
@@ -234,10 +241,11 @@ class GuiqwtScreen(QWidget):
         self.manager.add_plot(self.cutX.plot)
         self.manager.add_plot(self.cutY.plot)
         
-        roi = ROISelectTool
+        #roi = ROISelectTool
+        #bkgnd = BKGNDSelectTool
         
         self.tools=[tools.SelectTool,tools.RectZoomTool,
-                    tools.ColormapTool, roi]
+                    tools.ColormapTool]
                     
         self.manager.register_all_curve_tools()
 

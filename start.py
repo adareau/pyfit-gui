@@ -15,7 +15,7 @@ import time
 from guiqwt._scaler import INTERP_NEAREST, INTERP_LINEAR
 
 import pyfit as pf
-from GuiqwtScreen import GuiqwtScreen, RegionSelectTool, ROISelectTool
+from GuiqwtScreen import ROISelectTool, BKGNDSelectTool
 
 from collections import OrderedDict
 from spyderlib.widgets import internalshell
@@ -90,14 +90,34 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
 
         self.ui.plotWindow.manager.add_toolbar(toolbar, id(toolbar))
 
-
         for tool in self.ui.plotWindow.tools:
             self.ui.plotWindow.manager.add_tool(tool)
 
         # ROI management
+        self.ui.plotWindow.manager.add_tool(ROISelectTool)
+        roi_action = toolbar.actions()[-1]
+        roi_action.setText("ROI")
+        roi_action.setToolTip("Select ROI")
+        roi_action.setStatusTip("click and draw new region of interest")
+        icon = QtGui.QIcon.fromTheme("edit-cut")
+        roi_action.setIcon(icon)
+        #TODO : trouver icones dans
+        # http://standards.freedesktop.org/icon-naming-spec/icon-naming-spec-latest.html#names
         self.roi_tool = self.ui.plotWindow.manager.get_tool(ROISelectTool)
         self.ui.plotWindow.screen.plot.add_item(self.roi_tool.rect)
         self.data.rectROI = self.roi_tool.rect
+        
+        # Background management
+        self.ui.plotWindow.manager.add_tool(BKGNDSelectTool)
+        bkgnd_action = toolbar.actions()[-1]
+        bkgnd_action.setText("BKGND")
+        bkgnd_action.setToolTip("Select BACKGROUND")
+        bkgnd_action.setStatusTip("click and draw new background region")
+        icon = QtGui.QIcon.fromTheme("edit-cut")
+        bkgnd_action.setIcon(icon)
+        self.bkgnd_tool = self.ui.plotWindow.manager.get_tool(BKGNDSelectTool)
+        self.ui.plotWindow.screen.plot.add_item(self.bkgnd_tool.rect)
+        self.data.rectBKGND = self.bkgnd_tool.rect
 
         #self.ui.plotWindow.manager.register_all_curve_tools()
 
