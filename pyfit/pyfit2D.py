@@ -234,9 +234,17 @@ class PyFit2D():
         
     ''' Data related methods ''' 
     
-    def load_data(self):
-        
-        f = os.path.join(self.picture.path,self.picture.filename)
+    def load_data(self,f=None):
+        """
+        if no f argument is given, we use the filename stored in .picture
+        else f must be path to file, and we update .picture accordingly
+        """
+        if f==None:
+            f = os.path.join(self.picture.path,self.picture.filename)
+        else:
+            self.picture.path = os.path.split(f)[0]
+            self.picture.filename = os.path.split(f)[1]
+            
         if not os.path.isfile(f): return 0
         data = pl.imread(f)
         
