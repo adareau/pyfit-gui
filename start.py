@@ -122,6 +122,10 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         #self.ui.plotWindow.manager.register_all_curve_tools()
 
         toolbar.addSeparator()
+        '''
+        # HINT : old toolbar version
+        # I only keep it to have an example on toolbar button integration
+        
         toolbar.addWidget(self.ui.toolbar_ROI)
         toolbar.addWidget(self.ui.toolbar_zoom2ROI)
         toolbar.addWidget(self.ui.toolbar_background)
@@ -131,7 +135,7 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         self.ui.toolbar_zoom2ROI.clicked.connect(self.zoom_to_ROI)
         self.ui.toolbar_background.clicked.connect(self.set_background)
         self.ui.toolbar_zoom2BKGND.clicked.connect(self.zoom_to_BKGND)
-
+        '''
         # file tree browser
 
         self.folder_tree_model = QtGui.QFileSystemModel()
@@ -153,12 +157,13 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         self.ui.folder_tree.clicked.connect(self.folder_tree_clicked)
 
         self.ui.folder_tree_back.clicked.connect(self.folder_tree_back_clicked)
-
+        
         # file list
 
         self.file_list_model = None
         #self.ui.file_list.clicked.connect(self.file_list_clicked)
-
+        self.ui.refresh_file_list.clicked.connect(self.update_file_list)
+        
         # plot Window
         #XXX screen
         '''
@@ -399,14 +404,16 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
 
     ### ROI and background
     # ROI ----------------------------------
-
+    
+    '''
     def set_ROI(self):
         if self.ui.toolbar_ROI.isChecked():
             self.data.ed_rectROI.connect()
         else:
             self.data.ed_rectROI.disconnect()
 
-
+    '''
+    
     def draw_ROI(self, draw=True):
 
         r = self.data.current_fit.picture.ROI
@@ -433,13 +440,14 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         self.draw_ROI()
 
     # Background  ----------------------------------
-
+    '''
     def set_background(self):
         if self.ui.toolbar_background.isChecked():
             self.data.ed_rectBackground.connect()
         else:
             self.data.ed_rectBackground.disconnect()
-
+    '''
+    
     def draw_background(self, draw=True):
 
         r = self.data.current_fit.picture.background

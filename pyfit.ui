@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1155</width>
-    <height>886</height>
+    <height>894</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -91,10 +91,10 @@
    <widget class="QFrame" name="toolbar">
     <property name="geometry">
      <rect>
-      <x>1110</x>
-      <y>420</y>
-      <width>31</width>
-      <height>51</height>
+      <x>720</x>
+      <y>520</y>
+      <width>41</width>
+      <height>31</height>
      </rect>
     </property>
     <property name="frameShape">
@@ -106,70 +106,6 @@
     <property name="lineWidth">
      <number>0</number>
     </property>
-    <widget class="QToolButton" name="toolbar_ROI">
-     <property name="geometry">
-      <rect>
-       <x>-9</x>
-       <y>10</y>
-       <width>41</width>
-       <height>41</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>ROI</string>
-     </property>
-     <property name="checkable">
-      <bool>true</bool>
-     </property>
-    </widget>
-    <widget class="QToolButton" name="toolbar_zoom2ROI">
-     <property name="geometry">
-      <rect>
-       <x>31</x>
-       <y>10</y>
-       <width>101</width>
-       <height>41</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Zoom to ROI</string>
-     </property>
-     <property name="checkable">
-      <bool>false</bool>
-     </property>
-    </widget>
-    <widget class="QToolButton" name="toolbar_background">
-     <property name="geometry">
-      <rect>
-       <x>131</x>
-       <y>10</y>
-       <width>51</width>
-       <height>41</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>BKGND</string>
-     </property>
-     <property name="checkable">
-      <bool>true</bool>
-     </property>
-    </widget>
-    <widget class="QToolButton" name="toolbar_zoom2BKGND">
-     <property name="geometry">
-      <rect>
-       <x>181</x>
-       <y>10</y>
-       <width>101</width>
-       <height>41</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Zoom to BKGND</string>
-     </property>
-     <property name="checkable">
-      <bool>false</bool>
-     </property>
-    </widget>
    </widget>
    <widget class="QTabWidget" name="fitEditorTab">
     <property name="geometry">
@@ -770,9 +706,9 @@
    <widget class="QProgressBar" name="progressBar">
     <property name="geometry">
      <rect>
-      <x>930</x>
+      <x>990</x>
       <y>230</y>
-      <width>201</width>
+      <width>141</width>
       <height>16</height>
      </rect>
     </property>
@@ -804,6 +740,19 @@
     </property>
     <property name="wordWrap">
      <bool>false</bool>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="refresh_file_list">
+    <property name="geometry">
+     <rect>
+      <x>930</x>
+      <y>228</y>
+      <width>51</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>refresh</string>
     </property>
    </widget>
   </widget>

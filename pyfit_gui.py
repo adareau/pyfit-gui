@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'pyfit.ui'
 #
-# Created: Wed Feb 04 16:42:27 2015
+# Created: Mon Jul 06 14:08:28 2015
 #      by: PyQt4 UI code generator 4.9.6
 #
 # WARNING! All changes made in this file will be lost!
@@ -26,7 +26,7 @@ except AttributeError:
 class Ui_PyFit(object):
     def setupUi(self, PyFit):
         PyFit.setObjectName(_fromUtf8("PyFit"))
-        PyFit.resize(1155, 886)
+        PyFit.resize(1155, 894)
         self.centralwidget = QtGui.QWidget(PyFit)
         self.centralwidget.setMinimumSize(QtCore.QSize(1150, 560))
         self.centralwidget.setObjectName(_fromUtf8("centralwidget"))
@@ -50,27 +50,11 @@ class Ui_PyFit(object):
         self.folder_tree_back.setGeometry(QtCore.QRect(720, 230, 31, 21))
         self.folder_tree_back.setObjectName(_fromUtf8("folder_tree_back"))
         self.toolbar = QtGui.QFrame(self.centralwidget)
-        self.toolbar.setGeometry(QtCore.QRect(1110, 420, 31, 51))
+        self.toolbar.setGeometry(QtCore.QRect(720, 520, 41, 31))
         self.toolbar.setFrameShape(QtGui.QFrame.NoFrame)
         self.toolbar.setFrameShadow(QtGui.QFrame.Raised)
         self.toolbar.setLineWidth(0)
         self.toolbar.setObjectName(_fromUtf8("toolbar"))
-        self.toolbar_ROI = QtGui.QToolButton(self.toolbar)
-        self.toolbar_ROI.setGeometry(QtCore.QRect(-9, 10, 41, 41))
-        self.toolbar_ROI.setCheckable(True)
-        self.toolbar_ROI.setObjectName(_fromUtf8("toolbar_ROI"))
-        self.toolbar_zoom2ROI = QtGui.QToolButton(self.toolbar)
-        self.toolbar_zoom2ROI.setGeometry(QtCore.QRect(31, 10, 101, 41))
-        self.toolbar_zoom2ROI.setCheckable(False)
-        self.toolbar_zoom2ROI.setObjectName(_fromUtf8("toolbar_zoom2ROI"))
-        self.toolbar_background = QtGui.QToolButton(self.toolbar)
-        self.toolbar_background.setGeometry(QtCore.QRect(131, 10, 51, 41))
-        self.toolbar_background.setCheckable(True)
-        self.toolbar_background.setObjectName(_fromUtf8("toolbar_background"))
-        self.toolbar_zoom2BKGND = QtGui.QToolButton(self.toolbar)
-        self.toolbar_zoom2BKGND.setGeometry(QtCore.QRect(181, 10, 101, 41))
-        self.toolbar_zoom2BKGND.setCheckable(False)
-        self.toolbar_zoom2BKGND.setObjectName(_fromUtf8("toolbar_zoom2BKGND"))
         self.fitEditorTab = QtGui.QTabWidget(self.centralwidget)
         self.fitEditorTab.setGeometry(QtCore.QRect(720, 310, 271, 201))
         self.fitEditorTab.setObjectName(_fromUtf8("fitEditorTab"))
@@ -232,7 +216,7 @@ class Ui_PyFit(object):
         self.fit_list_box.setObjectName(_fromUtf8("fit_list_box"))
         self.fitEditorTab.addTab(self.tab_2, _fromUtf8(""))
         self.progressBar = QtGui.QProgressBar(self.centralwidget)
-        self.progressBar.setGeometry(QtCore.QRect(930, 230, 201, 16))
+        self.progressBar.setGeometry(QtCore.QRect(990, 230, 141, 16))
         self.progressBar.setProperty("value", 100)
         self.progressBar.setObjectName(_fromUtf8("progressBar"))
         self.current_dir_txt = QtGui.QLabel(self.centralwidget)
@@ -245,6 +229,9 @@ class Ui_PyFit(object):
         self.current_dir_txt.setTextFormat(QtCore.Qt.AutoText)
         self.current_dir_txt.setWordWrap(False)
         self.current_dir_txt.setObjectName(_fromUtf8("current_dir_txt"))
+        self.refresh_file_list = QtGui.QPushButton(self.centralwidget)
+        self.refresh_file_list.setGeometry(QtCore.QRect(930, 228, 51, 21))
+        self.refresh_file_list.setObjectName(_fromUtf8("refresh_file_list"))
         PyFit.setCentralWidget(self.centralwidget)
         self.menubar = QtGui.QMenuBar(PyFit)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 1155, 21))
@@ -289,10 +276,6 @@ class Ui_PyFit(object):
         PyFit.setWindowTitle(_translate("PyFit", "MainWindow", None))
         self.fitButton.setText(_translate("PyFit", "FIT", None))
         self.folder_tree_back.setText(_translate("PyFit", "<--", None))
-        self.toolbar_ROI.setText(_translate("PyFit", "ROI", None))
-        self.toolbar_zoom2ROI.setText(_translate("PyFit", "Zoom to ROI", None))
-        self.toolbar_background.setText(_translate("PyFit", "BKGND", None))
-        self.toolbar_zoom2BKGND.setText(_translate("PyFit", "Zoom to BKGND", None))
         self.fit_binning_box.setText(_translate("PyFit", "Binning", None))
         self.fit_autobin_box.setText(_translate("PyFit", "Auto binning ", None))
         self.fit_binning_label1.setText(_translate("PyFit", "Max :", None))
@@ -326,6 +309,7 @@ class Ui_PyFit(object):
         self.fit_list_box.setText(_translate("PyFit", "fit :", None))
         self.fitEditorTab.setTabText(self.fitEditorTab.indexOf(self.tab_2), _translate("PyFit", "Quick list", None))
         self.current_dir_txt.setText(_translate("PyFit", "c:/path/to/our/file", None))
+        self.refresh_file_list.setText(_translate("PyFit", "refresh", None))
         self.console_dock.setWindowTitle(_translate("PyFit", "console", None))
         self.result_dock.setWindowTitle(_translate("PyFit", "results", None))
         self.flush_result_button.setText(_translate("PyFit", "flush", None))
