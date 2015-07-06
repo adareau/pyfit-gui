@@ -2,6 +2,7 @@ old\ tests/*
 not\ used/*
 fit\ examples/*
 save/*
+tests/*
 settings/*
 fringeater/*.m
 *.pyc
