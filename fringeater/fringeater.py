@@ -196,4 +196,3 @@ def GenRefPic(c,ref_pics):
     return ref       
     
     
-    
