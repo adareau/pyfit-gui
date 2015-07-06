@@ -12,6 +12,7 @@ import os
 import pylab as pl
 import scipy.optimize as opt
 import copy
+import h5py
 
 from cPickle import dump
 
@@ -134,7 +135,7 @@ class PyFit2D():
     def values_to_str(self):
         if not self.values:
             self.compute_values()
-            
+        
         out = ''        
         for v in self.fit.values:
             c = self.values[v.name]
@@ -300,9 +301,177 @@ class PyFit2D():
         with open(f, 'wb') as output:
             dump(fit, output)
 
+        # TEST
+        f = f[0:-4]+'.hdf5'
+        self.fit_to_hdf5(f)
         
         return
+        
+        
+    def fit_to_hdf5(self, fname):
+        """
+        converts the fit object (self) into a hdf5 format
+        
+        Structure :
+        
+        hdf5
+        ├─ values
+        |   └─ values (dic, stored in attributes)
+        |
+        ├─ fit
+        |   ├─ name (str)
+        |   ├─ parameters (dict)
+        |   ├─ formula_parameters (lbda...)
+        |   ├─ guess (lbda)
+        |   ├─ results (array)
+        |   └─ values (lbda)
+        | 
+        ├─ fit_options
+        |   ├─ do_binning (bool)
+        |   ├─ binning (int)
+        |   ├─ auto_binning (bool)
+        |   ├─ binning_maxpoint (int)
+        |   ├─ askROI (bool)
+        |   ├─ fit_hole_first (bool)
+        |   ├─ askHole (bool)
+        |   └─  max_func_eval (int)
+        |
+        ├─ camera 
+        |   ├─ magnification (float)
+        |   ├─ rotate (float)
+        |   ├─ pixel_size_x (float)
+        |   ├─ pixel_size_y (float)
+        |   ├─ OD_conversion (str = 'pickled_lambda')
+        |   ├─ OD_conversion_formula (str)
+        |   ├─ image_size (tuple)
+        |   └─ image_ext (str)
+        |
+        ├─ picture
+        |   ├─ filename (str)
+        |   ├─ path (str)
+        |   ├─ variables (dict)
+        |   ├─ ROI (tuple)
+        |   └─ background (tuple)
+        |
+        └─ atom
+            ├─ name (str)
+            ├─ fluo (bool)
+            ├─ lbda (float)
+            └─ sigma0 (float)
+         
+        """
+        
+        with h5py.File(fname,"w") as f:
+            
+            # pyfit2D self properties save
+            dset = f.create_dataset("values", (0,), dtype='i')
+            if self.values:
+                for key, val in self.values.iteritems():
+                    dset.attrs[key] = val
+                    
+            # fit
+            dset = f.create_dataset("fit", (0,), dtype='i')
+            dset.attrs['name'] = self.fit.name
+            dset.attrs['results'] = self.fit.results
+            
+            # fit_options
+            dset = f.create_dataset("fit_options", (0,), dtype='i')
+            dset.attrs['do_binning'] = self.fit.options.do_binning
+            dset.attrs['binning'] = self.fit.options.binning
+            dset.attrs['auto_binning'] = self.fit.options.auto_binning
+            dset.attrs['binning_maxpoints'] = self.fit.options.binning_maxpoints
+            dset.attrs['askROI'] = self.fit.options.askROI
+            dset.attrs['fit_hole_first'] = self.fit.options.fit_hole_first
+            dset.attrs['askHole'] = self.fit.options.askHole
+            dset.attrs['max_func_eval'] = self.fit.options.max_func_eval
+            
+            # camera
+            dset = f.create_dataset("camera", (0,), dtype='i')
+            dset.attrs['magnification'] = self.camera.magnification
+            dset.attrs['rotate'] = self.camera.rotate
+            dset.attrs['pixel_size_x'] = self.camera.pixel_size_x
+            dset.attrs['pixel_size_y'] = self.camera.pixel_size_y
+            dset.attrs['OD_conversion_formula'] = self.camera.OD_conversion_formula
+            dset.attrs['OD_conversion'] = 'pickled_lambda'
+            dset.attrs['image_size'] = self.camera.image_size
+            dset.attrs['image_ext'] = self.camera.image_ext
+            
+            # picture
+            dset = f.create_dataset("picture", (0,), dtype='i')
+            dset.attrs['filename'] = self.picture.filename
+            dset.attrs['path'] = self.picture.path
+            dset.attrs['ROI'] = self.picture.ROI
+            dset.attrs['background'] = self.picture.background
+            
+            # atom
+            dset = f.create_dataset("atom", (0,), dtype='i')
+            dset.attrs['name'] = self.atom.name
+            dset.attrs['fluo'] = self.atom.fluo
+            dset.attrs['lbda'] = self.atom.lbda
+            dset.attrs['sigma0'] = self.atom.sigma0
+        
+        pass
 
+
+    def hdf5_to_fit(self,fname):
+        """
+        reads hdf5 format to generate fit object
+        """
+        loaded_fit = PyFit2D()
+        
+        with h5py.File(fname,"r") as f:
+            
+            # pyfit2D self properties save
+            dset = f['values']
+            values = {}
+            for key in dset.attrs.keys():
+                values[key] = dset.attrs[key]
+            
+            loaded_fit.values = values
+            
+            # fit
+            dset = f["fit"]
+            loaded_fit.fit.name = dset.attrs['name']
+            loaded_fit.fit.results = dset.attrs['results'] 
+            
+            # fit_options
+            dset = f["fit_options"]
+            loaded_fit.fit.options.do_binning = dset.attrs['do_binning']
+            loaded_fit.fit.options.binning = dset.attrs['binning']
+            loaded_fit.fit.options.auto_binning = dset.attrs['auto_binning']
+            loaded_fit.fit.options.binning_maxpoints = dset.attrs['binning_maxpoints']
+            loaded_fit.fit.options.askROI = dset.attrs['askROI']
+            loaded_fit.fit.options.fit_hole_first = dset.attrs['fit_hole_first']
+            loaded_fit.fit.options.askHole = dset.attrs['askHole']
+            loaded_fit.fit.options.max_func_eval = dset.attrs['max_func_eval']
+            
+            # camera
+            dset = f["camera"]
+            loaded_fit.camera.magnification = dset.attrs['magnification']
+            loaded_fit.camera.rotate = dset.attrs['rotate']
+            loaded_fit.camera.pixel_size_x = dset.attrs['pixel_size_x']
+            loaded_fit.camera.pixel_size_y = dset.attrs['pixel_size_y']
+            loaded_fit.camera.OD_conversion_formula = dset.attrs['OD_conversion_formula']
+            loaded_fit.camera.OD_conversion = dset.attrs['OD_conversion']
+            loaded_fit.camera.image_size = dset.attrs['image_size']
+            loaded_fit.camera.image_ext = dset.attrs['image_ext']
+            
+            # picture
+            dset = f["picture"]
+            loaded_fit.picture.filename = dset.attrs['filename']
+            loaded_fit.picture.path = dset.attrs['path']
+            loaded_fit.picture.ROI = dset.attrs['ROI']
+            loaded_fit.picture.background = dset.attrs['background']
+            
+            # atom
+            dset = f["atom"]
+            loaded_fit.atom.name = dset.attrs['name']
+            loaded_fit.atom.fluo = dset.attrs['fluo']
+            loaded_fit.atom.lbda = dset.attrs['lbda']
+            loaded_fit.atom.sigma0 = dset.attrs['sigma0']
+            
+           
+        return loaded_fit
     
  # TEST
 '''

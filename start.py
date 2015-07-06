@@ -295,7 +295,7 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         i = 0
         for file_name in files_list:
             fname = str(file_name)
-            fname = fname[0:len(fname)-4]+'.fit'
+            fname = fname[:-4]+'.hdf5'
             fit_path = os.path.join(save_dir, fname)
             if os.path.isfile(fit_path):
                 name = self.settings.isfit_str+str(file_name)
@@ -581,11 +581,11 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
             cut_y.update_plot()
 
 
-    def load_fit(self, draw=True):
+    def load_fit_old(self, draw=True):
 
         save_dir = os.path.join(self.data.current_file_path, '.fits')
         fname = self.data.current_file_name
-        fname = fname[0:len(fname)-4]+'.fit'
+        fname = fname[:-4]+'.fit'
         fit_path = os.path.join(save_dir, fname)
 
         if not os.path.isfile(fit_path): return
@@ -593,10 +593,13 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         self.print_result(self.settings.results_delim)
         self.print_result("<b> Loading FIT</b>")
 
-
+        # TODO : remove (old version)
+        
         with open(fit_path, 'rb') as output:
                 saved_fit = load(output)
-
+        
+        
+        
         self.print_settings(saved_fit)
 
 
@@ -615,7 +618,54 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         # print results
         results_str = saved_fit.values_to_str()
         self.print_result(results_str)
+        
+        
+    def load_fit(self, draw=True):
 
+        save_dir = os.path.join(self.data.current_file_path, '.fits')
+        fname = self.data.current_file_name
+        fname = fname[0:len(fname)-4]+'.hdf5'
+        fit_path = os.path.join(save_dir, fname)
+
+        if not os.path.isfile(fit_path): return
+
+        self.print_result(self.settings.results_delim)
+        self.print_result("<b> Loading FIT</b>")
+
+
+        saved_fit = self.data.current_fit.hdf5_to_fit(fit_path)
+        
+        # import lambdas from fit generator 
+        if saved_fit.fit.name in pf.fit2D_dic.keys():
+            buffer_fit = pf.fit2D_dic[saved_fit.fit.name]
+            saved_fit.fit.formula = buffer_fit.formula
+            saved_fit.fit.formula_parameters = buffer_fit.formula_parameters
+            if not isinstance(saved_fit.fit.formula_parameters,str):
+                saved_fit.fit.updateFormulaFromParameters2D()
+            saved_fit.fit.values = buffer_fit.values
+            
+        else:
+            self.print_result('Saved fit name not found in known fit list - abort')
+            return
+        
+        self.print_settings(saved_fit)
+
+
+        # load ROI
+        self.data.current_fit.picture.ROI = saved_fit.picture.ROI
+        if draw: self.draw_ROI()
+
+        # load background
+        self.data.current_fit.picture.background = saved_fit.picture.background
+        if draw: self.draw_background()
+
+        # display results
+        saved_fit.load_data()
+        self.plot_fit_results(fitObj=saved_fit)
+
+        # print results
+        results_str = saved_fit.values_to_str()
+        self.print_result(results_str)
 
 
     ### GUI settings management
@@ -885,13 +935,25 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
             # 2 - load fit data
 
             save_dir = os.path.join(root, '.fits')
-            name = name[0:len(name)-4]+'.fit'
+            name = name[:-4]+'.hdf5'
             fit_path = os.path.join(save_dir, name)
 
             if not os.path.isfile(fit_path): continue
 
-            with open(fit_path, 'rb') as output:
-                fit = load(output)
+            fit = self.data.current_fit.hdf5_to_fit(fit_path)
+        
+            # import lambdas from fit generator 
+            if fit.fit.name in pf.fit2D_dic.keys():
+                buffer_fit = pf.fit2D_dic[fit.fit.name]
+                fit.fit.formula = buffer_fit.formula
+                fit.fit.formula_parameters = buffer_fit.formula_parameters
+                if not isinstance(fit.fit.formula_parameters,str):
+                    fit.fit.updateFormulaFromParameters2D()
+                fit.fit.values = buffer_fit.values
+                
+            else:
+                self.print_result('Saved fit name not found in known fit list - abort')
+                return
 
             fit.picture.parseVariables()
 
@@ -950,14 +1012,26 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
             # 2 - load fit data and get parameters
 
             save_dir = os.path.join(root, '.fits')
-            name = name[0:len(name)-4]+'.fit'
+            name = name[0:-4]+'.hdf5'
             fit_path = os.path.join(save_dir, name)
 
             if not os.path.isfile(fit_path): continue
 
-            with open(fit_path, 'rb') as output:
-                fit = load(output)
-
+            fit = self.data.current_fit.hdf5_to_fit(fit_path)
+        
+            # import lambdas from fit generator 
+            if fit.fit.name in pf.fit2D_dic.keys():
+                buffer_fit = pf.fit2D_dic[fit.fit.name]
+                fit.fit.formula = buffer_fit.formula
+                fit.fit.formula_parameters = buffer_fit.formula_parameters
+                if not isinstance(fit.fit.formula_parameters,str):
+                    fit.fit.updateFormulaFromParameters2D()
+                fit.fit.values = buffer_fit.values
+                
+            else:
+                self.print_result('Saved fit name not found in known fit list - abort')
+                return
+            
             fit.picture.parseVariables()
 
             all_params = dict(fit.picture.variables.items()+fit.values.items())
