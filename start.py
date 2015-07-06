@@ -11,6 +11,9 @@ import numpy as np
 import os
 import copy
 import time
+import re
+
+from functools import partial
 
 from guiqwt._scaler import INTERP_NEAREST, INTERP_LINEAR
 
@@ -293,7 +296,11 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         files_list = current_dir.entryList(file_name_filter,
                                            qdir.Files | qdir.NoSymLinks,
                                            QtCore.QDir.Time)
-
+        
+        # we keep the file list in here, so that we can change the names
+        # displayed in the QListView 
+        self.data.current_file_list = [f for f in files_list]
+                                   
         # Check if saved fit exists
 
         save_dir = os.path.join(self.data.current_file_path, '.fits')
@@ -306,7 +313,10 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
                 name = self.settings.isfit_str+str(file_name)
             else:
                 name = self.settings.isnofit_str+str(file_name)
-
+            
+            for var_name in self.settings.variables_to_hide:
+                name = self.hide_variable(name,var_name)
+                
             files_list[i] = name
             i += 1
             pass
@@ -317,7 +327,23 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         # callback has to be set after model is set for file_list
         self.ui.file_list.selectionModel().selectionChanged.connect(self.file_list_clicked)
 
-
+    def hide_variable(self,file_name, var_name):
+        pattern = "(_?)"+var_name+" = (-*[0-9]*[,.]?[0-9]*)"
+        
+        return re.sub(pattern,'',file_name)
+    
+    def choose_variables_to_hide(self):
+        
+        check_window = CheckListWindow(title = "hide variables",
+                                       variables=self.data.available_variables,
+                                       selected = self.settings.variables_to_hide)
+        result = check_window.exec_()        
+        
+        if result:
+            self.settings.variables_to_hide = check_window.selected
+            self.update_file_list()
+            
+            
     def display_file(self, load_fit=True):
         """
         displays file + ROI + Background & fit results
@@ -932,7 +958,8 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
 
             # 1 - Get file name
 
-            name = str(i.data().toString())
+            #name = str(i.data().toString())
+            name = str(self.data.current_file_list[i.row()])
             root = str(self.settings.current_folder)
             root = os.path.abspath(root)
 
@@ -1009,7 +1036,8 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
 
             # 1 - Get file name
 
-            name = str(i.data().toString())
+            #name = str(i.data().toString())
+            name = str(self.data.current_file_list[i.row()])
             root = str(self.settings.current_folder)
             root = os.path.abspath(root)
 
@@ -1226,16 +1254,19 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
             return
 
         index = self.ui.file_list.selectedIndexes()[0]
-
-        name = index.data().toString()
-        name = str(name)
+        
+        #name = index.data().toString()
+        #name = str(name)
+        #name = name.replace(self.settings.isfit_str, '')
+        #name = name.replace(self.settings.isnofit_str, '')
+        
+        name = str(self.data.current_file_list[index.row()])
         root = str(self.settings.current_folder)
-        #path = os.path.join(root,name)
+
 
         root = os.path.abspath(root)
 
-        name = name.replace(self.settings.isfit_str, '')
-        name = name.replace(self.settings.isnofit_str, '')
+
 
         self.data.current_file_name = name
         self.data.current_file_path = root
@@ -1243,8 +1274,8 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
 
         self.display_file()
         self.refresh_available_parameters()
-
-
+        
+        
     def fit_button_clicked(self):
 
         # loop over all selected files
@@ -1259,7 +1290,8 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
             self.ui.progressBar.setValue(n*100.0/N)
             # 1 - Get file name
 
-            name = str(i.data().toString())
+            #name = str(i.data().toString())
+            name = str(self.data.current_file_list[i.row()])
             root = str(self.settings.current_folder)
             root = os.path.abspath(root)
 
@@ -1294,11 +1326,17 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
     ##### DEBUGGING
 
     def debug(self):
-        opt = self.data.current_fit.fit.options
+        
+        check_window = CheckListWindow(title = "hide variables",
+                                       variables=self.data.available_variables,
+                                       selected = self.settings.variables_to_hide)
+        result = check_window.exec_()        
+        
+        if result:
+            self.settings.variables_to_hide = selected = check_window.selected
 
-        print opt.do_binning
-        print opt.auto_binning
 
+        
     def print_event(self, event):
         print event
 
@@ -1320,6 +1358,9 @@ class GuiSettings():
         self.current_folder = ''
         self.file_name_filter = '.jpg,.png'
 
+        self.variables_to_hide = []
+
+        
         # Camera
 
         self.current_cam = 'lumenera'
@@ -1363,7 +1404,7 @@ class GuiData():
 
         self.current_file_name = ''
         self.current_file_path = ''
-
+        self.current_file_list = []
 
         self.current_fit = pf.PyFit2D()
         self.current_fit.camera = gui.settings.cam_list[gui.settings.current_cam]
@@ -1388,9 +1429,78 @@ class GuiData():
 
         self.tictoc_start = time.time()
 
+        
 
 
+class CheckListWindow(QtGui.QDialog):
+ 
+    def __init__(self, parent=None, title='Window Title',
+                 variables = ['var1', 'var2'],
+                 selected = ['var1'], 
+                 msg = 'check to hide variable'):
+        super(CheckListWindow, self).__init__(parent)
+ 
+        #self.resize(260,160)
 
+        
+        layout = QtGui.QGridLayout()
+
+        
+        self.buttons = []
+        self.cboxes = []
+        
+        self.varlist = [v for v in variables]
+        self.selected = selected
+        
+        text_1 = QtGui.QLabel(msg)
+        layout.addWidget(text_1,0,0,1,2)
+        
+        i=0
+        for var in variables:
+            self.cboxes.append(QtGui.QCheckBox(var))
+            self.buttons.append(QtGui.QPushButton('del'))
+            self.buttons[-1].setMaximumWidth(50)
+            layout.addWidget(self.cboxes[-1],i+1,0)
+            #layout.addWidget(buttons[-1],i,1)
+            
+            self.cboxes[-1].stateChanged.connect(partial(self.checkbox_clicked,var,i))
+            self.buttons[-1].clicked.connect(partial(self.button_clicked,i))
+            
+            if var in selected:
+                self.cboxes[-1].setChecked(True)
+                
+            i+=1
+        
+        button_OK = QtGui.QPushButton('OK')
+        button_cancel = QtGui.QPushButton('Cancel')
+        
+        button_OK.setMaximumWidth(70)
+        button_cancel.setMaximumWidth(70)
+        
+        button_OK.clicked.connect(self.accept)
+        button_cancel.clicked.connect(self.reject)
+        
+        layout.addWidget(button_OK,i+1,0)
+        layout.addWidget(button_cancel,i+1,1)
+        
+
+        
+        self.setLayout(layout)
+        self.setWindowTitle(title)
+    
+    def checkbox_clicked(self, var,i):
+        if self.cboxes[i].isChecked():
+            if var not in self.selected:
+                self.selected.append(var)
+        else:
+            if var in self.selected:
+                self.selected.remove(var)
+        
+    
+    def button_clicked(self,index):
+        print(index)
+
+      
 if __name__ == "__main__":
     app = QtGui.QApplication(sys.argv)
     myapp = StartQT4()
