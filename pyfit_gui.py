@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'pyfit.ui'
 #
-# Created: Tue Jul 07 09:07:17 2015
+# Created: Tue Jul 07 10:59:28 2015
 #      by: PyQt4 UI code generator 4.9.6
 #
 # WARNING! All changes made in this file will be lost!
@@ -206,7 +206,7 @@ class Ui_PyFit(object):
         self.quickPlotButton.setGeometry(QtCore.QRect(160, 10, 51, 31))
         self.quickPlotButton.setObjectName(_fromUtf8("quickPlotButton"))
         self.quickStatsButton = QtGui.QPushButton(self.tab_2)
-        self.quickStatsButton.setGeometry(QtCore.QRect(10, 140, 51, 31))
+        self.quickStatsButton.setGeometry(QtCore.QRect(10, 141, 51, 31))
         self.quickStatsButton.setObjectName(_fromUtf8("quickStatsButton"))
         self.list_fit_type = QtGui.QComboBox(self.tab_2)
         self.list_fit_type.setGeometry(QtCore.QRect(60, 70, 151, 22))
@@ -214,6 +214,19 @@ class Ui_PyFit(object):
         self.fit_list_box = QtGui.QCheckBox(self.tab_2)
         self.fit_list_box.setGeometry(QtCore.QRect(20, 70, 61, 22))
         self.fit_list_box.setObjectName(_fromUtf8("fit_list_box"))
+        self.send_to_console_button = QtGui.QPushButton(self.tab_2)
+        self.send_to_console_button.setGeometry(QtCore.QRect(70, 141, 61, 31))
+        self.send_to_console_button.setObjectName(_fromUtf8("send_to_console_button"))
+        self.hide_variable_txt_2 = QtGui.QLabel(self.tab_2)
+        self.hide_variable_txt_2.setGeometry(QtCore.QRect(72, 127, 61, 16))
+        font = QtGui.QFont()
+        font.setBold(False)
+        font.setWeight(50)
+        font.setKerning(True)
+        self.hide_variable_txt_2.setFont(font)
+        self.hide_variable_txt_2.setTextFormat(QtCore.Qt.AutoText)
+        self.hide_variable_txt_2.setWordWrap(False)
+        self.hide_variable_txt_2.setObjectName(_fromUtf8("hide_variable_txt_2"))
         self.fitEditorTab.addTab(self.tab_2, _fromUtf8(""))
         self.progressBar = QtGui.QProgressBar(self.centralwidget)
         self.progressBar.setGeometry(QtCore.QRect(990, 230, 141, 16))
@@ -282,7 +295,7 @@ class Ui_PyFit(object):
         PyFit.addToolBar(QtCore.Qt.TopToolBarArea, self.toolBar)
 
         self.retranslateUi(PyFit)
-        self.fitEditorTab.setCurrentIndex(1)
+        self.fitEditorTab.setCurrentIndex(3)
         QtCore.QMetaObject.connectSlotsByName(PyFit)
 
     def retranslateUi(self, PyFit):
@@ -320,6 +333,8 @@ class Ui_PyFit(object):
         self.quickPlotButton.setText(_translate("PyFit", "PLOT", None))
         self.quickStatsButton.setText(_translate("PyFit", "Stats", None))
         self.fit_list_box.setText(_translate("PyFit", "fit :", None))
+        self.send_to_console_button.setText(_translate("PyFit", "to console", None))
+        self.hide_variable_txt_2.setText(_translate("PyFit", "--> gui.res", None))
         self.fitEditorTab.setTabText(self.fitEditorTab.indexOf(self.tab_2), _translate("PyFit", "Quick list", None))
         self.current_dir_txt.setText(_translate("PyFit", "c:/path/to/our/file", None))
         self.refresh_file_list.setText(_translate("PyFit", "refresh", None))

@@ -245,6 +245,7 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
 
         self.ui.quickPlotButton.clicked.connect(self.plot_list)
         self.ui.quickStatsButton.clicked.connect(self.stat_list)
+        self.ui.send_to_console_button.clicked.connect(self.send_to_console)
         self.ui.fit_list_box.clicked.connect(self.refresh_gui_settings)
 
         for fit in self.data.fit1D_dic:
@@ -274,7 +275,7 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
                                                        multithreaded=False)
 
         self.pythonshell.set_codecompletion_auto(True)
-
+        self.pythonshell.interpreter.namespace['res'] = {}
         self.ui.console_dock.setWidget(self.pythonshell)
 
 
@@ -932,7 +933,9 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         print "access mainWindow with 'gui'"
         print "modules : numpy as 'np', matplotlip.pyplot as 'plt' "
         print "local functions : fit"
+        print "exported list : res (dict)"
 
+        
 
     def print_result(self, txt):
         self.ui.result_text.append(txt)
@@ -1139,7 +1142,66 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
                 self.print_result(out)
 
 
+    def send_to_console(self):
+        
+        params = {}
 
+        for i in reversed(self.ui.file_list.selectedIndexes()):
+
+            # 1 - Get file name
+
+            #name = str(i.data().toString())
+            name = str(self.data.current_file_list[i.row()])
+            root = str(self.settings.current_folder)
+            root = os.path.abspath(root)
+
+            name = name.replace(self.settings.isfit_str, '')
+            name = name.replace(self.settings.isnofit_str, '')
+
+
+            # 2 - load fit data and get parameters
+
+            save_dir = os.path.join(root, '.fits')
+            name = name[0:-4]+'.hdf5'
+            fit_path = os.path.join(save_dir, name)
+
+            if not os.path.isfile(fit_path): continue
+
+            fit = self.data.current_fit.hdf5_to_fit(fit_path)
+        
+            # import lambdas from fit generator 
+            if fit.fit.name in pf.fit2D_dic.keys():
+                buffer_fit = pf.fit2D_dic[fit.fit.name]
+                fit.fit.formula = buffer_fit.formula
+                fit.fit.formula_parameters = buffer_fit.formula_parameters
+                if not isinstance(fit.fit.formula_parameters,str):
+                    fit.fit.updateFormulaFromParameters2D()
+                fit.fit.values = buffer_fit.values
+                
+            else:
+                self.print_result('Saved fit name not found in known fit list - abort')
+                return
+            
+            fit.picture.parseVariables()
+
+            all_params = dict(fit.picture.variables.items()+fit.values.items())
+
+            for n, v in all_params.iteritems():
+                if params.has_key(n):
+                    params[n].append(v)
+                else:
+                    params[n] = [v]
+        
+        to_send = AttrDict() # Matlab structure like dict
+        for n,v in params.iteritems():
+            to_send[n] = np.array(v)
+
+                
+
+        # send
+
+        self.pythonshell.interpreter.namespace['res'] = to_send
+    
     ### Cam management
 
     def refresh_cam_list(self):
@@ -1378,7 +1440,7 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         result = check_window.exec_()        
         
         if result:
-            self.settings.variables_to_hide = selected = check_window.selected
+            self.settings.variables_to_hide =  check_window.selected
 
 
         
@@ -1546,7 +1608,12 @@ class CheckListWindow(QtGui.QDialog):
     def button_clicked(self,index):
         print(index)
 
-      
+
+class AttrDict(dict): # Matlab like dictionnary
+    def __init__(self, *args, **kwargs):
+        super(AttrDict, self).__init__(*args, **kwargs)
+        self.__dict__ = self
+        
 if __name__ == "__main__":
     app = QtGui.QApplication(sys.argv)
     myapp = StartQT4()
