@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'pyfit.ui'
 #
-# Created: Mon Jul 06 14:08:28 2015
+# Created: Tue Jul 07 08:24:50 2015
 #      by: PyQt4 UI code generator 4.9.6
 #
 # WARNING! All changes made in this file will be lost!
@@ -232,6 +232,19 @@ class Ui_PyFit(object):
         self.refresh_file_list = QtGui.QPushButton(self.centralwidget)
         self.refresh_file_list.setGeometry(QtCore.QRect(930, 228, 51, 21))
         self.refresh_file_list.setObjectName(_fromUtf8("refresh_file_list"))
+        self.hide_variable_txt = QtGui.QLabel(self.centralwidget)
+        self.hide_variable_txt.setGeometry(QtCore.QRect(932, 251, 131, 20))
+        font = QtGui.QFont()
+        font.setBold(False)
+        font.setWeight(50)
+        font.setKerning(True)
+        self.hide_variable_txt.setFont(font)
+        self.hide_variable_txt.setTextFormat(QtCore.Qt.AutoText)
+        self.hide_variable_txt.setWordWrap(False)
+        self.hide_variable_txt.setObjectName(_fromUtf8("hide_variable_txt"))
+        self.hide_variables_button = QtGui.QPushButton(self.centralwidget)
+        self.hide_variables_button.setGeometry(QtCore.QRect(1070, 250, 51, 21))
+        self.hide_variables_button.setObjectName(_fromUtf8("hide_variables_button"))
         PyFit.setCentralWidget(self.centralwidget)
         self.menubar = QtGui.QMenuBar(PyFit)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 1155, 21))
@@ -310,6 +323,8 @@ class Ui_PyFit(object):
         self.fitEditorTab.setTabText(self.fitEditorTab.indexOf(self.tab_2), _translate("PyFit", "Quick list", None))
         self.current_dir_txt.setText(_translate("PyFit", "c:/path/to/our/file", None))
         self.refresh_file_list.setText(_translate("PyFit", "refresh", None))
+        self.hide_variable_txt.setText(_translate("PyFit", "some variables are hidden", None))
+        self.hide_variables_button.setText(_translate("PyFit", "choose", None))
         self.console_dock.setWindowTitle(_translate("PyFit", "console", None))
         self.result_dock.setWindowTitle(_translate("PyFit", "results", None))
         self.flush_result_button.setText(_translate("PyFit", "flush", None))

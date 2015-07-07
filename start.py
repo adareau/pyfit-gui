@@ -166,6 +166,7 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         self.file_list_model = None
         #self.ui.file_list.clicked.connect(self.file_list_clicked)
         self.ui.refresh_file_list.clicked.connect(self.update_file_list)
+        self.ui.hide_variables_button.clicked.connect(self.choose_variables_to_hide)
         
         # plot Window
         #XXX screen
@@ -301,10 +302,13 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         # displayed in the QListView 
         self.data.current_file_list = [f for f in files_list]
                                    
-        # Check if saved fit exists
+        # Check if saved fit exists and hide variables
 
         save_dir = os.path.join(self.data.current_file_path, '.fits')
         i = 0
+        is_a_var_hidden = 0
+        variable_list = []
+        
         for file_name in files_list:
             fname = str(file_name)
             fname = fname[:-4]+'.hdf5'
@@ -314,13 +318,30 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
             else:
                 name = self.settings.isnofit_str+str(file_name)
             
+            variable_list += self.parseVariables(name).keys()
+            
             for var_name in self.settings.variables_to_hide:
-                name = self.hide_variable(name,var_name)
-                
+                name, modif = self.hide_variable(name,var_name)
+                is_a_var_hidden |= modif
             files_list[i] = name
             i += 1
-            pass
-
+            
+        if is_a_var_hidden:
+            self.ui.hide_variable_txt.setText('some variables are hidden')
+            palette = QtGui.QPalette()
+            palette.setColor(QtGui.QPalette.Foreground,
+                             QtCore.Qt.red)
+            self.ui.hide_variable_txt.setPalette(palette)
+            
+        else:
+            self.ui.hide_variable_txt.setText('no variable hidden')
+            palette = QtGui.QPalette()
+            palette.setColor(QtGui.QPalette.Foreground,
+                             QtCore.Qt.black)
+            self.ui.hide_variable_txt.setPalette(palette)
+            
+        self.data.all_available_variables = list(set(variable_list))
+        
         self.file_list_model = QtGui.QStringListModel(files_list)
 
         self.ui.file_list.setModel(self.file_list_model)
@@ -329,13 +350,26 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
 
     def hide_variable(self,file_name, var_name):
         pattern = "(_?)"+var_name+" = (-*[0-9]*[,.]?[0-9]*)"
+        return re.sub(pattern,'',file_name), file_name==re.sub(pattern,'',file_name)
         
-        return re.sub(pattern,'',file_name)
-    
+    def parseVariables(self,file_name):
+        
+        var_dic = {}
+            
+        # 2 - variables
+        
+        pattern = "([A-Za-z]\w*) = (-*[0-9]*[,.]?[0-9]*)"
+        var_list = re.findall(pattern,file_name)
+        
+        
+        for v in var_list:
+            var_dic[v[0]] = np.float(v[1].replace(',','.'))
+        return var_dic
+        
     def choose_variables_to_hide(self):
         
         check_window = CheckListWindow(title = "hide variables",
-                                       variables=self.data.available_variables,
+                                       variables=self.data.all_available_variables,
                                        selected = self.settings.variables_to_hide)
         result = check_window.exec_()        
         
@@ -1411,7 +1445,8 @@ class GuiData():
         self.current_fit.fit = pf.fit2D_dic[gui.settings.current_fit_type]
         self.debug = ''
         self.available_variables = []
-
+        self.all_available_variables = []
+        
         self.fit2D_dic = pf.fit2D_dic
         self.fit1D_dic = pf.fit1D_dic
 
