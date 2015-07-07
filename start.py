@@ -591,7 +591,7 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         self.file_list_model.setData(index, name)
 
         self.plot_fit_results()
-        self.ui.plotWindow.draw()
+        #self.ui.plotWindow.draw()
 
 
     def plot_fit_results(self, fitObj=None):
@@ -599,6 +599,8 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         if fitObj is None: fitObj = self.data.current_fit
 
         # display fit contour
+        screen = self.ui.plotWindow.screen
+        
         if self.settings.display_fit_contour:
 
             xm = fitObj.xm
@@ -606,11 +608,20 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
             fit_params = fitObj.fit.results
             fit_res = fitObj.fit.formula((xm, ym), *fit_params)
 
-            self.display_file(load_fit=False) # to clear everything
-            self.ui.plotWindow.main_axes.contour(xm, ym, fit_res, 8,
-                                                 colors='w')
+            #self.display_file(load_fit=False) # to clear everything
+            cs = plt.contour(xm, ym, fit_res, 8, colors='w')
+            screen.level_xy = [ [[0,0],[0,0]] for i in range(8) ]
+            for i in range(min(len(cs.collections),8)):
+                p = cs.collections[i].get_paths()[0]
+                v = p.vertices
+                x = v[:,0]
+                y = v[:,1]
+                screen.level_xy[i][0] = x
+                screen.level_xy[i][1] = y
+            screen.update_contour()
             #self.ui.plotWindow.draw()
-
+        else:
+            screen.reset_contour()
         # display cuts
 
         if fitObj.values.has_key('cx') and fitObj.values.has_key('cy'):

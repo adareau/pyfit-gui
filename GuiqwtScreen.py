@@ -44,11 +44,13 @@ class ImageScreen(QWidget):
         self.x = x
         self.y = y
         self.data = data
+        self.level_xy = [ [[0,0],[0,0]] for i in range(8) ]
         #---guiqwt related attributes:
         self.plot = None
         self.image = None
         self.ROI = None
         self.background = None
+        self.levels = []
         #---
         self.setup_widget()
         
@@ -58,11 +60,16 @@ class ImageScreen(QWidget):
         self.image = make.xyimage(self.x,self.y,self.data,colormap='jet')
         self.plot.add_item(self.image)
         self.plot.set_antialiasing(True)
-        
+        #--- levels ?
+        for i in range(8):
+            x = self.level_xy[i][0]
+            y = self.level_xy[i][1]
+            self.levels.append(make.curve(x,y, color="w"))
+            self.plot.add_item(self.levels[-1])
+        #----------------------
         vlayout = QVBoxLayout()
         vlayout.addWidget(self.plot)
         self.setLayout(vlayout)
-        
         self.plot.adjustSize()
         
     def update_image(self):
@@ -70,6 +77,32 @@ class ImageScreen(QWidget):
         self.image.y = self.y
         self.image.data = self.data
         
+        for i in range(8):
+            x = self.level_xy[i][0]
+            y = self.level_xy[i][1]
+            self.levels[i].x = x
+            self.levels[i].y = y
+        self.plot.replot()
+        
+        pass
+    
+    def update_contour(self):
+
+        for i in range(8):
+            x = self.level_xy[i][0]
+            y = self.level_xy[i][1]
+            self.levels[i].set_data(x,y)
+        self.plot.replot()
+        
+        pass
+    
+    def reset_contour(self):
+        self.level_xy = [ [[0,0],[0,0]] for i in range(8) ]
+        for i in range(8):
+            x = self.level_xy[i][0]
+            y = self.level_xy[i][1]
+            self.levels[i].set_data(x,y)
+
         self.plot.replot()
         
         pass

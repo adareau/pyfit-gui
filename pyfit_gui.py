@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'pyfit.ui'
 #
-# Created: Tue Jul 07 08:24:50 2015
+# Created: Tue Jul 07 09:07:17 2015
 #      by: PyQt4 UI code generator 4.9.6
 #
 # WARNING! All changes made in this file will be lost!
@@ -262,18 +262,18 @@ class Ui_PyFit(object):
         self.console_dock.setWidget(self.dockWidgetContents)
         PyFit.addDockWidget(QtCore.Qt.DockWidgetArea(8), self.console_dock)
         self.result_dock = QtGui.QDockWidget(PyFit)
-        self.result_dock.setMinimumSize(QtCore.QSize(307, 258))
+        self.result_dock.setMinimumSize(QtCore.QSize(320, 258))
         self.result_dock.setMaximumSize(QtCore.QSize(307, 500))
         self.result_dock.setFeatures(QtGui.QDockWidget.DockWidgetFloatable|QtGui.QDockWidget.DockWidgetMovable)
         self.result_dock.setObjectName(_fromUtf8("result_dock"))
         self.dockWidgetContents_2 = QtGui.QWidget()
         self.dockWidgetContents_2.setObjectName(_fromUtf8("dockWidgetContents_2"))
         self.result_text = QtGui.QTextEdit(self.dockWidgetContents_2)
-        self.result_text.setGeometry(QtCore.QRect(-9, 0, 300, 211))
+        self.result_text.setGeometry(QtCore.QRect(0, 0, 311, 211))
         self.result_text.setReadOnly(True)
         self.result_text.setObjectName(_fromUtf8("result_text"))
         self.flush_result_button = QtGui.QPushButton(self.dockWidgetContents_2)
-        self.flush_result_button.setGeometry(QtCore.QRect(-9, 211, 300, 20))
+        self.flush_result_button.setGeometry(QtCore.QRect(0, 211, 311, 20))
         self.flush_result_button.setObjectName(_fromUtf8("flush_result_button"))
         self.result_dock.setWidget(self.dockWidgetContents_2)
         PyFit.addDockWidget(QtCore.Qt.DockWidgetArea(8), self.result_dock)

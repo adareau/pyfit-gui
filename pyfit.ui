@@ -824,7 +824,7 @@
   <widget class="QDockWidget" name="result_dock">
    <property name="minimumSize">
     <size>
-     <width>307</width>
+     <width>320</width>
      <height>258</height>
     </size>
    </property>
@@ -847,9 +847,9 @@
     <widget class="QTextEdit" name="result_text">
      <property name="geometry">
       <rect>
-       <x>-9</x>
+       <x>0</x>
        <y>0</y>
-       <width>300</width>
+       <width>311</width>
        <height>211</height>
       </rect>
      </property>
@@ -860,9 +860,9 @@
     <widget class="QPushButton" name="flush_result_button">
      <property name="geometry">
       <rect>
-       <x>-9</x>
+       <x>0</x>
        <y>211</y>
-       <width>300</width>
+       <width>311</width>
        <height>20</height>
       </rect>
      </property>
