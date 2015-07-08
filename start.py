@@ -400,7 +400,7 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         """
         self.get_ROI() # first we save ROI
         self.get_background()
-
+        self.get_HOLE()
 
         # giving current file information to our fit object
         self.data.current_fit.picture.filename = self.data.current_file_name
@@ -452,7 +452,8 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
 
         self.ui.plotWindow.draw()
         '''
-        self.draw_ROI(draw=False)
+        #self.draw_ROI(draw=False)
+        #self.draw_HOLE()
         
         screen = self.ui.plotWindow.screen
         screen.x = xm[0, :]*1.0
@@ -479,7 +480,7 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
             self.data.rectHOLE.hide()
                 
         self.draw_ROI(draw=False)
-
+        self.draw_HOLE()
 
 
     ### ROI and background
@@ -509,6 +510,20 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
 
         self.data.current_fit.picture.ROI = (r[0], r[2], r[1], r[3])
 
+    def draw_HOLE(self, draw=True):
+
+        r = self.data.current_fit.picture.hole
+        HOLE_rect = self.data.rectHOLE
+        HOLE_rect.set_rect(r[0], r[2], r[1], r[3])
+        self.ui.plotWindow.screen.plot.replot()
+
+
+    def get_HOLE(self):
+
+        HOLE_rect = self.data.rectHOLE
+        r = HOLE_rect.get_rect()
+
+        self.data.current_fit.picture.hole = (r[0], r[2], r[1], r[3])
 
     def zoom_to_ROI(self):
 
@@ -585,7 +600,7 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
 
         self.get_ROI()
         self.get_background()
-
+        self.get_HOLE()
         # printing image name before fit
 
         # TODO changer affichage résultats fit
@@ -710,6 +725,10 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         self.data.current_fit.picture.ROI = saved_fit.picture.ROI
         if draw: self.draw_ROI()
 
+        # load HOLE
+        self.data.current_fit.picture.hole = saved_fit.picture.hole
+        if draw: self.draw_HOLE()
+            
         # load background
         self.data.current_fit.picture.background = saved_fit.picture.background
         if draw: self.draw_background()
@@ -757,7 +776,11 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         # load ROI
         self.data.current_fit.picture.ROI = saved_fit.picture.ROI
         if draw: self.draw_ROI()
-
+        
+        # load HOLE
+        self.data.current_fit.picture.hole = saved_fit.picture.hole
+        if draw: self.draw_HOLE()
+            
         # load background
         self.data.current_fit.picture.background = saved_fit.picture.background
         if draw: self.draw_background()

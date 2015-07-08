@@ -48,6 +48,7 @@ class Picture():
         
         self.ROI = []
         self.background = []
+        self.hole = []
         
     def parseVariables(self):
         

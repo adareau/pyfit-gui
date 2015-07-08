@@ -412,6 +412,7 @@ class PyFit2D():
             dset.attrs['path'] = self.picture.path
             dset.attrs['ROI'] = self.picture.ROI
             dset.attrs['background'] = self.picture.background
+            dset.attrs['hole'] = self.picture.hole
             
             # atom
             dset = f.create_dataset("atom", (0,), dtype='i')
@@ -476,6 +477,7 @@ class PyFit2D():
             loaded_fit.picture.path = dset.attrs['path']
             loaded_fit.picture.ROI = dset.attrs['ROI']
             loaded_fit.picture.background = dset.attrs['background']
+            loaded_fit.picture.hole = dset.attrs['hole']
             
             # atom
             dset = f["atom"]
