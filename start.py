@@ -219,7 +219,10 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
             self.ui.fit_type.addItem(fit)
 
         self.ui.fit_type.currentIndexChanged.connect(self.refresh_fit_settings)
-
+        
+        self.ui.fit_order.addItems(['hole first','out first','best of two'])
+        self.ui.fit_order.currentIndexChanged.connect(self.refresh_fit_settings)
+        
         # Cam settings tab
 
         self.refresh_cam_list()
@@ -614,7 +617,57 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         
         self.data.current_fit = self.data.current_fit.adapt_type_from_fit()
         self.data.current_fit.fit.options = self.settings.current_fit_options
-        self.data.current_fit.do_fit()
+        
+        is_double = self.data.current_fit.fit.__class__.__name__ == 'DoubleFit'
+        
+        # if fit order is 2 (best of two) and fit is a double fit
+        # then we do the fit twice (with different fit order) 
+        # and keep best result !
+        if self.settings.current_fit_order == 2 and is_double:
+            
+            # fit hole first
+            self.print_result("round 1 : hole first")
+            
+            fit_hole_first = copy.deepcopy(self.data.current_fit)
+            fit_hole_first.fit.options.fit_hole_first = True
+            fit_hole_first.do_fit()
+            
+            xm = fit_hole_first.xm_fit
+            ym = fit_hole_first.ym_fit
+            fit_params = fit_hole_first.fit.results
+            fit_res = fit_hole_first.fit.formula((xm, ym), *fit_params)
+            fit_data = fit_hole_first.data_fit
+            
+            err_hole_first = np.sqrt((fit_res-fit_data)**2)
+            err_hole_first = np.sum(np.sum(err_hole_first))
+            
+            # fit out first
+            self.print_result("round 2 : out first")
+            
+            fit_out_first = copy.deepcopy(self.data.current_fit)
+            fit_out_first.fit.options.fit_hole_first = False
+            fit_out_first.do_fit()
+            
+            xm = fit_out_first.xm_fit
+            ym = fit_out_first.ym_fit
+            fit_params = fit_out_first.fit.results
+            fit_res = fit_out_first.fit.formula((xm, ym), *fit_params)
+            fit_data = fit_out_first.data_fit
+            
+            err_out_first = np.sqrt((fit_res-fit_data)**2)
+            err_out_first = np.sum(np.sum(err_out_first))
+            
+            # choose the good one
+            
+            if err_out_first > err_hole_first:
+                self.print_result(">>> HOLE first wins")
+                self.data.current_fit = fit_hole_first
+            else:
+                self.print_result(">>> OUT first wins")
+                self.data.current_fit = fit_out_first
+            
+        else: # else we fit only once
+            self.data.current_fit.do_fit()
         
         ###---------------
         self.data.current_fit.compute_values()
@@ -827,7 +880,8 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
                 txt.setText(str(getattr(options, name)))
 
 
-
+            self.ui.fit_order.setCurrentIndex(self.settings.current_fit_order)
+            
             # change displayed fit type if it has changed
             if self.settings.current_fit_type != self.ui.fit_type.currentText():
                 for i in range(self.ui.fit_type.count()):
@@ -849,7 +903,13 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
                 setattr(options, name, int(float(txt.text())))
                 txt.setText(str(getattr(options, name)))
 
-
+            fit_order = self.ui.fit_order.currentIndex()
+            self.settings.current_fit_order = fit_order
+            if fit_order == 0:
+                options.fit_hole_first = True
+            elif fit_order == 1:
+                options.fit_hole_first = False
+                
             # change fit type if it has changed
             if self.settings.current_fit_type != self.ui.fit_type.currentText():
                 fit_name_str = str(self.ui.fit_type.currentText())
@@ -1533,7 +1593,8 @@ class GuiSettings():
 
         self.current_fit_type = 'Gauss'
         self.current_fit_options = pf.pyfit_classes.FitOptions()
-
+        self.current_fit_order = 0
+        
         # Display
 
         self.display_fit_contour = True

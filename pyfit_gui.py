@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'pyfit.ui'
 #
-# Created: Wed Jul 08 13:44:15 2015
+# Created: Wed Jul 08 14:03:04 2015
 #      by: PyQt4 UI code generator 4.9.6
 #
 # WARNING! All changes made in this file will be lost!
@@ -86,6 +86,19 @@ class Ui_PyFit(object):
         self.fit_exclude_hole_box = QtGui.QCheckBox(self.fit_settings_tab)
         self.fit_exclude_hole_box.setGeometry(QtCore.QRect(10, 110, 141, 22))
         self.fit_exclude_hole_box.setObjectName(_fromUtf8("fit_exclude_hole_box"))
+        self.fit_order = QtGui.QComboBox(self.fit_settings_tab)
+        self.fit_order.setGeometry(QtCore.QRect(158, 23, 101, 22))
+        self.fit_order.setObjectName(_fromUtf8("fit_order"))
+        self.hide_variable_txt_3 = QtGui.QLabel(self.fit_settings_tab)
+        self.hide_variable_txt_3.setGeometry(QtCore.QRect(160, 3, 101, 20))
+        font = QtGui.QFont()
+        font.setBold(False)
+        font.setWeight(50)
+        font.setKerning(True)
+        self.hide_variable_txt_3.setFont(font)
+        self.hide_variable_txt_3.setTextFormat(QtCore.Qt.AutoText)
+        self.hide_variable_txt_3.setWordWrap(False)
+        self.hide_variable_txt_3.setObjectName(_fromUtf8("hide_variable_txt_3"))
         self.fitEditorTab.addTab(self.fit_settings_tab, _fromUtf8(""))
         self.cam_settings_tab = QtGui.QWidget()
         self.cam_settings_tab.setObjectName(_fromUtf8("cam_settings_tab"))
@@ -313,6 +326,7 @@ class Ui_PyFit(object):
         self.fit_binning_label1.setText(_translate("PyFit", "Max :", None))
         self.fit_binning_label2.setText(_translate("PyFit", "N =", None))
         self.fit_exclude_hole_box.setText(_translate("PyFit", "exclude hole (simple fit)", None))
+        self.hide_variable_txt_3.setText(_translate("PyFit", "fit order (double fit)", None))
         self.fitEditorTab.setTabText(self.fitEditorTab.indexOf(self.fit_settings_tab), _translate("PyFit", "Fit", None))
         self.remove_cam_button.setText(_translate("PyFit", "del", None))
         self.add_cam_button.setText(_translate("PyFit", "new", None))

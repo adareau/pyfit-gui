@@ -698,14 +698,42 @@ class PyDoubleFit2D(PyFit2D):
             p_out.xm = xm
             p_out.ym = ym
             p_out.picture.ROI = [xm.min(),xm.max(),ym.min(),ym.max()]
+            p_out.fit.options.exclude_hole = False
             p_out.do_fit()
             
             guess_out = p_out.fit.results
         
         else:
             p_out = PyFit2D()
-            p_out.fit = self.fit.fit_out            
-            pass
+            p_out.fit = self.fit.fit_out
+            p_out.data = data_fit
+            p_out.xm = xm
+            p_out.ym = ym
+            p_out.picture.ROI = [xm.min(),xm.max(),ym.min(),ym.max()]
+            p_out.picture.hole = self.picture.hole
+            p_out.fit.options.exclude_hole = True
+            p_out.do_fit()
+            
+            guess_out = p_out.fit.results
+            out_fit = p_out.fit.formula((xm,ym),*guess_out)
+            
+            if self.fit.combine == 'add':
+                data_in = data_fit-out_fit
+                data_in = data_in[iy_start:iy_stop,ix_start:ix_stop]
+            else:
+                data_in = data_fit[iy_start:iy_stop,ix_start:ix_stop]
+            
+ 
+            p_hole = PyFit2D()
+            p_hole.fit = self.fit.fit_in
+            p_hole.data = data_in
+            p_hole.xm = xhole
+            p_hole.ym = yhole
+            p_hole.picture.ROI = [xhole.min(),xhole.max(),yhole.min(),yhole.max()]
+            p_hole.do_fit()
+            
+            guess_in = p_hole.fit.results
+            
         
         
         guess = self.fit.guess(guess_out,guess_in)
