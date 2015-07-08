@@ -117,7 +117,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>3</number>
+     <number>2</number>
     </property>
     <widget class="QWidget" name="fit_settings_tab">
      <attribute name="title">
@@ -601,6 +601,19 @@
        <string>interpolation</string>
       </property>
      </widget>
+     <widget class="QCheckBox" name="display_hole_box">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>140</y>
+        <width>101</width>
+        <height>17</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>show hole rect.</string>
+      </property>
+     </widget>
     </widget>
     <widget class="QWidget" name="tab_2">
      <attribute name="title">
@@ -869,7 +882,7 @@
    </property>
    <property name="maximumSize">
     <size>
-     <width>307</width>
+     <width>320</width>
      <height>500</height>
     </size>
    </property>

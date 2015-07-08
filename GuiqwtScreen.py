@@ -222,7 +222,12 @@ class BKGNDSelectTool(RegionSelectTool):
         self.rect.label_txt = self.name        
         
         
-    
+class HOLESelectTool(RegionSelectTool):
+    def __init__(self, *args, **kwargs):
+        super(HOLESelectTool,self).__init__(*args, **kwargs)
+        
+        self.name = "HOLE"
+        self.rect.label_txt = self.name   
 
             
 class GuiqwtScreen(QWidget):

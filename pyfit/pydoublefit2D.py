@@ -19,11 +19,12 @@ from pyfit_classes import *
 from pyfit_functions import *
 from EditableRectangle import EditableRectangle
 
-import pyfit2D as pf
+#import pyfit2D as pf
+from pyfit2D import PyFit2D
 
 # Main fit Object : PyDoubleFit
 
-class PyDoubleFit2D(pf.PyFit2D):
+class PyDoubleFit2D(PyFit2D):
     
     def __init__(self):
         
@@ -41,6 +42,8 @@ class PyDoubleFit2D(pf.PyFit2D):
         self.data_fit = []
         self.xm_fit = []
         self.ym_fit = [] 
+        
+        self.type = 'pydoublefit2D'
         
     ''' Fit related methods ''' 
     
@@ -121,7 +124,7 @@ class PyDoubleFit2D(pf.PyFit2D):
         
         if self.fit.options.fit_hole_first:
             
-            p_hole = pf.PyFit2D()
+            p_hole = PyFit2D()
             p_hole.fit = self.fit.fit_in
             p_hole.data = data_hole-np.min(data_hole)
             p_hole.xm = xhole
@@ -137,7 +140,7 @@ class PyDoubleFit2D(pf.PyFit2D):
             else:
                 data_out = data_fit
             
-            p_out = pf.PyFit2D()
+            p_out = PyFit2D()
             p_out.fit = self.fit.fit_out
             p_out.data = data_out
             p_out.xm = xm

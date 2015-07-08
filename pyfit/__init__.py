@@ -8,9 +8,9 @@
 
 # Objects
 
-from pyfit2D import PyFit2D
+from pyfit2D import PyFit2D, PyDoubleFit2D
 from pyfit1D import PyFit1D
-from pydoublefit2D import PyDoubleFit2D
+#from pydoublefit2D import PyDoubleFit2D
 
 # Modules
 

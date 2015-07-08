@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'pyfit.ui'
 #
-# Created: Tue Jul 07 10:59:28 2015
+# Created: Wed Jul 08 11:22:27 2015
 #      by: PyQt4 UI code generator 4.9.6
 #
 # WARNING! All changes made in this file will be lost!
@@ -187,6 +187,9 @@ class Ui_PyFit(object):
         self.fit_binning_label2_9 = QtGui.QLabel(self.tab)
         self.fit_binning_label2_9.setGeometry(QtCore.QRect(10, 10, 71, 16))
         self.fit_binning_label2_9.setObjectName(_fromUtf8("fit_binning_label2_9"))
+        self.display_hole_box = QtGui.QCheckBox(self.tab)
+        self.display_hole_box.setGeometry(QtCore.QRect(10, 140, 101, 17))
+        self.display_hole_box.setObjectName(_fromUtf8("display_hole_box"))
         self.fitEditorTab.addTab(self.tab, _fromUtf8(""))
         self.tab_2 = QtGui.QWidget()
         self.tab_2.setObjectName(_fromUtf8("tab_2"))
@@ -276,7 +279,7 @@ class Ui_PyFit(object):
         PyFit.addDockWidget(QtCore.Qt.DockWidgetArea(8), self.console_dock)
         self.result_dock = QtGui.QDockWidget(PyFit)
         self.result_dock.setMinimumSize(QtCore.QSize(320, 258))
-        self.result_dock.setMaximumSize(QtCore.QSize(307, 500))
+        self.result_dock.setMaximumSize(QtCore.QSize(320, 500))
         self.result_dock.setFeatures(QtGui.QDockWidget.DockWidgetFloatable|QtGui.QDockWidget.DockWidgetMovable)
         self.result_dock.setObjectName(_fromUtf8("result_dock"))
         self.dockWidgetContents_2 = QtGui.QWidget()
@@ -295,7 +298,7 @@ class Ui_PyFit(object):
         PyFit.addToolBar(QtCore.Qt.TopToolBarArea, self.toolBar)
 
         self.retranslateUi(PyFit)
-        self.fitEditorTab.setCurrentIndex(3)
+        self.fitEditorTab.setCurrentIndex(2)
         QtCore.QMetaObject.connectSlotsByName(PyFit)
 
     def retranslateUi(self, PyFit):
@@ -327,6 +330,7 @@ class Ui_PyFit(object):
         self.label_2.setText(_translate("PyFit", "max", None))
         self.refresh_display_button.setText(_translate("PyFit", "Refresh", None))
         self.fit_binning_label2_9.setText(_translate("PyFit", "interpolation", None))
+        self.display_hole_box.setText(_translate("PyFit", "show hole rect.", None))
         self.fitEditorTab.setTabText(self.fitEditorTab.indexOf(self.tab), _translate("PyFit", "Display", None))
         self.label_3.setText(_translate("PyFit", "X :", None))
         self.label_4.setText(_translate("PyFit", "Y :", None))

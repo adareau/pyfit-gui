@@ -22,6 +22,7 @@ from pyfit_classes import *
 from pyfit_functions import *
 from EditableRectangle import EditableRectangle
 
+
 # Main fit Object : PyFit
 
 class PyFit2D():
@@ -42,6 +43,8 @@ class PyFit2D():
         self.ym_fit = []
         
         self.values = {}
+        
+        self.type = 'pyfit2D'
         
     ''' Fit related methods ''' 
     
@@ -315,6 +318,9 @@ class PyFit2D():
         Structure :
         
         hdf5
+        ├─ general
+        |   └─ type (pyfit2D ? pydoublefit2D ?)
+        |
         ├─ values
         |   └─ values (dic, stored in attributes)
         |
@@ -363,6 +369,10 @@ class PyFit2D():
         
         with h5py.File(fname,"w") as f:
             
+            # general data
+            dset = f.create_dataset("general", (0,), dtype='i')
+            dset.attrs['type'] = self.type
+                    
             # pyfit2D self properties save
             dset = f.create_dataset("values", (0,), dtype='i')
             if self.values:
@@ -421,6 +431,10 @@ class PyFit2D():
         
         with h5py.File(fname,"r") as f:
             
+            # general data
+            dset = f['general']
+            loaded_fit.type = dset.attrs['type']
+            
             # pyfit2D self properties save
             dset = f['values']
             values = {}
@@ -472,6 +486,45 @@ class PyFit2D():
             
            
         return loaded_fit
+        
+        
+        ''' Conversions to/from doublefit '''
+        
+    def adapt_type_from_fit(self):
+        choosen_fit_type = self.fit.__class__.__name__
+        current_fit_type = self.type
+        
+        if choosen_fit_type == 'Fit' and current_fit_type != 'pyfit2D':
+            new_fit = PyFit2D()
+            new_fit.atom = self.atom
+            new_fit.picture = self.picture
+            new_fit.camera = self.camera
+            new_fit.fit = self.fit
+            new_fit.data = self.data
+            new_fit.xm = self.xm
+            new_fit.ym = self.ym
+            new_fit.data_fit = self.data_fit
+            new_fit.xm_fit = self.xm_fit
+            new_fit.ym_fit = self.ym_fit
+            new_fit.values = self.values
+            
+        elif choosen_fit_type == 'DoubleFit' and current_fit_type != 'pydoublefit2D':
+            new_fit = PyDoubleFit2D()
+            new_fit.atom = self.atom
+            new_fit.picture = self.picture
+            new_fit.camera = self.camera
+            new_fit.fit = self.fit
+            new_fit.data = self.data
+            new_fit.xm = self.xm
+            new_fit.ym = self.ym
+            new_fit.data_fit = self.data_fit
+            new_fit.xm_fit = self.xm_fit
+            new_fit.ym_fit = self.ym_fit
+            new_fit.values = self.values
+        else:
+            new_fit = self
+            
+        return new_fit
     
  # TEST
 '''
@@ -486,4 +539,211 @@ pic.load()
 plt.figure()
 plt.imshow(pic.data)
 plt.show()
-   '''     
+'''
+
+#---------------------------------------------------------------------------#
+
+class PyDoubleFit2D(PyFit2D):
+    
+    def __init__(self):
+        
+        self.camera = Camera()
+        self.picture = Picture()
+        self.atom = Atom()
+        
+        self.fit = DoubleFit()
+        
+        self.hole = []
+        self.data = []
+        self.xm = []
+        self.ym = []
+        
+        self.data_fit = []
+        self.xm_fit = []
+        self.ym_fit = [] 
+        
+        self.type = 'pydoublefit2D'
+        
+    ''' Fit related methods ''' 
+    
+            
+        
+    def do_fit(self):
+
+        if self.data == []:
+            self.load_data()
+        
+        
+        xm = self.xm
+        ym = self.ym
+        data_fit = self.data
+        
+        # Region of Interest :
+        
+        if self.fit.options.askROI: self.ask_ROI()
+        
+        x = xm[1,:]
+        y = ym[:,1]
+        
+        ix_start = x[x<=self.picture.ROI[0]].argmax()
+        ix_stop = x[x<=self.picture.ROI[1]].argmax()
+        iy_start = y[y<=self.picture.ROI[2]].argmax()
+        iy_stop = y[y<=self.picture.ROI[3]].argmax()
+        
+        xm = xm[iy_start:iy_stop,ix_start:ix_stop]
+        ym = ym[iy_start:iy_stop,ix_start:ix_stop]
+        data_fit = data_fit[iy_start:iy_stop,ix_start:ix_stop]
+        
+        
+        # Binning 
+        
+        if self.fit.options.do_binning:
+            
+            # ROI 
+            
+            nx = np.size(xm,0)
+            ny = np.size(xm,1)
+            
+            if self.fit.options.auto_binning:
+                bx = np.max([1,nx//self.fit.options.binning_maxpoints]) 
+                by = np.max([1,ny//self.fit.options.binning_maxpoints])
+            else:
+                bx = self.fit.options.binning
+                by = bx
+                    
+            
+            ix = (nx//bx)*bx
+            iy = (ny//by)*by
+
+            xm = xm[0:ix,0:iy]
+            ym = ym[0:ix,0:iy]
+            data_fit = data_fit[0:ix,0:iy]
+            xm = rebin(xm,(nx//bx,ny//by))
+            ym = rebin(ym,(nx//bx,ny//by))
+            data_fit = rebin(data_fit,(nx//bx,ny//by))
+            
+        
+        # Hole
+        
+        if self.fit.options.askHole or self.hole==[]:self.ask_Hole()
+        
+        x = xm[1,:]
+        y = ym[:,1]
+        
+        ix_start = x[x<=self.hole[0]].argmax()
+        ix_stop = x[x<=self.hole[1]].argmax()
+        iy_start = y[y<=self.hole[2]].argmax()
+        iy_stop = y[y<=self.hole[3]].argmax()
+        
+        xhole = xm[iy_start:iy_stop,ix_start:ix_stop]
+        yhole = ym[iy_start:iy_stop,ix_start:ix_stop]
+        data_hole = data_fit[iy_start:iy_stop,ix_start:ix_stop]  
+        
+        # Guesses
+        
+        if self.fit.options.fit_hole_first:
+            
+            p_hole = PyFit2D()
+            p_hole.fit = self.fit.fit_in
+            p_hole.data = data_hole-np.min(data_hole)
+            p_hole.xm = xhole
+            p_hole.ym = yhole
+            p_hole.picture.ROI = [xhole.min(),xhole.max(),yhole.min(),yhole.max()]
+            p_hole.do_fit()
+            
+            guess_in = p_hole.fit.results
+            hole_fit = p_hole.fit.formula((xm,ym),*guess_in)
+            
+            if self.fit.combine == 'add':
+                data_out = data_fit-hole_fit
+            else:
+                data_out = data_fit
+            
+            p_out = PyFit2D()
+            p_out.fit = self.fit.fit_out
+            p_out.data = data_out
+            p_out.xm = xm
+            p_out.ym = ym
+            p_out.picture.ROI = [xm.min(),xm.max(),ym.min(),ym.max()]
+            p_out.do_fit()
+            
+            guess_out = p_out.fit.results
+        
+
+        
+        guess = self.fit.guess(guess_out,guess_in)
+        
+        
+        
+        data_fit = data_fit.ravel()    
+        fit_func = lambda (x,y),*p:self.fit.formula((x,y),*p).ravel()
+        
+
+        popt, pcov = opt.curve_fit(fit_func, (xm, ym), data_fit, p0=guess)
+        
+        self.data_fit = data_fit
+        self.xm_fit = xm
+        self.ym_fit = ym
+        self.fit.results=popt
+        
+        
+        return 0
+     
+    def ask_Hole(self):
+        
+        if self.data == []:return
+        if self.picture.ROI ==[]:return
+        
+        if self.hole == []: self.hole=self.picture.ROI
+        xm = self.xm
+        ym = self.ym
+        data_fit = self.data
+        
+        # Restrict to region of Interest :
+        
+        x = xm[1,:]
+        y = ym[:,1]
+        
+        ix_start = x[x<=self.picture.ROI[0]].argmax()
+        ix_stop = x[x<=self.picture.ROI[1]].argmax()
+        iy_start = y[y<=self.picture.ROI[2]].argmax()
+        iy_stop = y[y<=self.picture.ROI[3]].argmax()
+        
+        xm = xm[iy_start:iy_stop,ix_start:ix_stop]
+        ym = ym[iy_start:iy_stop,ix_start:ix_stop]
+        data_fit = data_fit[iy_start:iy_stop,ix_start:ix_stop]
+           
+        plt.figure('Hole')
+        r = self.hole
+        
+        hole = Rectangle((r[0],r[2]), r[1]-r[0],r[3]-r[2] ,alpha=1,fc='none',ec='red',linewidth=2)
+        plt.imshow(data_fit,extent=(xm.min(), xm.max(), ym.max(), ym.min()))
+        plt.gca().add_patch(hole)
+        
+        ed_hole = EditableRectangle(hole,fixed_aspect_ratio=False)
+        ed_hole.connect()
+        
+        plt.show()
+        
+        self.hole = (hole.xy[0],hole.xy[0]+hole.get_width(),hole.xy[1],hole.xy[1]+hole.get_height())
+
+    
+        
+    
+
+
+    
+ # TEST
+'''
+path = '/home/alex/Thèse/Programmation/Python/Fits/'
+name = '1.png'
+pic = Picture()
+
+pic.filename=name
+pic.path=path
+pic.load()
+
+plt.figure()
+plt.imshow(pic.data)
+plt.show()
+   '''      

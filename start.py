@@ -18,7 +18,7 @@ from functools import partial
 from guiqwt._scaler import INTERP_NEAREST, INTERP_LINEAR
 
 import pyfit as pf
-from GuiqwtScreen import ROISelectTool, BKGNDSelectTool
+from GuiqwtScreen import ROISelectTool, BKGNDSelectTool, HOLESelectTool
 
 from collections import OrderedDict
 from spyderlib.widgets import internalshell
@@ -121,7 +121,21 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         self.bkgnd_tool = self.ui.plotWindow.manager.get_tool(BKGNDSelectTool)
         self.ui.plotWindow.screen.plot.add_item(self.bkgnd_tool.rect)
         self.data.rectBKGND = self.bkgnd_tool.rect
-
+        
+        # Hole management
+        self.ui.plotWindow.manager.add_tool(HOLESelectTool)
+        hole_action = toolbar.actions()[-1]
+        hole_action.setText("HOLE")
+        hole_action.setToolTip("Select HOLE")
+        hole_action.setStatusTip("click and draw new hole region")
+        icon = QtGui.QIcon.fromTheme("edit-cut")
+        hole_action.setIcon(icon)
+        self.hole_tool = self.ui.plotWindow.manager.get_tool(HOLESelectTool)
+        self.ui.plotWindow.screen.plot.add_item(self.hole_tool.rect)
+        self.data.rectHOLE = self.hole_tool.rect
+        
+        if not self.settings.display_hole:
+            self.data.rectHOLE.hide()
         #self.ui.plotWindow.manager.register_all_curve_tools()
 
         toolbar.addSeparator()
@@ -228,7 +242,8 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         self.ui.disp_fit_contour_box.clicked.connect(self.refresh_gui_settings)
         self.ui.colormap_max.textEdited.connect(self.refresh_gui_settings)
         self.ui.colormap_min.textEdited.connect(self.refresh_gui_settings)
-
+        self.ui.display_hole_box.clicked.connect(self.refresh_gui_settings)
+        
         # a bit cumbersome, but we have to do that to set
         # load_fit=True to display_data
         callback_func = lambda: self.display_file(True)
@@ -458,7 +473,11 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         
         if load_fit: self.load_fit(draw=False)
 
-
+        if self.settings.display_hole:
+            self.data.rectHOLE.show()
+        else:
+            self.data.rectHOLE.hide()
+                
         self.draw_ROI(draw=False)
 
 
@@ -575,9 +594,13 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         self.print_result("")
         self.print_settings()
 
+        #### FIT---------------
+        
+        self.data.current_fit = self.data.current_fit.adapt_type_from_fit()
         self.data.current_fit.fit.options = self.settings.current_fit_options
         self.data.current_fit.do_fit()
-
+        
+        ###---------------
         self.data.current_fit.compute_values()
         results_string = self.data.current_fit.values_to_str()
 
@@ -832,6 +855,7 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         settings = self.settings
 
         bools = [['display_fit_contour', self.ui.disp_fit_contour_box],
+                 ['display_hole', self.ui.display_hole_box],
                  ['fit_list', self.ui.fit_list_box]]
 
         params = [['colormap_min', self.ui.colormap_min],
@@ -875,6 +899,13 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
             index = self.ui.display_interpolation.findText(inter_type)
             if index > -1:
                 self.ui.display_interpolation.setCurrentIndex(index)
+                
+            if self.settings.display_hole:
+                self.data.rectHOLE.show()
+            else:
+                self.data.rectHOLE.hide()
+                
+            self.ui.plotWindow.screen.plot.replot()
 
         self.settings = settings
 
@@ -1485,7 +1516,8 @@ class GuiSettings():
         self.colormap_max = 1
         self.colormap = 'jet'
         self.display_interpolation = 'none'
-
+        self.display_hole = False
+        
         # Lists
 
         self.fit_list = False
@@ -1528,6 +1560,8 @@ class GuiData():
 
         self.rectBackground = None
         self.ed_rectBackground = None
+        
+        self.rectHOLE = None
 
         self.colormaps = ['jet', 'binary', 'hot', 'gray', 'Blues', 'Greens',
                           'rainbow']

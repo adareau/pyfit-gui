@@ -102,7 +102,7 @@ class Fit():
         self.formula = lambda (x,y),*p:self.formula_parameters(self.parameters,(x,y),*p)
         
         
-class DoubleFit():
+class DoubleFit(Fit):
     
     def __init__(self):
         
