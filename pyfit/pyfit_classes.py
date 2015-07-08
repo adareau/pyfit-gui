@@ -118,7 +118,8 @@ class DoubleFit(Fit):
         self.formula = 'lambda(x,y),*p:0'
         
         self.options = FitOptions()
-        
+        self.parameters = {} #fixed fit parameters
+        self.formula_parameters = 'lambda(x,y),*p:0'
         
 class FitOptions():
     

@@ -288,7 +288,7 @@ class PyFit2D():
             os.mkdir(f)
         
         fname = self.picture.filename
-        fname = fname[0:len(fname)-4]+'.fit'
+        fname = fname[0:len(fname)-4]+'.hdf5'
         
         f=os.path.join(f,fname)
         fit = copy.deepcopy(self)
@@ -301,11 +301,6 @@ class PyFit2D():
         fit.ym_fit = []
         fit.camera.OD_conversion='pickled_lambda'
         
-        with open(f, 'wb') as output:
-            dump(fit, output)
-
-        # TEST
-        f = f[0:-4]+'.hdf5'
         self.fit_to_hdf5(f)
         
         return
@@ -626,7 +621,7 @@ class PyDoubleFit2D(PyFit2D):
             
         
         # Hole
-        
+        self.hole = self.picture.hole
         if self.fit.options.askHole or self.hole==[]:self.ask_Hole()
         
         x = xm[1,:]
@@ -677,11 +672,11 @@ class PyDoubleFit2D(PyFit2D):
         
         
         
-        data_fit = data_fit.ravel()    
+        data_fit_rav = data_fit.ravel()    
         fit_func = lambda (x,y),*p:self.fit.formula((x,y),*p).ravel()
         
 
-        popt, pcov = opt.curve_fit(fit_func, (xm, ym), data_fit, p0=guess)
+        popt, pcov = opt.curve_fit(fit_func, (xm, ym), data_fit_rav, p0=guess)
         
         self.data_fit = data_fit
         self.xm_fit = xm
