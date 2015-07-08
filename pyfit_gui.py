@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'pyfit.ui'
 #
-# Created: Wed Jul 08 11:22:27 2015
+# Created: Wed Jul 08 13:44:15 2015
 #      by: PyQt4 UI code generator 4.9.6
 #
 # WARNING! All changes made in this file will be lost!
@@ -83,6 +83,9 @@ class Ui_PyFit(object):
         self.fit_type = QtGui.QComboBox(self.fit_settings_tab)
         self.fit_type.setGeometry(QtCore.QRect(10, 140, 121, 22))
         self.fit_type.setObjectName(_fromUtf8("fit_type"))
+        self.fit_exclude_hole_box = QtGui.QCheckBox(self.fit_settings_tab)
+        self.fit_exclude_hole_box.setGeometry(QtCore.QRect(10, 110, 141, 22))
+        self.fit_exclude_hole_box.setObjectName(_fromUtf8("fit_exclude_hole_box"))
         self.fitEditorTab.addTab(self.fit_settings_tab, _fromUtf8(""))
         self.cam_settings_tab = QtGui.QWidget()
         self.cam_settings_tab.setObjectName(_fromUtf8("cam_settings_tab"))
@@ -298,7 +301,7 @@ class Ui_PyFit(object):
         PyFit.addToolBar(QtCore.Qt.TopToolBarArea, self.toolBar)
 
         self.retranslateUi(PyFit)
-        self.fitEditorTab.setCurrentIndex(2)
+        self.fitEditorTab.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(PyFit)
 
     def retranslateUi(self, PyFit):
@@ -309,6 +312,7 @@ class Ui_PyFit(object):
         self.fit_autobin_box.setText(_translate("PyFit", "Auto binning ", None))
         self.fit_binning_label1.setText(_translate("PyFit", "Max :", None))
         self.fit_binning_label2.setText(_translate("PyFit", "N =", None))
+        self.fit_exclude_hole_box.setText(_translate("PyFit", "exclude hole (simple fit)", None))
         self.fitEditorTab.setTabText(self.fitEditorTab.indexOf(self.fit_settings_tab), _translate("PyFit", "Fit", None))
         self.remove_cam_button.setText(_translate("PyFit", "del", None))
         self.add_cam_button.setText(_translate("PyFit", "new", None))

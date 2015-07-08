@@ -75,7 +75,6 @@ class PyFit2D():
         data_fit = data_fit[iy_start:iy_stop,ix_start:ix_stop]
         
 
-        
         # Binning 
         
         if self.fit.options.do_binning:
@@ -102,8 +101,43 @@ class PyFit2D():
             data_fit = rebin(data_fit,(nx//bx,ny//by))
         
         
+        self.xm_fit = xm
+        self.ym_fit = ym
+                
+       
+       # Exclude hole ?
+       
+        xm_rav = xm.ravel()
+        ym_rav = ym.ravel()
+        data_fit_rav = data_fit.ravel()
         
-        # Guesses
+        if self.fit.options.exclude_hole:
+            xi = self.picture.hole[0]
+            xf = self.picture.hole[1]
+            yi = self.picture.hole[2]
+            yf = self.picture.hole[3]
+            
+            ym_buff=[]
+            xm_buff=[]
+            data_fit_buff=[]
+            
+            #TODO : improve this
+            for i in range(len(data_fit_rav)):
+                if xi<=xm_rav[i]<=xf and yi<=ym_rav[i]<=yf:
+                    pass
+                else:
+                    ym_buff.append(ym_rav[i])
+                    xm_buff.append(xm_rav[i])
+                    data_fit_buff.append(data_fit_rav[i])
+            
+            ym_rav = ym_buff
+            xm_rav = xm_buff
+            data_fit_rav = data_fit_buff
+
+ 
+            
+        
+        # Guesses (NB we never exclude hole during guess)
         pf_guess = copy.deepcopy(self)
         pf_guess.data = data_fit
         pf_guess.xm = xm
@@ -112,16 +146,18 @@ class PyFit2D():
         guess = self.fit.guess(pf_guess)
         
         
-        
-        data_fit_rav = data_fit.ravel()    
+        # FIT
+
+           
         fit_func = lambda (x,y),*p:self.fit.formula((x,y),*p).ravel()
         
         
-        popt, pcov = opt.curve_fit(fit_func, (xm, ym), data_fit_rav, p0=guess, maxfev=self.fit.options.max_func_eval)
-        
+        popt, pcov = opt.curve_fit(fit_func, (xm_rav, ym_rav), 
+                                   data_fit_rav, p0=guess, 
+                                   maxfev=self.fit.options.max_func_eval)
+
         self.data_fit = data_fit
-        self.xm_fit = xm
-        self.ym_fit = ym
+
         
         self.fit.results=popt
         
@@ -666,7 +702,11 @@ class PyDoubleFit2D(PyFit2D):
             
             guess_out = p_out.fit.results
         
-
+        else:
+            p_out = PyFit2D()
+            p_out.fit = self.fit.fit_out            
+            pass
+        
         
         guess = self.fit.guess(guess_out,guess_in)
         

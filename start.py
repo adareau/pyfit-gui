@@ -203,6 +203,7 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         # Fit settings Tab
 
         self.ui.fit_binning_box.clicked.connect(self.refresh_fit_settings)
+        self.ui.fit_exclude_hole_box.clicked.connect(self.refresh_fit_settings)
         self.ui.fit_autobin_box.clicked.connect(self.refresh_fit_settings)
 
         self.ui.fit_binning_maxpoints_txt.textEdited.connect(\
@@ -806,6 +807,7 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         options = self.settings.current_fit_options
 
         bools = [['do_binning', self.ui.fit_binning_box],
+                 ['exclude_hole', self.ui.fit_exclude_hole_box],
                  ['auto_binning', self.ui.fit_autobin_box]]
 
         params = [['binning_maxpoints', self.ui.fit_binning_maxpoints_txt],
