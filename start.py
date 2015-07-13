@@ -307,7 +307,8 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         updates file list
         """
         path = self.settings.current_folder
-        self.ui.current_dir_txt.setText(path)
+        
+        self.ui.current_dir_txt.setText(self.trunc_path(str(path),30))
 
         file_name_filter = self.settings.file_name_filter.split(',')
         file_name_filter = ['*'+f for f in file_name_filter]
@@ -1415,7 +1416,26 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
 
     def cam_settings_changed(self):
         self.ui.update_cam_button.setDefault(True)
-
+    
+    ##### GUI usefull functions
+    
+    def trunc_path(self,pathstr,max_len):
+        p = self.splitPath(pathstr)
+        shortpath = pathstr
+        security = 1
+        while len(shortpath)>max_len and security<100:
+            p = p[1:]
+            shortpath = '../'+'/'.join(p)
+            security +=1
+            
+        return shortpath
+        
+    def splitPath(self,path):
+        root, d = os.path.split(path)
+        if d:
+            return self.splitPath(root)+[d]
+        else:
+            return [root]
     ##### GUI general callbacks
 
     def closeEvent(self, event):
