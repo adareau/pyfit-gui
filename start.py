@@ -41,11 +41,12 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         self.setWindowTitle('PyF!T')
 
         # Scroll ?
+        '''        
         scroll_widget = QtGui.QScrollArea()
         scroll_widget.setWidget(self.ui.centralwidget)
         scroll_widget.setWidgetResizable(True)
         self.setCentralWidget(scroll_widget)
-
+        '''
         # GUI data and settings
         self.settings = GuiSettings()
         self.load_settings()
