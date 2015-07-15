@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'pyfit.ui'
 #
-# Created: Mon Jul 13 14:32:50 2015
+# Created: Wed Jul 15 16:19:20 2015
 #      by: PyQt4 UI code generator 4.9.6
 #
 # WARNING! All changes made in this file will be lost!
@@ -61,6 +61,10 @@ class Ui_PyFit(object):
         self.folder_tree_back = QtGui.QPushButton(self.groupBox_2)
         self.folder_tree_back.setGeometry(QtCore.QRect(10, 140, 31, 21))
         self.folder_tree_back.setObjectName(_fromUtf8("folder_tree_back"))
+        self.calendar = QtGui.QDateEdit(self.groupBox_2)
+        self.calendar.setGeometry(QtCore.QRect(60, 140, 110, 22))
+        self.calendar.setCalendarPopup(True)
+        self.calendar.setObjectName(_fromUtf8("calendar"))
         self.plotWindow = GuiqwtScreen(self.tab_3)
         self.plotWindow.setGeometry(QtCore.QRect(0, 7, 711, 491))
         self.plotWindow.setObjectName(_fromUtf8("plotWindow"))

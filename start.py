@@ -11,6 +11,7 @@ import numpy as np
 import os
 import copy
 import time
+import datetime
 import re
 
 from functools import partial
@@ -25,6 +26,7 @@ from spyderlib.widgets import internalshell
 from matplotlib.patches import Rectangle
 
 from cPickle import dump, load
+from sqlalchemy.sql.functions import current_date
 
 
 class StartQT4(QtGui.QMainWindow): #TODO : rename
@@ -174,6 +176,13 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         self.ui.folder_tree.clicked.connect(self.folder_tree_clicked)
 
         self.ui.folder_tree_back.clicked.connect(self.folder_tree_back_clicked)
+        
+        # calendar
+        current_date = datetime.datetime.now()
+        today = QtCore.QDate(current_date.year, current_date.month, current_date.day)
+        
+        self.ui.calendar.setDate(today)
+        self.ui.calendar.dateChanged.connect(self.calendar_date_changed)
         
         # file list
 
@@ -1436,6 +1445,26 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
             return self.splitPath(root)+[d]
         else:
             return [root]
+    
+    ##### Usefull functions
+    
+    def gen_calendar_path(self,y,m,d):
+        
+        year_fmt = self.settings.calendar_yearfolder
+        month_fmt = self.settings.calendar_monthfolder
+        day_fmt = self.settings.calendar_dayfolder
+        root = self.settings.calendar_root
+        pic_folder = self.settings.calendar_picturefolder
+        date = datetime.datetime(year=y, month=m, day=d)
+        
+        day_folder = date.strftime(day_fmt)
+        month_folder = date.strftime(month_fmt)
+        year_folder = date.strftime(year_fmt)
+        
+        calendar_path = os.path.join(root, year_folder, month_folder, day_folder,pic_folder)
+        
+        return calendar_path
+    
     ##### GUI general callbacks
 
     def closeEvent(self, event):
@@ -1491,6 +1520,26 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         self.settings.current_folder = new_root
         self.update_file_list()
 
+    def calendar_date_changed(self,date):
+        y = date.year()
+        m = date.month()
+        d = date.day()
+        
+        new_path = self.gen_calendar_path(y, m, d)
+        if os.path.isdir(new_path):
+            
+            # update folder treeview accordingly
+            root = self.settings.calendar_root
+            self.settings.path_root = root
+            self.folder_tree_model.setRootPath(root)
+            idx = self.folder_tree_model.index(root)
+            self.ui.folder_tree.setRootIndex(idx)
+            
+            
+            self.settings.current_folder = new_path
+            self.update_file_list()
+        
+        
     def file_list_clicked(self, index):
 
         if len(self.ui.file_list.selectedIndexes()) > 1:
@@ -1566,6 +1615,7 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         self.settings.display_interpolation = str(self.ui.display_interpolation.currentText())
         self.display_file(False)
 
+
     ##### DEBUGGING
 
     def debug(self):
@@ -1596,14 +1646,24 @@ class GuiSettings():
     def __init__(self):
 
 
+        # Files browsing
+        
         self.path_root = u'/home/alex/Thèse/Programmation/Python/'
-        #self.path_root = ''
         self.current_folder = ''
         self.file_name_filter = '.jpg,.png'
-
+        
+        # Calendar browsing
+        
+        self.calendar_root = u'Z:\\DATAMANIP\\' # root for calendar selection
+        self.calendar_yearfolder = "%Y" # format for year folder, strftime style
+        self.calendar_monthfolder = "%b%Y"
+        self.calendar_dayfolder = "%d%b%Y"
+        self.calendar_picturefolder = "Pictures"
+        
+        # Files list
+        
         self.variables_to_hide = []
 
-        
         # Camera
 
         self.current_cam = 'lumenera'

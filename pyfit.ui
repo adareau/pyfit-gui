@@ -122,6 +122,19 @@
         <string>&lt;--</string>
        </property>
       </widget>
+      <widget class="QDateEdit" name="calendar">
+       <property name="geometry">
+        <rect>
+         <x>60</x>
+         <y>140</y>
+         <width>110</width>
+         <height>22</height>
+        </rect>
+       </property>
+       <property name="calendarPopup">
+        <bool>true</bool>
+       </property>
+      </widget>
      </widget>
      <widget class="GuiqwtScreen" name="plotWindow" native="true">
       <property name="geometry">
