@@ -6,3 +6,6 @@ tests/*
 settings/*
 fringeater/*.m
 *.pyc
+.project
+.pydevproject
+.settings/*
