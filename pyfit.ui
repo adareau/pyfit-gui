@@ -125,14 +125,27 @@
       <widget class="QDateEdit" name="calendar">
        <property name="geometry">
         <rect>
-         <x>60</x>
+         <x>50</x>
          <y>140</y>
-         <width>110</width>
+         <width>91</width>
          <height>22</height>
         </rect>
        </property>
        <property name="calendarPopup">
         <bool>true</bool>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="calendar_root_button">
+       <property name="geometry">
+        <rect>
+         <x>150</x>
+         <y>140</y>
+         <width>31</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>...</string>
        </property>
       </widget>
      </widget>

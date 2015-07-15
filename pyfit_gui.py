@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'pyfit.ui'
 #
-# Created: Wed Jul 15 16:19:20 2015
+# Created: Wed Jul 15 17:58:03 2015
 #      by: PyQt4 UI code generator 4.9.6
 #
 # WARNING! All changes made in this file will be lost!
@@ -62,9 +62,12 @@ class Ui_PyFit(object):
         self.folder_tree_back.setGeometry(QtCore.QRect(10, 140, 31, 21))
         self.folder_tree_back.setObjectName(_fromUtf8("folder_tree_back"))
         self.calendar = QtGui.QDateEdit(self.groupBox_2)
-        self.calendar.setGeometry(QtCore.QRect(60, 140, 110, 22))
+        self.calendar.setGeometry(QtCore.QRect(50, 140, 91, 22))
         self.calendar.setCalendarPopup(True)
         self.calendar.setObjectName(_fromUtf8("calendar"))
+        self.calendar_root_button = QtGui.QPushButton(self.groupBox_2)
+        self.calendar_root_button.setGeometry(QtCore.QRect(150, 140, 31, 21))
+        self.calendar_root_button.setObjectName(_fromUtf8("calendar_root_button"))
         self.plotWindow = GuiqwtScreen(self.tab_3)
         self.plotWindow.setGeometry(QtCore.QRect(0, 7, 711, 491))
         self.plotWindow.setObjectName(_fromUtf8("plotWindow"))
@@ -343,6 +346,7 @@ class Ui_PyFit(object):
         self.groupBox_2.setTitle(_translate("PyFit", "Browsing", None))
         self.current_dir_txt.setText(_translate("PyFit", "c:/path/to/our/file", None))
         self.folder_tree_back.setText(_translate("PyFit", "<--", None))
+        self.calendar_root_button.setText(_translate("PyFit", "...", None))
         self.groupBox_3.setTitle(_translate("PyFit", "Fit options", None))
         self.fit_binning_box.setText(_translate("PyFit", "Binning", None))
         self.fit_autobin_box.setText(_translate("PyFit", "Auto binning ", None))

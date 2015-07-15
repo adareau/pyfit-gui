@@ -183,6 +183,7 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         
         self.ui.calendar.setDate(today)
         self.ui.calendar.dateChanged.connect(self.calendar_date_changed)
+        self.ui.calendar_root_button.clicked.connect(self.calendar_root_button_clicked)
         
         # file list
 
@@ -1539,7 +1540,15 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
             self.settings.current_folder = new_path
             self.update_file_list()
         
-        
+    
+    def calendar_root_button_clicked(self):
+        msg = "Select root for calendar browsing"
+        folder = QtGui.QFileDialog.getExistingDirectory(None, msg, self.settings.calendar_root)
+        if folder:
+            self.settings.calendar_root = str(folder)
+            date = self.ui.calendar.date()
+            self.calendar_date_changed(date)
+           
     def file_list_clicked(self, index):
 
         if len(self.ui.file_list.selectedIndexes()) > 1:
