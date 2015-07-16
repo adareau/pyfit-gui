@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'pyfit.ui'
 #
-# Created: Thu Jul 16 09:32:11 2015
+# Created: Thu Jul 16 10:10:40 2015
 #      by: PyQt4 UI code generator 4.9.6
 #
 # WARNING! All changes made in this file will be lost!
@@ -26,7 +26,7 @@ except AttributeError:
 class Ui_PyFit(object):
     def setupUi(self, PyFit):
         PyFit.setObjectName(_fromUtf8("PyFit"))
-        PyFit.resize(1196, 894)
+        PyFit.resize(1195, 894)
         PyFit.setMaximumSize(QtCore.QSize(1196, 894))
         self.centralwidget = QtGui.QWidget(PyFit)
         self.centralwidget.setMinimumSize(QtCore.QSize(1150, 560))
@@ -307,7 +307,7 @@ class Ui_PyFit(object):
         self.tabWidget.addTab(self.tab_4, _fromUtf8(""))
         PyFit.setCentralWidget(self.centralwidget)
         self.menubar = QtGui.QMenuBar(PyFit)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 1196, 21))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 1195, 21))
         self.menubar.setObjectName(_fromUtf8("menubar"))
         PyFit.setMenuBar(self.menubar)
         self.statusbar = QtGui.QStatusBar(PyFit)
@@ -329,17 +329,31 @@ class Ui_PyFit(object):
         self.dockWidgetContents_2 = QtGui.QWidget()
         self.dockWidgetContents_2.setObjectName(_fromUtf8("dockWidgetContents_2"))
         self.result_text = QtGui.QTextEdit(self.dockWidgetContents_2)
-        self.result_text.setGeometry(QtCore.QRect(0, 0, 311, 211))
+        self.result_text.setGeometry(QtCore.QRect(0, 0, 321, 211))
         self.result_text.setReadOnly(True)
         self.result_text.setObjectName(_fromUtf8("result_text"))
         self.flush_result_button = QtGui.QPushButton(self.dockWidgetContents_2)
-        self.flush_result_button.setGeometry(QtCore.QRect(0, 211, 311, 20))
+        self.flush_result_button.setGeometry(QtCore.QRect(0, 211, 321, 20))
         self.flush_result_button.setObjectName(_fromUtf8("flush_result_button"))
         self.result_dock.setWidget(self.dockWidgetContents_2)
         PyFit.addDockWidget(QtCore.Qt.DockWidgetArea(8), self.result_dock)
         self.toolBar = QtGui.QToolBar(PyFit)
         self.toolBar.setObjectName(_fromUtf8("toolBar"))
         PyFit.addToolBar(QtCore.Qt.TopToolBarArea, self.toolBar)
+        self.comment_dock = QtGui.QDockWidget(PyFit)
+        self.comment_dock.setMinimumSize(QtCore.QSize(300, 258))
+        self.comment_dock.setMaximumSize(QtCore.QSize(300, 258))
+        self.comment_dock.setObjectName(_fromUtf8("comment_dock"))
+        self.dockWidgetContents_4 = QtGui.QWidget()
+        self.dockWidgetContents_4.setObjectName(_fromUtf8("dockWidgetContents_4"))
+        self.fit_comment_text = QtGui.QTextEdit(self.dockWidgetContents_4)
+        self.fit_comment_text.setGeometry(QtCore.QRect(5, 0, 291, 221))
+        self.fit_comment_text.setFrameShape(QtGui.QFrame.Box)
+        self.fit_comment_text.setFrameShadow(QtGui.QFrame.Plain)
+        self.fit_comment_text.setReadOnly(False)
+        self.fit_comment_text.setObjectName(_fromUtf8("fit_comment_text"))
+        self.comment_dock.setWidget(self.dockWidgetContents_4)
+        PyFit.addDockWidget(QtCore.Qt.DockWidgetArea(8), self.comment_dock)
 
         self.retranslateUi(PyFit)
         self.tabWidget.setCurrentIndex(0)
@@ -401,5 +415,6 @@ class Ui_PyFit(object):
         self.result_dock.setWindowTitle(_translate("PyFit", "results", None))
         self.flush_result_button.setText(_translate("PyFit", "flush", None))
         self.toolBar.setWindowTitle(_translate("PyFit", "toolBar", None))
+        self.comment_dock.setWindowTitle(_translate("PyFit", "comments", None))
 
 from GuiqwtScreen import GuiqwtScreen

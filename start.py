@@ -277,6 +277,12 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         self.ui.display_interpolation.currentIndexChanged.connect(\
                                             self.display_interpolation_clicked)
 
+        
+        # Comment editing/displaying zone
+        
+        self.ui.fit_comment_text.textChanged.connect(self.comment_text_changed)
+        self.ui.fit_comment_text.setEnabled(False)
+        
         # Quick list Tab
 
         self.ui.quickPlotButton.clicked.connect(self.plot_list)
@@ -495,7 +501,8 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         screen.plot.update_colormap_axis(screen.image)
         
         if load_fit: self.load_fit(draw=False)
-
+        if load_fit: self.load_comment()
+        
         if self.settings.display_hole:
             self.data.rectHOLE.show()
         else:
@@ -868,6 +875,26 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
 
     ### GUI settings management
 
+    def load_comment(self):
+        self.ui.fit_comment_text.setEnabled(True)
+        save_dir = os.path.join(self.data.current_file_path, '.fits')
+        if not os.path.isdir(save_dir):
+            os.mkdir(save_dir)
+        fname = self.data.current_file_name
+        fname = fname[0:len(fname)-4]+'.txt'
+        comment_path = os.path.join(save_dir, fname)
+        self.data.current_comment_file = comment_path
+        if not os.path.isfile(comment_path): 
+            self.ui.fit_comment_text.setPlainText('')
+            return
+        
+        text = ''
+        with open(comment_path, "r") as text_file:
+            text = text_file.read()
+        
+        self.ui.fit_comment_text.setPlainText(text)
+        
+        
     def refresh_fit_settings(self, event):
         if event is None:
             load = True
@@ -1513,8 +1540,7 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
             self.ui.folder_tree.setRootIndex(idx)
             self.settings.current_folder = root
             self.update_file_list()
-            
-            
+                        
     def folder_tree_dblclicked(self, index):
 
         indexItem = self.folder_tree_model.index(index.row(), 0, index.parent())
@@ -1565,9 +1591,7 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
             item = QtGui.QStandardItem("This folder does not exist...")
             model.appendRow(item)
             self.ui.file_list.setModel(model)
-            
-        
-    
+                       
     def calendar_page_changed(self,y,m):
         '''
         when calendar page is changed, we scan all folders for the current month,
@@ -1586,10 +1610,7 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
             if os.path.isdir(path) and os.listdir(path)!=[]:
                 date = QtCore.QDate(y,m,d+1)
                 self.ui.calendar.calendarWidget().setDateTextFormat(date,bold_fmt)
-                
-                
-        
-        
+                        
     def calendar_root_button_clicked(self):
         msg = "Select root for calendar browsing"
         folder = QtGui.QFileDialog.getExistingDirectory(None, msg, self.settings.calendar_root)
@@ -1688,6 +1709,13 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
             self.settings.variables_to_hide =  check_window.selected
 
 
+    def comment_text_changed(self):
+        text = self.ui.fit_comment_text.toPlainText()
+        filename = self.data.current_comment_file
+        if filename != '':
+            with open(filename, "w") as text_file:
+                text_file.write(text)
+        
         
     def print_event(self, event):
         print event
@@ -1796,6 +1824,7 @@ class GuiData():
 
         self.tictoc_start = time.time()
 
+        self.current_comment_file = ''
         
 
 

@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1196</width>
+    <width>1195</width>
     <height>894</height>
    </rect>
   </property>
@@ -995,6 +995,16 @@
        <bool>false</bool>
       </property>
      </widget>
+     <zorder>groupBox_2</zorder>
+     <zorder>plotWindow</zorder>
+     <zorder>groupBox_3</zorder>
+     <zorder>hide_variables_button</zorder>
+     <zorder>hide_variable_txt</zorder>
+     <zorder>refresh_file_list</zorder>
+     <zorder>file_list</zorder>
+     <zorder>progressBar</zorder>
+     <zorder>fitButton</zorder>
+     <zorder>result_dock_2</zorder>
     </widget>
     <widget class="QWidget" name="tab_4">
      <attribute name="title">
@@ -1008,7 +1018,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1196</width>
+     <width>1195</width>
      <height>21</height>
     </rect>
    </property>
@@ -1057,7 +1067,7 @@
       <rect>
        <x>0</x>
        <y>0</y>
-       <width>311</width>
+       <width>321</width>
        <height>211</height>
       </rect>
      </property>
@@ -1070,7 +1080,7 @@
       <rect>
        <x>0</x>
        <y>211</y>
-       <width>311</width>
+       <width>321</width>
        <height>20</height>
       </rect>
      </property>
@@ -1090,6 +1100,47 @@
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
+  </widget>
+  <widget class="QDockWidget" name="comment_dock">
+   <property name="minimumSize">
+    <size>
+     <width>300</width>
+     <height>258</height>
+    </size>
+   </property>
+   <property name="maximumSize">
+    <size>
+     <width>300</width>
+     <height>258</height>
+    </size>
+   </property>
+   <property name="windowTitle">
+    <string>comments</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>8</number>
+   </attribute>
+   <widget class="QWidget" name="dockWidgetContents_4">
+    <widget class="QTextEdit" name="fit_comment_text">
+     <property name="geometry">
+      <rect>
+       <x>5</x>
+       <y>0</y>
+       <width>291</width>
+       <height>221</height>
+      </rect>
+     </property>
+     <property name="frameShape">
+      <enum>QFrame::Box</enum>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Plain</enum>
+     </property>
+     <property name="readOnly">
+      <bool>false</bool>
+     </property>
+    </widget>
+   </widget>
   </widget>
  </widget>
  <customwidgets>
