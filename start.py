@@ -5,30 +5,7 @@ Starts pyfit GUI
 """
 import sys
 from PyQt4 import QtCore, QtGui
-from pyfit_gui import Ui_PyFit
-import matplotlib.pyplot as plt
-import numpy as np
 import os
-import copy
-import time
-import datetime
-import calendar
-import re
-
-from functools import partial
-
-from guiqwt._scaler import INTERP_NEAREST, INTERP_LINEAR
-
-import pyfit as pf
-from GuiqwtScreen import ROISelectTool, BKGNDSelectTool, HOLESelectTool
-from import_WNM_fit import import_WNM_fit
-
-from collections import OrderedDict
-from spyderlib.widgets import internalshell
-from matplotlib.patches import Rectangle
-
-from cPickle import dump, load
-from sqlalchemy.sql.functions import current_date
 
 
 class StartQT4(QtGui.QMainWindow): #TODO : rename
@@ -1933,7 +1910,34 @@ if __name__ == "__main__":
     splash = QtGui.QSplashScreen(splash_pix,QtCore.Qt.WindowStaysOnTopHint)
     splash.show()
     
+    # Heavy imports
+    
+    from pyfit_gui import Ui_PyFit
+    import matplotlib.pyplot as plt
+    import numpy as np
+    import copy
+    import time
+    import datetime
+    import calendar
+    import re
+    
+    from functools import partial
+    
+    from guiqwt._scaler import INTERP_NEAREST, INTERP_LINEAR
+    
+    import pyfit as pf
+    from GuiqwtScreen import ROISelectTool, BKGNDSelectTool, HOLESelectTool
+    from import_WNM_fit import import_WNM_fit
+    
+    from collections import OrderedDict
+    from spyderlib.widgets import internalshell
+    from matplotlib.patches import Rectangle
+    
+    from cPickle import dump, load
+    from sqlalchemy.sql.functions import current_date
+
     # start programm
+    
     myapp = StartQT4()
     myapp.show()
     splash.finish(myapp)
