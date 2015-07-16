@@ -21,6 +21,7 @@ from guiqwt._scaler import INTERP_NEAREST, INTERP_LINEAR
 
 import pyfit as pf
 from GuiqwtScreen import ROISelectTool, BKGNDSelectTool, HOLESelectTool
+from import_WNM_fit import import_WNM_fit
 
 from collections import OrderedDict
 from spyderlib.widgets import internalshell
@@ -358,8 +359,16 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
             fname = str(file_name)
             fname = fname[:-4]+'.hdf5'
             fit_path = os.path.join(save_dir, fname)
+            
+            # Compatibility with old fitting program WnM
+            old_fname = fname[:-5]+'.fit'
+            fit_path_old =  os.path.join(self.data.current_file_path,'saved_fits',old_fname)
+            #-----------------------------------
+            
             if os.path.isfile(fit_path):
                 name = self.settings.isfit_str+str(file_name)
+            elif os.path.isfile(fit_path_old): # WnM compatibility
+                name = self.settings.isfit_wnm_str+str(file_name)   
             else:
                 name = self.settings.isnofit_str+str(file_name)
             
@@ -778,49 +787,6 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
             cut_y.yfit = yfit
             cut_y.update_plot()
 
-
-    def load_fit_old(self, draw=True):
-
-        save_dir = os.path.join(self.data.current_file_path, '.fits')
-        fname = self.data.current_file_name
-        fname = fname[:-4]+'.fit'
-        fit_path = os.path.join(save_dir, fname)
-
-        if not os.path.isfile(fit_path): return
-
-        self.print_result(self.settings.results_delim)
-        self.print_result("<b> Loading FIT</b>")
-
-        # TODO : remove (old version)
-        
-        with open(fit_path, 'rb') as output:
-                saved_fit = load(output)
-        
-        
-        
-        self.print_settings(saved_fit)
-
-
-        # load ROI
-        self.data.current_fit.picture.ROI = saved_fit.picture.ROI
-        if draw: self.draw_ROI()
-
-        # load HOLE
-        self.data.current_fit.picture.hole = saved_fit.picture.hole
-        if draw: self.draw_HOLE()
-            
-        # load background
-        self.data.current_fit.picture.background = saved_fit.picture.background
-        if draw: self.draw_background()
-
-        # display results
-        saved_fit.load_data()
-        self.plot_fit_results(fitObj=saved_fit)
-
-        # print results
-        results_str = saved_fit.values_to_str()
-        self.print_result(results_str)
-        
         
     def load_fit(self, draw=True):
 
@@ -828,14 +794,48 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         fname = self.data.current_file_name
         fname = fname[0:len(fname)-4]+'.hdf5'
         fit_path = os.path.join(save_dir, fname)
-
-        if not os.path.isfile(fit_path): return
-
-        self.print_result(self.settings.results_delim)
-        self.print_result("<b> Loading FIT</b>")
-
-
-        saved_fit = self.data.current_fit.hdf5_to_fit(fit_path)
+        
+        # Compatibility with old fitting program WnM
+        old_fname = fname[:-5]+'.fit'
+        fit_path_old =  os.path.join(self.data.current_file_path,'saved_fits',old_fname)
+        #---------------------------------------
+            
+        if os.path.isfile(fit_path):
+            old_fit = False
+            self.print_result(self.settings.results_delim)
+            self.print_result("<b> Loading FIT</b>")
+            saved_fit = self.data.current_fit.hdf5_to_fit(fit_path)
+        elif os.path.isfile(fit_path_old):
+            #-----------------------------------------------------
+            # Compatibility with old fitting program WnM
+            old_fit = True
+            self.print_result(self.settings.results_delim)
+            self.print_result("<b> Loading FIT</b>")
+            loaded_fit = import_WNM_fit(fit_path_old)
+            if isinstance(loaded_fit,basestring):
+                self.print_result('conversion from WnM not implemented for fit type "'+loaded_fit+'"')
+                return
+            # initialize fit object
+            saved_fit = pf.PyFit2D()
+            # get properties from current fit (which are not stored in saved fit)
+            saved_fit.picture = copy.deepcopy(self.data.current_fit.picture)
+            saved_fit.atom = copy.deepcopy(self.data.current_fit.atom)
+            saved_fit.camera = copy.deepcopy(self.data.current_fit.camera)
+            # loaded properties
+            saved_fit.fit = loaded_fit.fit
+            saved_fit.picture.ROI = loaded_fit.picture.ROI
+            saved_fit.picture.background = loaded_fit.picture.background
+            saved_fit.camera.magnification = loaded_fit.camera.magnification
+            if loaded_fit.fit.options.do_binning:
+                saved_fit.fit.options.do_binning = loaded_fit.fit.options.do_binning
+                saved_fit.fit.options.binning = loaded_fit.fit.options.binning
+                saved_fit.fit.options.auto_binning = loaded_fit.fit.options.auto_binning
+            
+            
+            self.data.debug = saved_fit
+            #-----------------------------------------------------
+        else:
+            return # if no fit available, stop and return nothing
         
         # import lambdas from fit generator 
         if saved_fit.fit.name in pf.fit2D_dic.keys():
@@ -845,7 +845,7 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
             if not isinstance(saved_fit.fit.formula_parameters,str):
                 saved_fit.fit.updateFormulaFromParameters2D()
             saved_fit.fit.values = buffer_fit.values
-            
+            #if old_fit:saved_fit.compute_values()
         else:
             self.print_result('Saved fit name not found in known fit list - abort')
             return
@@ -860,19 +860,21 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         # load HOLE
         self.data.current_fit.picture.hole = saved_fit.picture.hole
         if draw: self.draw_HOLE()
-            
+           
         # load background
         self.data.current_fit.picture.background = saved_fit.picture.background
         if draw: self.draw_background()
-
+        
         # display results
         saved_fit.load_data()
+        if old_fit:saved_fit.compute_values()
         self.plot_fit_results(fitObj=saved_fit)
-
+        
         # print results
         results_str = saved_fit.values_to_str()
         self.print_result(results_str)
-
+        
+        
 
     ### GUI settings management
 
@@ -1793,6 +1795,7 @@ class GuiSettings():
         # Other
 
         self.isfit_str = '[*] '
+        self.isfit_wnm_str = '[~] ' # Watch and MOT fit
         self.isnofit_str = '[ ] '
         self.results_delim = '<b>'+'-'*30+'</b>'
 
@@ -1816,7 +1819,7 @@ class GuiData():
         self.current_fit = pf.PyFit2D()
         self.current_fit.camera = gui.settings.cam_list[gui.settings.current_cam]
         self.current_fit.fit = pf.fit2D_dic[gui.settings.current_fit_type]
-        self.debug = ''
+        
         self.available_variables = []
         self.all_available_variables = []
         
@@ -1842,7 +1845,8 @@ class GuiData():
         self.current_comment_file = ''
         self.do_not_load_comment = False
 
-
+        self.debug = ''
+        
 class CheckListWindow(QtGui.QDialog):
  
     def __init__(self, parent=None, title='Window Title',
