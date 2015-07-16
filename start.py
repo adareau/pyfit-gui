@@ -282,6 +282,7 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         
         self.ui.fit_comment_text.textChanged.connect(self.comment_text_changed)
         self.ui.fit_comment_text.setEnabled(False)
+        self.ui.disable_comment_box.clicked.connect(self.refresh_gui_settings)
         
         # Quick list Tab
 
@@ -501,7 +502,7 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         screen.plot.update_colormap_axis(screen.image)
         
         if load_fit: self.load_fit(draw=False)
-        if load_fit: self.load_comment()
+        if load_fit and not self.settings.disable_comment: self.load_comment()
         
         if self.settings.display_hole:
             self.data.rectHOLE.show()
@@ -884,15 +885,18 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         fname = fname[0:len(fname)-4]+'.txt'
         comment_path = os.path.join(save_dir, fname)
         self.data.current_comment_file = comment_path
-        if not os.path.isfile(comment_path): 
+        if not os.path.isfile(comment_path):
+            self.data.do_not_load_comment = True 
             self.ui.fit_comment_text.setPlainText('')
+            self.data.do_not_load_comment = False 
             return
         
         text = ''
         with open(comment_path, "r") as text_file:
             text = text_file.read()
-        
+        self.data.do_not_load_comment = True 
         self.ui.fit_comment_text.setPlainText(text)
+        self.data.do_not_load_comment = False 
         
         
     def refresh_fit_settings(self, event):
@@ -986,6 +990,7 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
 
         bools = [['display_fit_contour', self.ui.disp_fit_contour_box],
                  ['display_hole', self.ui.display_hole_box],
+                 ['disable_comment', self.ui.disable_comment_box],
                  ['fit_list', self.ui.fit_list_box]]
 
         params = [['colormap_min', self.ui.colormap_min],
@@ -1036,9 +1041,14 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
                 self.data.rectHOLE.hide()
                 
             self.ui.plotWindow.screen.plot.replot()
-
+        
+        if settings.disable_comment:
+            self.ui.fit_comment_text.setEnabled(False)
+        else:
+            self.ui.fit_comment_text.setEnabled(True)
+            
         self.settings = settings
-
+        
 
     def save_settings(self):
 
@@ -1712,6 +1722,7 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
     def comment_text_changed(self):
         text = self.ui.fit_comment_text.toPlainText()
         filename = self.data.current_comment_file
+        if self.data.do_not_load_comment: return
         if filename != '':
             with open(filename, "w") as text_file:
                 text_file.write(text)
@@ -1774,7 +1785,11 @@ class GuiSettings():
         # Lists
 
         self.fit_list = False
-
+        
+        # Comments
+        
+        self.disable_comment = False
+        
         # Other
 
         self.isfit_str = '[*] '
@@ -1825,7 +1840,7 @@ class GuiData():
         self.tictoc_start = time.time()
 
         self.current_comment_file = ''
-        
+        self.do_not_load_comment = False
 
 
 class CheckListWindow(QtGui.QDialog):

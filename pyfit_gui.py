@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'pyfit.ui'
 #
-# Created: Thu Jul 16 10:10:40 2015
+# Created: Thu Jul 16 11:15:53 2015
 #      by: PyQt4 UI code generator 4.9.6
 #
 # WARNING! All changes made in this file will be lost!
@@ -347,11 +347,14 @@ class Ui_PyFit(object):
         self.dockWidgetContents_4 = QtGui.QWidget()
         self.dockWidgetContents_4.setObjectName(_fromUtf8("dockWidgetContents_4"))
         self.fit_comment_text = QtGui.QTextEdit(self.dockWidgetContents_4)
-        self.fit_comment_text.setGeometry(QtCore.QRect(5, 0, 291, 221))
+        self.fit_comment_text.setGeometry(QtCore.QRect(5, 0, 291, 211))
         self.fit_comment_text.setFrameShape(QtGui.QFrame.Box)
         self.fit_comment_text.setFrameShadow(QtGui.QFrame.Plain)
         self.fit_comment_text.setReadOnly(False)
         self.fit_comment_text.setObjectName(_fromUtf8("fit_comment_text"))
+        self.disable_comment_box = QtGui.QCheckBox(self.dockWidgetContents_4)
+        self.disable_comment_box.setGeometry(QtCore.QRect(9, 211, 221, 22))
+        self.disable_comment_box.setObjectName(_fromUtf8("disable_comment_box"))
         self.comment_dock.setWidget(self.dockWidgetContents_4)
         PyFit.addDockWidget(QtCore.Qt.DockWidgetArea(8), self.comment_dock)
 
@@ -416,5 +419,6 @@ class Ui_PyFit(object):
         self.flush_result_button.setText(_translate("PyFit", "flush", None))
         self.toolBar.setWindowTitle(_translate("PyFit", "toolBar", None))
         self.comment_dock.setWindowTitle(_translate("PyFit", "comments", None))
+        self.disable_comment_box.setText(_translate("PyFit", "disable comment (for faster file browsing)", None))
 
 from GuiqwtScreen import GuiqwtScreen
