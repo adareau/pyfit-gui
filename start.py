@@ -12,6 +12,7 @@ import os
 import copy
 import time
 import datetime
+import calendar
 import re
 
 from functools import partial
@@ -184,6 +185,10 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         self.ui.calendar.setDate(today)
         self.ui.calendar.dateChanged.connect(self.calendar_date_changed)
         self.ui.calendar_root_button.clicked.connect(self.calendar_root_button_clicked)
+        
+        popup_calendar = self.ui.calendar.calendarWidget()
+        popup_calendar.currentPageChanged.connect(self.calendar_page_changed)
+        self.calendar_page_changed(current_date.year, current_date.month)
         
         # file list
 
@@ -1541,6 +1546,27 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
             self.update_file_list()
         
     
+    def calendar_page_changed(self,y,m):
+        '''
+        when calendar page is changed, we scan all folders for the current month,
+        and we highlight (bold) the dates for which the folder exist and is not empty
+        '''
+        # QTFont bold format definition
+        bold_fmt = QtGui.QTextCharFormat()
+        bold_fmt.setFontWeight(QtGui.QFont.Bold)
+        
+        maxday = calendar.monthrange(y,m)[1]
+        
+        for d in range(maxday):
+            path = self.gen_calendar_path(y, m, d+1)
+            #for each day, check picture dir exists AND is NOT empty
+            if os.path.isdir(path) and os.listdir(path)!=[]:
+                date = QtCore.QDate(y,m,d+1)
+                self.ui.calendar.calendarWidget().setDateTextFormat(date,bold_fmt)
+                
+                
+        
+        
     def calendar_root_button_clicked(self):
         msg = "Select root for calendar browsing"
         folder = QtGui.QFileDialog.getExistingDirectory(None, msg, self.settings.calendar_root)
