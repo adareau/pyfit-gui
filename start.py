@@ -1916,10 +1916,22 @@ class AttrDict(dict): # Matlab like dictionnary
     def __init__(self, *args, **kwargs):
         super(AttrDict, self).__init__(*args, **kwargs)
         self.__dict__ = self
+
+
+################################# START ##########################################
         
 if __name__ == "__main__":
     app = QtGui.QApplication(sys.argv)
+    
+    # splash screen
+    splash_file = os.path.join('.','img','splash.png')
+    splash_pix = QtGui.QPixmap(splash_file)
+    splash = QtGui.QSplashScreen(splash_pix,QtCore.Qt.WindowStaysOnTopHint)
+    splash.show()
+    
+    # start programm
     myapp = StartQT4()
     myapp.show()
+    splash.finish(myapp)
     sys.exit(app.exec_())
 
