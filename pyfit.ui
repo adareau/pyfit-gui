@@ -144,10 +144,36 @@
          <height>21</height>
         </rect>
        </property>
+       <property name="toolTip">
+        <string/>
+       </property>
        <property name="text">
         <string>...</string>
        </property>
       </widget>
+      <widget class="QPushButton" name="tree_root_button">
+       <property name="geometry">
+        <rect>
+         <x>202</x>
+         <y>17</y>
+         <width>16</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="toolTip">
+        <string/>
+       </property>
+       <property name="text">
+        <string>....</string>
+       </property>
+      </widget>
+      <zorder>folder_tree</zorder>
+      <zorder>current_dir_txt</zorder>
+      <zorder>folder_tree_back</zorder>
+      <zorder>calendar</zorder>
+      <zorder>calendar_root_button</zorder>
+      <zorder>groupBox_3</zorder>
+      <zorder>tree_root_button</zorder>
      </widget>
      <widget class="GuiqwtScreen" name="plotWindow" native="true">
       <property name="geometry">

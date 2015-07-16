@@ -177,6 +177,8 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         self.ui.folder_tree.clicked.connect(self.folder_tree_clicked)
 
         self.ui.folder_tree_back.clicked.connect(self.folder_tree_back_clicked)
+        self.ui.tree_root_button.clicked.connect(self.tree_root_button_clicked)
+        self.ui.tree_root_button.setToolTip("change root for ''tree'' browsing")
         
         # calendar
         current_date = datetime.datetime.now()
@@ -185,7 +187,7 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         self.ui.calendar.setDate(today)
         self.ui.calendar.dateChanged.connect(self.calendar_date_changed)
         self.ui.calendar_root_button.clicked.connect(self.calendar_root_button_clicked)
-        
+        self.ui.calendar_root_button.setToolTip("change root for calendar browsing")
         popup_calendar = self.ui.calendar.calendarWidget()
         popup_calendar.currentPageChanged.connect(self.calendar_page_changed)
         self.calendar_page_changed(current_date.year, current_date.month)
@@ -1499,7 +1501,20 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
 
 
     ##### GUI components callbacks
-
+    
+    def tree_root_button_clicked(self):
+        msg = "Select folder (for tree browsing)"
+        folder = QtGui.QFileDialog.getExistingDirectory(None, msg, self.settings.path_root)
+        if folder:
+            root = str(folder)
+            self.settings.path_root = root
+            self.folder_tree_model.setRootPath(root)
+            idx = self.folder_tree_model.index(root)
+            self.ui.folder_tree.setRootIndex(idx)
+            self.settings.current_folder = root
+            self.update_file_list()
+            
+            
     def folder_tree_dblclicked(self, index):
 
         indexItem = self.folder_tree_model.index(index.row(), 0, index.parent())
@@ -1544,6 +1559,13 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
             
             self.settings.current_folder = new_path
             self.update_file_list()
+            
+        else:
+            model = QtGui.QStandardItemModel()
+            item = QtGui.QStandardItem("This folder does not exist...")
+            model.appendRow(item)
+            self.ui.file_list.setModel(model)
+            
         
     
     def calendar_page_changed(self,y,m):
@@ -1560,6 +1582,7 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         for d in range(maxday):
             path = self.gen_calendar_path(y, m, d+1)
             #for each day, check picture dir exists AND is NOT empty
+            #TODO: make it faster than os.listdir ?
             if os.path.isdir(path) and os.listdir(path)!=[]:
                 date = QtCore.QDate(y,m,d+1)
                 self.ui.calendar.calendarWidget().setDateTextFormat(date,bold_fmt)
@@ -1574,7 +1597,8 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
             self.settings.calendar_root = str(folder)
             date = self.ui.calendar.date()
             self.calendar_date_changed(date)
-           
+    
+                   
     def file_list_clicked(self, index):
 
         if len(self.ui.file_list.selectedIndexes()) > 1:
