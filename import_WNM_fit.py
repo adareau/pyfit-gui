@@ -67,6 +67,14 @@ def import_WNM_fit(filename):
         p_new = np.array([p[0],p[1],p[3],p[2],p[5]+ROI[0],p[4]+ROI[2]])
         fit.fit.results = p_new
         
+    elif fit_type == 'TF':
+        # OLD : order of parameters: offset,ampl,sx,sy,cx,cy
+        # NEW :  p = [offset, Ampl,sx,sy,cx,cy ]
+        
+        fit.fit = pf.fit2D_dic['ThomasFermi']
+        p_new = np.array([p[0],p[1],p[3],p[2],p[5]+ROI[0],p[4]+ROI[2]])
+        fit.fit.results = p_new
+        
     else: # not known...
         return fit_type
         
