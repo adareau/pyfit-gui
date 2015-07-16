@@ -13,3 +13,4 @@ import thomasFermi2D
 import gaussTF2D
 import gaussDeriv1D
 import gaussWaist
+import Bose2D

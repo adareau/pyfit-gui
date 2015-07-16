@@ -30,7 +30,8 @@ import fit_collection
 fit2D_dic = {fit_collection.gauss2D.gen().name:fit_collection.gauss2D.gen(),
              fit_collection.gaussTilted.gen().name:fit_collection.gaussTilted.gen(),
              fit_collection.thomasFermi2D.gen().name:fit_collection.thomasFermi2D.gen(),
-             fit_collection.gaussTF2D.gen().name:fit_collection.gaussTF2D.gen()}
+             fit_collection.gaussTF2D.gen().name:fit_collection.gaussTF2D.gen(),
+             fit_collection.Bose2D.gen().name:fit_collection.Bose2D.gen()}
 
 
 fit1D_dic = {fit_collection.gauss1D.gen().name:fit_collection.gauss1D.gen(),
