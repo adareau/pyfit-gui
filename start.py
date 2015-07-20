@@ -1882,11 +1882,20 @@ if __name__ == "__main__":
     splash = QtGui.QSplashScreen(splash_pix,QtCore.Qt.WindowStaysOnTopHint)
     splash.show()
     
+    def update_message(msg):
+        splash.showMessage(msg,4)
+        QtCore.QCoreApplication.processEvents()
+    
+    
     # Heavy imports
     
+    update_message("loading gui...")
     from pyfit_gui import Ui_PyFit
+    update_message("loading pyplot...")
     import matplotlib.pyplot as plt
+    update_message("loading numpy...")
     import numpy as np
+    update_message("loading generic libraries...")
     import copy
     import time
     import datetime
@@ -1894,22 +1903,27 @@ if __name__ == "__main__":
     import re
     
     from functools import partial
-    
+
     from guiqwt._scaler import INTERP_NEAREST, INTERP_LINEAR
     
+    update_message("loading pyfit...")
     import pyfit as pf
+    update_message("loading screen (guiqwt)...")
     from GuiqwtScreen import ROISelectTool, BKGNDSelectTool, HOLESelectTool
     from import_WNM_fit import import_WNM_fit
-    
-    from collections import OrderedDict
+    update_message("loading internal shell (spyderlib)...")
     from spyderlib.widgets import internalshell
+    
+    update_message("last imports...")
+    from collections import OrderedDict
+    
     from matplotlib.patches import Rectangle
     
     from cPickle import dump, load
     from sqlalchemy.sql.functions import current_date
 
     # start programm
-    
+    update_message("loading finished : starting app !")
     myapp = StartQT4()
     myapp.show()
     splash.finish(myapp)
