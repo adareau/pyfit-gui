@@ -1351,7 +1351,7 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
                                        variables=self.data.available_variables,
                                        selected = self.settings.variables_to_save,
                                        msg = 'choose variables to save',
-                                       droplist_choice=['txt','hdf5'],
+                                       droplist_choice=['txt'],
                                        droplist_msg="save format")
         result = check_window.exec_()        
         
