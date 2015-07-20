@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'pyfit.ui'
 #
-# Created: Mon Jul 20 11:45:05 2015
+# Created: Mon Jul 20 15:09:49 2015
 #      by: PyQt4 UI code generator 4.9.6
 #
 # WARNING! All changes made in this file will be lost!
@@ -48,16 +48,6 @@ class Ui_PyFit(object):
         self.folder_tree = QtGui.QTreeView(self.groupBox_2)
         self.folder_tree.setGeometry(QtCore.QRect(10, 40, 191, 91))
         self.folder_tree.setObjectName(_fromUtf8("folder_tree"))
-        self.current_dir_txt = QtGui.QLabel(self.groupBox_2)
-        self.current_dir_txt.setGeometry(QtCore.QRect(10, 20, 191, 20))
-        font = QtGui.QFont()
-        font.setBold(False)
-        font.setWeight(50)
-        font.setKerning(True)
-        self.current_dir_txt.setFont(font)
-        self.current_dir_txt.setTextFormat(QtCore.Qt.AutoText)
-        self.current_dir_txt.setWordWrap(False)
-        self.current_dir_txt.setObjectName(_fromUtf8("current_dir_txt"))
         self.folder_tree_back = QtGui.QPushButton(self.groupBox_2)
         self.folder_tree_back.setGeometry(QtCore.QRect(10, 140, 31, 21))
         self.folder_tree_back.setObjectName(_fromUtf8("folder_tree_back"))
@@ -73,6 +63,13 @@ class Ui_PyFit(object):
         self.tree_root_button.setGeometry(QtCore.QRect(202, 17, 16, 21))
         self.tree_root_button.setToolTip(_fromUtf8(""))
         self.tree_root_button.setObjectName(_fromUtf8("tree_root_button"))
+        self.current_dir_txt = QtGui.QLineEdit(self.groupBox_2)
+        self.current_dir_txt.setGeometry(QtCore.QRect(10, 18, 191, 20))
+        self.current_dir_txt.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
+        self.current_dir_txt.setStatusTip(_fromUtf8(""))
+        self.current_dir_txt.setFrame(False)
+        self.current_dir_txt.setReadOnly(True)
+        self.current_dir_txt.setObjectName(_fromUtf8("current_dir_txt"))
         self.plotWindow = GuiqwtScreen(self.tab_3)
         self.plotWindow.setGeometry(QtCore.QRect(0, 7, 711, 491))
         self.plotWindow.setObjectName(_fromUtf8("plotWindow"))
@@ -369,10 +366,11 @@ class Ui_PyFit(object):
     def retranslateUi(self, PyFit):
         PyFit.setWindowTitle(_translate("PyFit", "MainWindow", None))
         self.groupBox_2.setTitle(_translate("PyFit", "Browsing", None))
-        self.current_dir_txt.setText(_translate("PyFit", "c:/path/to/our/file", None))
         self.folder_tree_back.setText(_translate("PyFit", "<--", None))
         self.calendar_root_button.setText(_translate("PyFit", "...", None))
         self.tree_root_button.setText(_translate("PyFit", "....", None))
+        self.current_dir_txt.setToolTip(_translate("PyFit", "C\\:complete\\path\\to\\our\\folder", None))
+        self.current_dir_txt.setText(_translate("PyFit", "...\\path\\to\\our\\folder", None))
         self.groupBox_3.setTitle(_translate("PyFit", "Fit options", None))
         self.fit_binning_box.setText(_translate("PyFit", "Binning ->", None))
         self.fit_autobin_box.setText(_translate("PyFit", "Auto binning ->", None))

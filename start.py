@@ -311,7 +311,8 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         path = self.settings.current_folder
         
         self.ui.current_dir_txt.setText(self.trunc_path(str(path),30))
-
+        self.ui.current_dir_txt.setToolTip(str(path)) # full path is displayed as toolTip
+        
         file_name_filter = self.settings.file_name_filter.split(',')
         file_name_filter = ['*'+f for f in file_name_filter]
 
@@ -332,7 +333,12 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         is_a_var_hidden = 0
         variable_list = []
         
+        self.file_list_model = QtGui.QStandardItemModel()
+        
+        # Populate file list :
+        
         for file_name in files_list:
+            
             fname = str(file_name)
             fname = fname[:-4]+'.hdf5'
             fit_path = os.path.join(str(save_dir), fname)
@@ -344,10 +350,13 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
             
             if os.path.isfile(fit_path):
                 name = self.settings.isfit_str+str(file_name)
+                font_foreground_color = QtCore.Qt.darkBlue    
             elif os.path.isfile(fit_path_old): # WnM compatibility
-                name = self.settings.isfit_wnm_str+str(file_name)   
+                name = self.settings.isfit_wnm_str+str(file_name)
+                font_foreground_color = QtCore.Qt.darkCyan
             else:
                 name = self.settings.isnofit_str+str(file_name)
+                font_foreground_color = QtCore.Qt.black
             
             variable_list += self.parseVariables(name).keys()
             
@@ -356,6 +365,16 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
                 is_a_var_hidden |= modif
             files_list[i] = name
             i += 1
+            
+            item = QtGui.QStandardItem(name)
+            font_weight = QtGui.QFont.Light
+            font = QtGui.QFont('Monospace', 9, font_weight)
+            item.setFont(font)
+            item.setForeground(QtGui.QBrush(font_foreground_color))
+            item.setToolTip(name)
+            
+            self.file_list_model.appendRow(item)
+            
             
         if is_a_var_hidden:
             self.ui.hide_variable_txt.setText('some variables are hidden')
@@ -373,8 +392,6 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
             
         self.data.all_available_variables = list(set(variable_list))
         
-        self.file_list_model = QtGui.QStringListModel(files_list)
-
         self.ui.file_list.setModel(self.file_list_model)
         # callback has to be set after model is set for file_list
         self.ui.file_list.selectionModel().selectionChanged.connect(self.file_list_clicked)
@@ -1743,9 +1760,9 @@ class GuiSettings():
         
         # Other
 
-        self.isfit_str = '[*] '
-        self.isfit_wnm_str = '[~] ' # Watch and MOT fit
-        self.isnofit_str = '[ ] '
+        self.isfit_str = ''
+        self.isfit_wnm_str = '' # Watch and MOT fit
+        self.isnofit_str = ''
         self.results_delim = '<b>'+'-'*30+'</b>'
 
     def load_old_version(self, gs):
@@ -1905,7 +1922,7 @@ if __name__ == "__main__":
     from functools import partial
 
     from guiqwt._scaler import INTERP_NEAREST, INTERP_LINEAR
-    
+    update_message("displaying quick message : Hello world ^(°0°)^")
     update_message("loading pyfit...")
     import pyfit as pf
     update_message("loading screen (guiqwt)...")
@@ -1914,7 +1931,7 @@ if __name__ == "__main__":
     update_message("loading internal shell (spyderlib)...")
     from spyderlib.widgets import internalshell
     
-    update_message("last imports...")
+    update_message("Reticulating Splines...") # ^^
     from collections import OrderedDict
     
     from matplotlib.patches import Rectangle
