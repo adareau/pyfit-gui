@@ -327,7 +327,7 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
                                    
         # Check if saved fit exists and hide variables
 
-        save_dir = os.path.join(self.data.current_file_path, '.fits')
+        save_dir = os.path.join(path, '.fits')
         i = 0
         is_a_var_hidden = 0
         variable_list = []
@@ -339,7 +339,7 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
             
             # Compatibility with old fitting program WnM
             old_fname = fname[:-5]+'.fit'
-            fit_path_old =  os.path.join(self.data.current_file_path,'saved_fits',old_fname)
+            fit_path_old =  os.path.join(path,'saved_fits',old_fname)
             #-----------------------------------
             
             if os.path.isfile(fit_path):
