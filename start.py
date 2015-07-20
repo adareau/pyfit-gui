@@ -268,7 +268,8 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         self.ui.quickStatsButton.clicked.connect(self.stat_list)
         self.ui.send_to_console_button.clicked.connect(self.send_to_console)
         self.ui.fit_list_box.clicked.connect(self.refresh_gui_settings)
-
+        self.ui.save_quicklist_button.clicked.connect(self.save_quicklist)
+        
         for fit in self.data.fit1D_dic:
             self.ui.list_fit_type.addItem(fit)
 
@@ -1341,6 +1342,10 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
 
         self.pythonshell.interpreter.namespace['res'] = to_send
     
+    
+    def save_quicklist(self):
+        pass
+    
     ### Cam management
 
     def refresh_cam_list(self):
@@ -1827,7 +1832,7 @@ class CheckListWindow(QtGui.QDialog):
         layout = QtGui.QGridLayout()
 
         
-        self.buttons = []
+        #self.buttons = []
         self.cboxes = []
         
         self.varlist = [v for v in variables]
@@ -1836,35 +1841,45 @@ class CheckListWindow(QtGui.QDialog):
         text_1 = QtGui.QLabel(msg)
         layout.addWidget(text_1,0,0,1,2)
         
-        i=0
+        i_row=2
+        i_var=0
         for var in variables:
             self.cboxes.append(QtGui.QCheckBox(var))
-            self.buttons.append(QtGui.QPushButton('del'))
-            self.buttons[-1].setMaximumWidth(50)
-            layout.addWidget(self.cboxes[-1],i+1,0)
+            #self.buttons.append(QtGui.QPushButton('del'))
+            #self.buttons[-1].setMaximumWidth(50)
+            layout.addWidget(self.cboxes[-1],i_row+1,0)
             #layout.addWidget(buttons[-1],i,1)
             
-            self.cboxes[-1].stateChanged.connect(partial(self.checkbox_clicked,var,i))
-            self.buttons[-1].clicked.connect(partial(self.button_clicked,i))
             
             if var in selected:
                 self.cboxes[-1].setChecked(True)
-                
-            i+=1
+            
+            self.cboxes[-1].stateChanged.connect(partial(self.checkbox_clicked,var,i_var))
+            #self.buttons[-1].clicked.connect(partial(self.button_clicked,i))    
+            i_row+=1
+            i_var+=1
         
         button_OK = QtGui.QPushButton('OK')
         button_cancel = QtGui.QPushButton('Cancel')
+        button_checkALL = QtGui.QPushButton('ALL')
+        button_uncheckALL = QtGui.QPushButton('NO')
         
         button_OK.setMaximumWidth(70)
         button_cancel.setMaximumWidth(70)
+        button_checkALL.setMaximumWidth(30)
+        button_uncheckALL.setMaximumWidth(30)
         
         button_OK.clicked.connect(self.accept)
         button_cancel.clicked.connect(self.reject)
+        button_checkALL.clicked.connect(self.check_all)
+        button_uncheckALL.clicked.connect(self.uncheck_all)
         
-        layout.addWidget(button_OK,i+1,0)
-        layout.addWidget(button_cancel,i+1,1)
+        layout.addWidget(button_OK,i_row+1,0)
+        layout.addWidget(button_cancel,i_row+1,1)
         
-
+        layout.addWidget(button_checkALL,1,0)
+        layout.addWidget(button_uncheckALL,1,1)
+        
         
         self.setLayout(layout)
         self.setWindowTitle(title)
@@ -1876,12 +1891,20 @@ class CheckListWindow(QtGui.QDialog):
         else:
             if var in self.selected:
                 self.selected.remove(var)
-        
     
     def button_clicked(self,index):
         print(index)
+        
+    def check_all(self):
+        for c in self.cboxes:
+            c.setChecked(True)
+        self.selected = [v for v in self.varlist] 
 
-
+    def uncheck_all(self):
+        for c in self.cboxes:
+            c.setChecked(False)
+        self.selected = []
+        
 class AttrDict(dict): # Matlab like dictionnary
     def __init__(self, *args, **kwargs):
         super(AttrDict, self).__init__(*args, **kwargs)

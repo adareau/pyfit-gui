@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'pyfit.ui'
 #
-# Created: Mon Jul 20 15:09:49 2015
+# Created: Mon Jul 20 16:19:25 2015
 #      by: PyQt4 UI code generator 4.9.6
 #
 # WARNING! All changes made in this file will be lost!
@@ -270,6 +270,9 @@ class Ui_PyFit(object):
         self.hide_variable_txt_2.setTextFormat(QtCore.Qt.AutoText)
         self.hide_variable_txt_2.setWordWrap(False)
         self.hide_variable_txt_2.setObjectName(_fromUtf8("hide_variable_txt_2"))
+        self.save_quicklist_button = QtGui.QPushButton(self.tab_2)
+        self.save_quicklist_button.setGeometry(QtCore.QRect(140, 140, 61, 31))
+        self.save_quicklist_button.setObjectName(_fromUtf8("save_quicklist_button"))
         self.fitEditorTab.addTab(self.tab_2, _fromUtf8(""))
         self.hide_variables_button = QtGui.QPushButton(self.tab_3)
         self.hide_variables_button.setGeometry(QtCore.QRect(1110, 520, 51, 21))
@@ -360,7 +363,7 @@ class Ui_PyFit(object):
 
         self.retranslateUi(PyFit)
         self.tabWidget.setCurrentIndex(0)
-        self.fitEditorTab.setCurrentIndex(0)
+        self.fitEditorTab.setCurrentIndex(3)
         QtCore.QMetaObject.connectSlotsByName(PyFit)
 
     def retranslateUi(self, PyFit):
@@ -409,6 +412,7 @@ class Ui_PyFit(object):
         self.fit_list_box.setText(_translate("PyFit", "fit :", None))
         self.send_to_console_button.setText(_translate("PyFit", "to console", None))
         self.hide_variable_txt_2.setText(_translate("PyFit", "--> res", None))
+        self.save_quicklist_button.setText(_translate("PyFit", "Save", None))
         self.fitEditorTab.setTabText(self.fitEditorTab.indexOf(self.tab_2), _translate("PyFit", "List", None))
         self.hide_variables_button.setText(_translate("PyFit", "choose", None))
         self.hide_variable_txt.setText(_translate("PyFit", "some variables are hidden", None))
