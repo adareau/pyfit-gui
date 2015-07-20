@@ -74,6 +74,13 @@ class PyFit2D():
         ym = ym[iy_start:iy_stop,ix_start:ix_stop]
         data_fit = data_fit[iy_start:iy_stop,ix_start:ix_stop]
         
+        # Remove background ?
+        if self.fit.options.remove_background:
+            self.compute_background_value()
+            bckgnd_offset = self.picture.background_value
+        else:
+            bckgnd_offset = 0
+        
 
         # Binning 
         
@@ -153,7 +160,7 @@ class PyFit2D():
         
         
         popt, pcov = opt.curve_fit(fit_func, (xm_rav, ym_rav), 
-                                   data_fit_rav, p0=guess, 
+                                   data_fit_rav-bckgnd_offset, p0=guess, 
                                    maxfev=self.fit.options.max_func_eval)
 
         self.data_fit = data_fit
@@ -207,7 +214,30 @@ class PyFit2D():
         
         self.picture.ROI = (ROI.xy[0],ROI.xy[0]+ROI.get_width(),ROI.xy[1],ROI.xy[1]+ROI.get_height())
         
+    def compute_background_value(self):
 
+        if self.data == []:
+            self.load_data()
+        
+        
+        xm = self.xm
+        ym = self.ym
+        data_fit = self.data
+        
+        # Get background:
+        
+        x = xm[1,:]
+        y = ym[:,1]
+        
+        ix_start = x[x<=self.picture.background[0]].argmax()
+        ix_stop = x[x<=self.picture.background[1]].argmax()
+        iy_start = y[y<=self.picture.background[2]].argmax()
+        iy_stop = y[y<=self.picture.background[3]].argmax()
+
+        data_fit = data_fit[iy_start:iy_stop,ix_start:ix_stop]
+        
+        self.picture.background_value = np.mean(np.mean(data_fit))
+        
     def generate_xy_fit_mesh(self):
 
         if self.data == []:

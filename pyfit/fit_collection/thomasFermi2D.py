@@ -30,12 +30,21 @@ def gen():
     fit.guess = guess
     
     # Values
+    Nint = Value(name = 'Nint',
+                 unit = '',
+                 format = '%.2e',
+                 formula = Nint_func)
+    Nfit = Value(name = 'Nfit',
+                 unit = '',
+                 format = '%.2e',
+                 formula = Nfit_func)
+    
     Rx = Value(name='Rx',unit='px',formula=Rx_func)
     Ry = Value(name='Ry',unit='px',formula=Ry_func)
     cx = Value(name='cx',unit='px',formula=cx_func)
     cy = Value(name='cy',unit='px',formula=cy_func)
     
-    fit.values=(Rx,Ry,cx,cy)
+    fit.values=(Nint,Nfit,Rx,Ry,cx,cy)
     
     
     return fit
@@ -55,7 +64,55 @@ def Rx_func(p):
 def Ry_func(p):
     return p.fit.results[2]
     
+
+def Nint_func(pf):
     
+    
+    pf.compute_background_value()
+    
+    d = pf.data-pf.picture.background_value #TODO : change fit offset to measured offset (from background)
+    
+    # V1
+    
+    x = pf.xm[0,:]*pf.camera.pixel_size_x/pf.camera.magnification*1e-6 # in m
+    y = pf.ym[:,0]*pf.camera.pixel_size_y/pf.camera.magnification*1e-6 # in m
+    sigma0 = pf.atom.sigma0
+    
+    d_int = abs(np.trapz(np.trapz(d,x=x,axis=1),x=y.T))
+    
+    # V2
+    '''
+    x = pf.xm[0,:]
+    y = pf.ym[:,0]
+    
+    xbin = abs(x[1]-x[0])
+    ybin = abs(y[1]-y[0])
+    
+    d_int2 = np.sum(np.sum(d))*xbin*ybin*pf.camera.pixel_size_x*pf.camera.pixel_size_y/pf.camera.magnification**2*1e-12
+    '''
+    
+    Nint = d_int/sigma0
+    
+    return Nint
+
+def Nfit_func(pf):
+    
+    x = pf.xm
+    y = pf.ym
+    p = np.append([0],pf.fit.results[1:])
+    d = pf.fit.formula((x,y),*p)
+    
+    # V1
+    
+    x = x[0,:]*pf.camera.pixel_size_x/pf.camera.magnification*1e-6 # in m
+    y = y[:,0]*pf.camera.pixel_size_y/pf.camera.magnification*1e-6 # in m
+    sigma0 = pf.atom.sigma0
+    
+    d_int = abs(np.trapz(np.trapz(d,x=x,axis=1),x=y.T))
+    
+    Nfit = d_int/sigma0
+    
+    return Nfit    
 #----------------------------------------------------------------------------
 # Guess functions
 

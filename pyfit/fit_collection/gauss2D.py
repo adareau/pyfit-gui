@@ -107,7 +107,10 @@ def Ncalc_func(pf):
 
 def Nint_func(pf):
     
-    d = pf.data-pf.fit.results[0] #TODO : change fit offset to measured offset (from background)
+    
+    pf.compute_background_value()
+    
+    d = pf.data-pf.picture.background_value #TODO : change fit offset to measured offset (from background)
     
     # V1
     

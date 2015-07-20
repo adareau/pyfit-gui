@@ -167,13 +167,6 @@
         <string>....</string>
        </property>
       </widget>
-      <zorder>folder_tree</zorder>
-      <zorder>current_dir_txt</zorder>
-      <zorder>folder_tree_back</zorder>
-      <zorder>calendar</zorder>
-      <zorder>calendar_root_button</zorder>
-      <zorder>groupBox_3</zorder>
-      <zorder>tree_root_button</zorder>
      </widget>
      <widget class="GuiqwtScreen" name="plotWindow" native="true">
       <property name="geometry">
@@ -223,27 +216,27 @@
           </rect>
          </property>
          <property name="text">
-          <string>Binning</string>
+          <string>Binning -&gt;</string>
          </property>
         </widget>
         <widget class="QCheckBox" name="fit_autobin_box">
          <property name="geometry">
           <rect>
-           <x>30</x>
-           <y>78</y>
-           <width>151</width>
+           <x>20</x>
+           <y>60</y>
+           <width>101</width>
            <height>22</height>
           </rect>
          </property>
          <property name="text">
-          <string>Auto binning </string>
+          <string>Auto binning -&gt;</string>
          </property>
         </widget>
         <widget class="QLineEdit" name="fit_binning_txt">
          <property name="geometry">
           <rect>
-           <x>60</x>
-           <y>56</y>
+           <x>109</x>
+           <y>37</y>
            <width>41</width>
            <height>20</height>
           </rect>
@@ -255,8 +248,8 @@
         <widget class="QLineEdit" name="fit_binning_maxpoints_txt">
          <property name="geometry">
           <rect>
-           <x>90</x>
-           <y>100</y>
+           <x>153</x>
+           <y>61</y>
            <width>41</width>
            <height>20</height>
           </rect>
@@ -268,9 +261,9 @@
         <widget class="QLabel" name="fit_binning_label1">
          <property name="geometry">
           <rect>
-           <x>50</x>
-           <y>100</y>
-           <width>41</width>
+           <x>119</x>
+           <y>63</y>
+           <width>31</width>
            <height>16</height>
           </rect>
          </property>
@@ -281,8 +274,8 @@
         <widget class="QLabel" name="fit_binning_label2">
          <property name="geometry">
           <rect>
-           <x>30</x>
-           <y>58</y>
+           <x>83</x>
+           <y>39</y>
            <width>31</width>
            <height>16</height>
           </rect>
@@ -305,7 +298,7 @@
          <property name="geometry">
           <rect>
            <x>10</x>
-           <y>124</y>
+           <y>90</y>
            <width>141</width>
            <height>22</height>
           </rect>
@@ -348,6 +341,19 @@
          </property>
          <property name="wordWrap">
           <bool>false</bool>
+         </property>
+        </widget>
+        <widget class="QCheckBox" name="fit_remove_background_box">
+         <property name="geometry">
+          <rect>
+           <x>10</x>
+           <y>110</y>
+           <width>101</width>
+           <height>22</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>rem. background</string>
          </property>
         </widget>
        </widget>
@@ -995,16 +1001,6 @@
        <bool>false</bool>
       </property>
      </widget>
-     <zorder>groupBox_2</zorder>
-     <zorder>plotWindow</zorder>
-     <zorder>groupBox_3</zorder>
-     <zorder>hide_variables_button</zorder>
-     <zorder>hide_variable_txt</zorder>
-     <zorder>refresh_file_list</zorder>
-     <zorder>file_list</zorder>
-     <zorder>progressBar</zorder>
-     <zorder>fitButton</zorder>
-     <zorder>result_dock_2</zorder>
     </widget>
     <widget class="QWidget" name="tab_4">
      <attribute name="title">

@@ -50,6 +50,8 @@ class Picture():
         self.background = []
         self.hole = []
         
+        self.background_value = 0
+        
     def parseVariables(self):
         
         var_dic = {}
@@ -135,9 +137,11 @@ class FitOptions():
         self.askROI = kwargs.get('askROI',False)        
         
         # Exclusion
-        
         self.exclude_hole =  kwargs.get('exclude_hole',False)       
         
+        # background removing ?
+        self.remove_background = kwargs.get('remove_background',True)
+             
         # For double fit
         
         self.fit_hole_first = kwargs.get('fit_hole_first',True) 

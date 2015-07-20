@@ -101,7 +101,7 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         bkgnd_action.setIcon(icon)
         self.bkgnd_tool = self.ui.plotWindow.manager.get_tool(BKGNDSelectTool)
         self.ui.plotWindow.screen.plot.add_item(self.bkgnd_tool.rect)
-        self.data.rectBKGND = self.bkgnd_tool.rect
+        self.data.rectBackground = self.bkgnd_tool.rect
         
         # Hole management
         self.ui.plotWindow.manager.add_tool(HOLESelectTool)
@@ -327,7 +327,7 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
                                    
         # Check if saved fit exists and hide variables
 
-        save_dir = os.path.join(path, '.fits')
+        save_dir = os.path.join(str(path), '.fits')
         i = 0
         is_a_var_hidden = 0
         variable_list = []
@@ -335,11 +335,11 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         for file_name in files_list:
             fname = str(file_name)
             fname = fname[:-4]+'.hdf5'
-            fit_path = os.path.join(save_dir, fname)
+            fit_path = os.path.join(str(save_dir), fname)
             
             # Compatibility with old fitting program WnM
             old_fname = fname[:-5]+'.fit'
-            fit_path_old =  os.path.join(path,'saved_fits',old_fname)
+            fit_path_old =  os.path.join(str(path),'saved_fits',old_fname)
             #-----------------------------------
             
             if os.path.isfile(fit_path):
@@ -495,23 +495,16 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         else:
             self.data.rectHOLE.hide()
                 
-        self.draw_ROI(draw=False)
+        self.draw_ROI()
         self.draw_HOLE()
-
+        self.draw_background()
 
     ### ROI and background
     # ROI ----------------------------------
     
-    '''
-    def set_ROI(self):
-        if self.ui.toolbar_ROI.isChecked():
-            self.data.ed_rectROI.connect()
-        else:
-            self.data.ed_rectROI.disconnect()
 
-    '''
     
-    def draw_ROI(self, draw=True):
+    def draw_ROI(self):
 
         r = self.data.current_fit.picture.ROI
         ROI_rect = self.data.rectROI
@@ -526,7 +519,7 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
 
         self.data.current_fit.picture.ROI = (r[0], r[2], r[1], r[3])
 
-    def draw_HOLE(self, draw=True):
+    def draw_HOLE(self):
 
         r = self.data.current_fit.picture.hole
         HOLE_rect = self.data.rectHOLE
@@ -551,49 +544,21 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         self.draw_ROI()
 
     # Background  ----------------------------------
-    '''
-    def set_background(self):
-        if self.ui.toolbar_background.isChecked():
-            self.data.ed_rectBackground.connect()
-        else:
-            self.data.ed_rectBackground.disconnect()
-    '''
+
     
-    def draw_background(self, draw=True):
-
+    def draw_background(self):
         r = self.data.current_fit.picture.background
-        if r == []: return
-
-        if self.data.rectBackground is not None:
-            patches = self.ui.plotWindow.main_axes.patches
-            if self.data.rectBackground in patches:
-                self.data.rectBackground.remove()
-
-        self.data.rectBackground = background = Rectangle((r[0], r[2]),
-                                                          r[1]-r[0],
-                                                          r[3]-r[2],
-                                                          alpha=1,
-                                                          fc='none',
-                                                          ec='red',
-                                                          linewidth=2)
-
-        self.ui.plotWindow.main_axes.add_patch(background)
-
-
-        self.data.ed_rectBackground = pf.EditableRectangle.EditableRectangle(background,
-                                                                             fixed_aspect_ratio=False)
-        if self.ui.toolbar_background.isChecked():
-            self.data.ed_rectBackground.connect()
-
-        if draw: self.ui.plotWindow.draw()
+        BCKGND_rect = self.data.rectBackground
+        BCKGND_rect.set_rect(r[0], r[2], r[1], r[3])
+        self.ui.plotWindow.screen.plot.replot()
 
     def get_background(self):
 
-        BCK = self.data.rectBackground
-        if BCK is not None:
-            r = (BCK.xy[0], BCK.xy[0]+BCK.get_width(),
-                 BCK.xy[1], BCK.xy[1]+BCK.get_height())
-            self.data.current_fit.picture.background = r
+        BCKGND_rect = self.data.rectBackground
+        r = BCKGND_rect.get_rect()
+
+        self.data.current_fit.picture.background = (r[0], r[2], r[1], r[3])
+
 
     def zoom_to_BKGND(self):
 
@@ -728,7 +693,13 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         else:
             screen.reset_contour()
         # display cuts
-
+        
+        if fitObj.fit.options.remove_background:
+            fitObj.compute_background_value()
+            offset = fitObj.picture.background_value
+        else:
+            offset = 0
+            
         if fitObj.values.has_key('cx') and fitObj.values.has_key('cy'):
 
             cx = int(fitObj.values['cx'])
@@ -746,8 +717,8 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
             index_cx = ((x-cx)**2).argmin()
             index_cy = ((y-cy)**2).argmin()
 
-            data_cuty = fitObj.data_fit[:, index_cx]
-            data_cutx = fitObj.data_fit[index_cy, :]
+            data_cuty = fitObj.data_fit[:, index_cx]-offset
+            data_cutx = fitObj.data_fit[index_cy, :]-offset
 
 
             cut_x = self.ui.plotWindow.cutX
@@ -889,6 +860,7 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
 
         bools = [['do_binning', self.ui.fit_binning_box],
                  ['exclude_hole', self.ui.fit_exclude_hole_box],
+                 ['remove_background',self.ui.fit_remove_background_box],
                  ['auto_binning', self.ui.fit_autobin_box]]
 
         params = [['binning_maxpoints', self.ui.fit_binning_maxpoints_txt],
