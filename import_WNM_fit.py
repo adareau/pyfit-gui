@@ -58,13 +58,18 @@ def import_WNM_fit(filename):
         fit.fit.options.binning = binning
         fit.fit.options.auto_binning = False
     # convert according to fit name
+    # /!\ pay attention to the index difference between MATLAB and python 
+    # since MATLAB starts at 1, and python starts at 0, on has to remove 1
+    # from all absolute positions measured in MATLAB !!
+    
     if fit_type == 'Gaussian':
         # OLD : order of parameters: offset,ampl,sx,sy,cx,cy
         # NEW :p = [offset, Ampl,sx,sy,cx,cy ]
         # NB x and y inverted !
         
         fit.fit = pf.fit2D_dic['Gauss']
-        p_new = np.array([p[0],p[1],p[3],p[2],p[5]+ROI[0],p[4]+ROI[2]])
+        # -2 due to index difference (-1 for fit center, -1 for ROI start)
+        p_new = np.array([p[0],p[1],p[3],p[2],p[5]+ROI[0]-2,p[4]+ROI[2]-2])
         fit.fit.results = p_new
         
     elif fit_type == 'TF':
@@ -72,7 +77,8 @@ def import_WNM_fit(filename):
         # NEW :  p = [offset, Ampl,sx,sy,cx,cy ]
         
         fit.fit = pf.fit2D_dic['ThomasFermi']
-        p_new = np.array([p[0],p[1],p[3],p[2],p[5]+ROI[0],p[4]+ROI[2]])
+        # -2 due to index difference (-1 for fit center, -1 for ROI start)
+        p_new = np.array([p[0],p[1],p[3],p[2],p[5]+ROI[0]-2,p[4]+ROI[2]-2])
         fit.fit.results = p_new
         
     else: # not known...
