@@ -19,7 +19,7 @@ def Gauss(x,A,sigma,c):
 # p = [offset, Ampl,sx,sy,cx,cy,z ] (z=fugacity)
 
 def Bose2D((x,y),*p):
-    g2_argument =  Gauss(x,1,p[2],p[4])*Gauss(y,1,p[3],p[5])*np.exp(p[6])
+    g2_argument =  Gauss(x,1,p[2],p[4])*Gauss(y,1,p[3],p[5])*np.clip(p[6],0,1)
     
     return p[0] + p[1]*g2(g2_argument)
 
@@ -81,7 +81,7 @@ def gen():
 # Values functions
 
 def z_func(p):
-    return p.fit.results[6]
+    return np.clip(p.fit.results[6],0,1)
 
 def sx_func(p):
     return p.fit.results[2]

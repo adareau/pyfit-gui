@@ -116,7 +116,7 @@ class PyFit2D():
        
         xm_rav = xm.ravel()
         ym_rav = ym.ravel()
-        data_fit_rav = data_fit.ravel()
+        data_fit_rav = np.array(data_fit.ravel())
         
         if self.fit.options.exclude_hole:
             xi = self.picture.hole[0]
@@ -139,7 +139,7 @@ class PyFit2D():
             
             ym_rav = ym_buff
             xm_rav = xm_buff
-            data_fit_rav = data_fit_buff
+            data_fit_rav = np.array(data_fit_buff)
 
  
             
@@ -657,7 +657,13 @@ class PyDoubleFit2D(PyFit2D):
         ym = ym[iy_start:iy_stop,ix_start:ix_stop]
         data_fit = data_fit[iy_start:iy_stop,ix_start:ix_stop]
         
-        
+        # Remove background ?
+        if self.fit.options.remove_background:
+            self.compute_background_value()
+            bckgnd_offset = self.picture.background_value
+        else:
+            bckgnd_offset = 0
+            
         # Binning 
         
         if self.fit.options.do_binning:
@@ -708,10 +714,11 @@ class PyDoubleFit2D(PyFit2D):
             
             p_hole = PyFit2D()
             p_hole.fit = self.fit.fit_in
-            p_hole.data = data_hole-np.min(data_hole)
+            p_hole.data = data_hole-np.min(data_hole)-bckgnd_offset
             p_hole.xm = xhole
             p_hole.ym = yhole
             p_hole.picture.ROI = [xhole.min(),xhole.max(),yhole.min(),yhole.max()]
+            p_hole.fit.options.remove_background = False
             p_hole.do_fit()
             
             guess_in = p_hole.fit.results
@@ -724,11 +731,12 @@ class PyDoubleFit2D(PyFit2D):
             
             p_out = PyFit2D()
             p_out.fit = self.fit.fit_out
-            p_out.data = data_out
+            p_out.data = data_out-bckgnd_offset
             p_out.xm = xm
             p_out.ym = ym
             p_out.picture.ROI = [xm.min(),xm.max(),ym.min(),ym.max()]
             p_out.fit.options.exclude_hole = False
+            p_out.fit.options.remove_background = False
             p_out.do_fit()
             
             guess_out = p_out.fit.results
@@ -736,12 +744,13 @@ class PyDoubleFit2D(PyFit2D):
         else:
             p_out = PyFit2D()
             p_out.fit = self.fit.fit_out
-            p_out.data = data_fit
+            p_out.data = data_fit-bckgnd_offset
             p_out.xm = xm
             p_out.ym = ym
             p_out.picture.ROI = [xm.min(),xm.max(),ym.min(),ym.max()]
             p_out.picture.hole = self.picture.hole
             p_out.fit.options.exclude_hole = True
+            p_out.fit.options.remove_background = False
             p_out.do_fit()
             
             guess_out = p_out.fit.results
@@ -756,10 +765,11 @@ class PyDoubleFit2D(PyFit2D):
  
             p_hole = PyFit2D()
             p_hole.fit = self.fit.fit_in
-            p_hole.data = data_in
+            p_hole.data = data_in-bckgnd_offset
             p_hole.xm = xhole
             p_hole.ym = yhole
             p_hole.picture.ROI = [xhole.min(),xhole.max(),yhole.min(),yhole.max()]
+            p_hole.fit.options.remove_background = False
             p_hole.do_fit()
             
             guess_in = p_hole.fit.results
@@ -770,11 +780,11 @@ class PyDoubleFit2D(PyFit2D):
         
         
         
-        data_fit_rav = data_fit.ravel()    
+        data_fit_rav = np.array(data_fit.ravel())    
         fit_func = lambda (x,y),*p:self.fit.formula((x,y),*p).ravel()
         
 
-        popt, pcov = opt.curve_fit(fit_func, (xm, ym), data_fit_rav, p0=guess)
+        popt, pcov = opt.curve_fit(fit_func, (xm, ym), data_fit_rav-bckgnd_offset, p0=guess)
         
         self.data_fit = data_fit
         self.xm_fit = xm

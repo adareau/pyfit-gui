@@ -14,3 +14,5 @@ import gaussTF2D
 import gaussDeriv1D
 import gaussWaist
 import Bose2D
+import boseTF2D
+import Bose2D_condensed

@@ -54,5 +54,5 @@ def cx_func(p):
 
 def guess(p1,p2): 
     # combine guesses from first round fit p1 : gauss, p2 : TF
-
-    return (p1[0],p1[1],p1[2],p1[3],p1[4],p1[5],p2[1],p2[3],p2[4])
+    #return (p1[0],p1[1],p1[2],p1[3],p1[4],p1[5],p2[1],p2[3],p2[4])#old (error ?)
+    return (p1[0],p1[1],p1[2],p1[3],p1[4],p1[5],p2[1],p2[2],p2[3])
