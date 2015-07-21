@@ -177,6 +177,17 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         self.ui.refresh_file_list.clicked.connect(self.update_file_list)
         self.ui.hide_variables_button.clicked.connect(self.choose_variables_to_hide)
         
+        
+        #---- Context menu actions for list
+        # open current folder
+        
+        openFolderAction = QtGui.QAction("open folder",self)
+        openFolderAction.setStatusTip("open current folder in explorer")
+        openFolderAction.triggered.connect(self.open_current_folder)
+        self.ui.file_list.addAction(openFolderAction)
+        
+        #----------------------------------------------
+        
         # plot Window
         #XXX screen
         '''
@@ -999,7 +1010,19 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         self.ui.fit_comment_text.setPlainText(text)
         self.data.do_not_load_comment = False 
         
-        
+     
+    def open_current_folder(self,event):
+        folder = str(self.settings.current_folder)
+        try:
+            if sys.platform == 'darwin':
+                check_call(['open', '--', folder])
+            elif sys.platform == 'linux2':
+                check_call(['gnome-open', '--', folder])
+            elif sys.platform == 'win32':
+                os.startfile(folder)
+        except:
+            pass 
+           
     def refresh_fit_settings(self, event):
         if event is None:
             load = True
@@ -1823,28 +1846,28 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
 
         if len(self.ui.file_list.selectedIndexes()) > 1:
             return
-
-        index = self.ui.file_list.selectedIndexes()[0]
-        
-        #name = index.data().toString()
-        #name = str(name)
-        #name = name.replace(self.settings.isfit_str, '')
-        #name = name.replace(self.settings.isnofit_str, '')
-        
-        name = str(self.data.current_file_list[index.row()])
-        root = str(self.settings.current_folder)
-
-
-        root = os.path.abspath(root)
-
-
-
-        self.data.current_file_name = name
-        self.data.current_file_path = root
-
-
-        self.display_file()
-        self.refresh_available_parameters()
+        if self.ui.file_list.selectedIndexes():
+            index = self.ui.file_list.selectedIndexes()[0]
+            
+            #name = index.data().toString()
+            #name = str(name)
+            #name = name.replace(self.settings.isfit_str, '')
+            #name = name.replace(self.settings.isnofit_str, '')
+            
+            name = str(self.data.current_file_list[index.row()])
+            root = str(self.settings.current_folder)
+    
+    
+            root = os.path.abspath(root)
+    
+    
+    
+            self.data.current_file_name = name
+            self.data.current_file_path = root
+    
+    
+            self.display_file()
+            self.refresh_available_parameters()
         
         
     def fit_button_clicked(self):
@@ -1899,13 +1922,7 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
 
     def debug(self):
         
-        check_window = CheckListWindow(title = "hide variables",
-                                       variables=self.data.available_variables,
-                                       selected = self.settings.variables_to_hide)
-        result = check_window.exec_()        
-        
-        if result:
-            self.settings.variables_to_hide =  check_window.selected
+        print("debug !!")
 
 
     def comment_text_changed(self):
@@ -2171,6 +2188,7 @@ if __name__ == "__main__":
     import datetime
     import calendar
     import re
+    from subprocess import check_call
     
     from functools import partial
 

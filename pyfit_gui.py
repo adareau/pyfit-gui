@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'pyfit.ui'
 #
-# Created: Mon Jul 20 16:19:25 2015
+# Created: Tue Jul 21 15:43:44 2015
 #      by: PyQt4 UI code generator 4.9.6
 #
 # WARNING! All changes made in this file will be lost!
@@ -292,6 +292,7 @@ class Ui_PyFit(object):
         self.refresh_file_list.setObjectName(_fromUtf8("refresh_file_list"))
         self.file_list = QtGui.QListView(self.tab_3)
         self.file_list.setGeometry(QtCore.QRect(940, 0, 251, 491))
+        self.file_list.setContextMenuPolicy(QtCore.Qt.ActionsContextMenu)
         self.file_list.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
         self.file_list.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
         self.file_list.setObjectName(_fromUtf8("file_list"))
