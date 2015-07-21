@@ -38,13 +38,26 @@ def gen():
                  unit = '',
                  format = '%.2e',
                  formula = Nfit_func)
-    
+    Ncalc = Value(name = 'Ncalc',
+                 unit = '',
+                 format = '%.2e',
+                 formula = Ncalc_func)
     Rx = Value(name='Rx',unit='px',formula=Rx_func)
     Ry = Value(name='Ry',unit='px',formula=Ry_func)
     cx = Value(name='cx',unit='px',formula=cx_func)
     cy = Value(name='cy',unit='px',formula=cy_func)
     
-    fit.values=(Nint,Nfit,Rx,Ry,cx,cy)
+    Rx_mic = Value(name = 'Rx_mic',
+                    unit = 'microns',
+                    format = '%.2e',
+                    formula = Rx_mic_func)
+    
+    Ry_mic = Value(name = 'Ry_mic',
+                    unit = 'microns',
+                    format = '%.2e',
+                    formula = Ry_mic_func)
+    
+    fit.values=(Ncalc,Nint,Nfit,Ncalc,Rx,Rx_mic,Ry,Ry_mic,cx,cy)
     
     
     return fit
@@ -64,6 +77,11 @@ def Rx_func(p):
 def Ry_func(p):
     return p.fit.results[2]
     
+def Rx_mic_func(p):
+    return p.fit.results[2]*p.camera.pixel_size_x/p.camera.magnification
+
+def Ry_mic_func(p):
+    return p.fit.results[1]*p.camera.pixel_size_y/p.camera.magnification
 
 def Nint_func(pf):
     
@@ -112,7 +130,18 @@ def Nfit_func(pf):
     
     Nfit = d_int/sigma0
     
-    return Nfit    
+    return Nfit
+
+
+def Ncalc_func(pf):
+    sx = pf.fit.results[2]*pf.camera.pixel_size_x/pf.camera.magnification*1e-6 # in m
+    sy = pf.fit.results[3]*pf.camera.pixel_size_y/pf.camera.magnification*1e-6 # in m
+    A = pf.fit.results[1]
+    sigma0 = pf.atom.sigma0
+    
+    Ncalc = (2./5.)*np.pi*A*sx*sy/sigma0
+    
+    return Ncalc  
 #----------------------------------------------------------------------------
 # Guess functions
 

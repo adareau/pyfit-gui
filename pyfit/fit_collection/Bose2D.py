@@ -106,8 +106,8 @@ def Ncalc_func(pf):
     sy = pf.fit.results[3]*pf.camera.pixel_size_y/pf.camera.magnification*1e-6 # in m
     A = pf.fit.results[1]
     sigma0 = pf.atom.sigma0
-    
-    Ncalc = 2*np.pi*sx*sy*A/sigma0
+    z = np.clip(pf.fit.results[6],0,1)
+    Ncalc = 2*np.pi*A*sx*sy*g3(z)/sigma0
     
     return Ncalc
 
@@ -198,3 +198,8 @@ def g2(z):
     clip = 1e-10
     z=np.clip(z,-np.inf,1-clip)
     return np.real((1-z)*np.log(1-z)+1.98*z-0.16*z**2-0.17*z**3)
+
+def g3(z):
+    clip = 1e4
+    l = np.arange(1,clip)
+    return(np.abs(np.sum(z**l/l**3.)))
