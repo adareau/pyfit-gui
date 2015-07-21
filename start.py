@@ -696,6 +696,7 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         #self.file_list_model.setData(index,item)
         #self.data.debug = (index,item,name)
         self.file_list_model.setItem(index.row(), item)
+        self.ui.file_list.setCurrentIndex(index)
         self.plot_fit_results()
         #self.ui.plotWindow.draw()
 
