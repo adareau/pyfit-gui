@@ -673,11 +673,24 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         self.data.current_fit.save_fit()
 
         # update diplayed name
-
+        
+        ''' old version
         name = index.data().toString()
         name = name.replace(self.settings.isnofit_str, self.settings.isfit_str)
         self.file_list_model.setData(index, name)
-
+        '''
+        name = index.data().toString()
+        item = QtGui.QStandardItem(name)
+        font_weight = QtGui.QFont.Light
+        font_foreground_color = QtCore.Qt.darkBlue  
+        font = QtGui.QFont('Monospace', 9, font_weight)
+        item.setFont(font)
+        item.setForeground(QtGui.QBrush(font_foreground_color))
+        item.setToolTip(name)
+        
+        #self.file_list_model.setData(index,item)
+        #self.data.debug = (index,item,name)
+        self.file_list_model.setItem(index.row(), item)
         self.plot_fit_results()
         #self.ui.plotWindow.draw()
 
