@@ -194,7 +194,7 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         
         deleteSavedFitAction = QtGui.QAction("delete fit",self)
         deleteSavedFitAction.setStatusTip("delete saved fit")
-        deleteSavedFitAction.triggered.connect(self.debug)
+        deleteSavedFitAction.triggered.connect(self.delete_saved_fit_for_selection)
         self.ui.file_list.addAction(deleteSavedFitAction)
         
         menuSeparator = QtGui.QAction(self)
@@ -1087,7 +1087,43 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
                 
                 
             self.update_file_list()
-   
+    
+    def delete_saved_fit_for_selection(self,event=None):
+        
+        # Get confirmation 
+        N = len(self.ui.file_list.selectedIndexes())
+        msg_title = 'Confirm saved fit deletion'
+        if N==1:
+            plur = ''
+        else:
+            plur = 's' 
+        msg_question = 'Delete saved fits for selection ('+str(N)+" picture"+plur+") ? This is not reversible !!"
+        confirme_delete = QtGui.QMessageBox.question(self, msg_title, msg_question,
+                                                     QtGui.QMessageBox.Yes|QtGui.QMessageBox.No)
+        
+        # loop over all selected files
+        if confirme_delete==QtGui.QMessageBox.Yes:
+            for i in reversed(self.ui.file_list.selectedIndexes()):
+    
+                # Get image information
+                name = str(self.data.current_file_list[i.row()])
+                root = str(self.settings.current_folder)
+                root = os.path.abspath(root)
+                name = name.replace(self.settings.isfit_str, '')
+                name = name.replace(self.settings.isnofit_str, '')
+                
+                name = name[:-4]+'.hdf5'
+                save_dir = os.path.join(root, '.fits')
+                file = os.path.join(save_dir,name)
+                if os.path.isfile(file):
+                    try:   
+                        os.remove(file)
+                    except:
+                        pass
+                
+                
+            self.update_file_list()
+            
     def refresh_fit_settings(self, event):
         if event is None:
             load = True
