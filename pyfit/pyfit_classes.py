@@ -123,6 +123,9 @@ class DoubleFit(Fit):
         self.parameters = {} #fixed fit parameters
         self.formula_parameters = 'lambda(x,y),*p:0'
         
+        self.params_in = [] # will be a method to extract "fit in" parameters from results
+        self.params_out = [] # will be a method to extract "fit out" parameters from results
+        
 class FitOptions():
     
     def __init__(self, **kwargs):

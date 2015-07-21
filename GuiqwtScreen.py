@@ -127,16 +127,38 @@ class CutScreen(QWidget):
         self.data_cut = None
         self.fit_cut = None
         
+        # other data for bimodal fits
+        self.xfit_in = []
+        self.yfit_in = []
+        self.xfit_out = []
+        self.yfit_out = []  
+        
+        self.fit_cut_in = None
+        self.fit_cut_out = None
+        
         self.setup_widget()
         
     def setup_widget(self):
         
+        ''' 
+        HINT for curves :
+        make.curve(x, y, color='r',
+                   linewidth=1, marker='.',linestyle='--',
+                   markerfacecolor=color, markeredgecolor=color)
+        '''
+        
         self.plot = CurvePlot(self)
-        self.data_cut = make.curve(self.xdata,self.ydata, color="b")
-        self.data_fit = make.curve(self.xfit, self.yfit, color="r")
+        self.data_cut = make.curve(self.xdata,self.ydata,color="b",linewidth=1,
+                                   marker='o',markersize=3, markerfacecolor='b', markeredgecolor='b' )
+        self.fit_cut = make.curve(self.xfit, self.yfit, color="r",linewidth=2)
+        
+        self.fit_cut_in = make.curve(self.xfit_in, self.yfit_in, color='g',linestyle='--')
+        self.fit_cut_out = make.curve(self.xfit_out, self.yfit_out, color='k',linestyle='--')
         
         self.plot.add_item(self.data_cut)
-        self.plot.add_item(self.data_fit)
+        self.plot.add_item(self.fit_cut)
+        self.plot.add_item(self.fit_cut_in)
+        self.plot.add_item(self.fit_cut_out)
         
         vlayout = QVBoxLayout()
         vlayout.addWidget(self.plot)
@@ -145,13 +167,27 @@ class CutScreen(QWidget):
     def update_plot(self):
 
         self.data_cut.set_data(self.xdata, self.ydata)
-        self.data_fit.set_data(self.xfit, self.yfit)
+        self.fit_cut.set_data(self.xfit, self.yfit)
+        self.fit_cut_in.set_data(self.xfit_in, self.yfit_in)
+        self.fit_cut_out.set_data(self.xfit_out, self.yfit_out)
         
         self.plot.set_plot_limits(self.xdata.min(), self.xdata.max(), 
                                   self.ydata.min(), self.ydata.max())
         self.plot.replot()
         
+    def clear_plot(self):
         
+        self.xfit_in = []
+        self.yfit_in = []
+        self.xfit_out = []
+        self.yfit_out = []
+        
+        self.data_cut.set_data([], [])
+        self.fit_cut.set_data([], [])
+        self.fit_cut_in.set_data([], [])
+        self.fit_cut_out.set_data([], [])
+        
+        self.plot.replot()        
 
 # New class : LabelledRectangle = same as AnnotatedRectangle but with fixed text label
 

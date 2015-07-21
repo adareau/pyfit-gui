@@ -505,6 +505,11 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         
         screen.plot.update_colormap_axis(screen.image)
         
+        # Clear previously displayed cuts
+        self.ui.plotWindow.cutX.clear_plot()
+        self.ui.plotWindow.cutY.clear_plot()
+        
+        # load fit
         if load_fit: self.load_fit(draw=False)
         if load_fit and not self.settings.disable_comment: self.load_comment()
         
@@ -698,7 +703,9 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
     def plot_fit_results(self, fitObj=None):
 
         if fitObj is None: fitObj = self.data.current_fit
-
+        
+        is_double = fitObj.fit.__class__.__name__ == 'DoubleFit'
+        
         # display fit contour
         screen = self.ui.plotWindow.screen
         
@@ -757,17 +764,34 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
             cut_x.ydata = data_cutx
             cut_x.xfit = xfit
             cut_x.yfit = fitObj.fit.formula((xfit,cy),*fit_params)
-            cut_x.update_plot()
             
             cut_y = self.ui.plotWindow.cutY
             cut_y.xdata = data_cuty
             cut_y.ydata = y
             cut_y.xfit = fitObj.fit.formula((cx,yfit),*fit_params)
             cut_y.yfit = yfit
+            
+            if is_double:
+                if fitObj.fit.params_in:
+                    p = fitObj.fit.results
+                    p_in = fitObj.fit.params_in(p)
+                    p_out = fitObj.fit.params_out(p)
+                    
+                    cut_x.xfit_in = xfit
+                    cut_x.yfit_in = fitObj.fit.fit_in.formula((xfit,cy),*p_in)
+                    cut_y.yfit_in = yfit
+                    cut_y.xfit_in = fitObj.fit.fit_in.formula((cx,yfit),*p_in)
+                    
+                    cut_x.xfit_out = xfit
+                    cut_x.yfit_out = fitObj.fit.fit_out.formula((xfit,cy),*p_out)
+                    cut_y.yfit_out = yfit
+                    cut_y.xfit_out = fitObj.fit.fit_out.formula((cx,yfit),*p_out)
+                    
+                    
+            cut_x.update_plot()
             cut_y.update_plot()
-
-        
-    def load_fit(self, draw=True):
+            
+    def load_fit_old(self, draw=True):
 
         save_dir = os.path.join(self.data.current_file_path, '.fits')
         fname = self.data.current_file_name
@@ -784,6 +808,7 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
             self.print_result(self.settings.results_delim)
             self.print_result("<b> Loading FIT</b>")
             saved_fit = self.data.current_fit.hdf5_to_fit(fit_path)
+            saved_fit = saved_fit.adapt_type_from_fit()
         elif os.path.isfile(fit_path_old):
             #-----------------------------------------------------
             # Compatibility with old fitting program WnM
@@ -857,6 +882,100 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
 
     ### GUI settings management
 
+    def load_fit(self, draw=True):
+
+        save_dir = os.path.join(self.data.current_file_path, '.fits')
+        fname = self.data.current_file_name
+        fname = fname[0:len(fname)-4]+'.hdf5'
+        fit_path = os.path.join(save_dir, fname)
+        
+        # Compatibility with old fitting program WnM
+        old_fname = fname[:-5]+'.fit'
+        fit_path_old =  os.path.join(self.data.current_file_path,'saved_fits',old_fname)
+        #---------------------------------------
+            
+        if os.path.isfile(fit_path):
+            old_fit = False
+            self.print_result(self.settings.results_delim)
+            self.print_result("<b> Loading FIT</b>")
+            loaded_fit = self.data.current_fit.hdf5_to_fit(fit_path)
+
+        elif os.path.isfile(fit_path_old):
+            #-----------------------------------------------------
+            # Compatibility with old fitting program WnM
+            old_fit = True
+            self.print_result(self.settings.results_delim)
+            self.print_result("<b> Loading FIT</b>")
+            imported_fit = import_WNM_fit(fit_path_old)
+            if isinstance(imported_fit,basestring):
+                self.print_result('conversion from WnM not implemented for fit type "'+imported_fit+'"')
+                return
+            # initialize fit object
+            loaded_fit = pf.PyFit2D()
+            # get properties from current fit (which are not stored in saved fit)
+            loaded_fit.picture = copy.deepcopy(self.data.current_fit.picture)
+            loaded_fit.atom = copy.deepcopy(self.data.current_fit.atom)
+            loaded_fit.camera = copy.deepcopy(self.data.current_fit.camera)
+            # loaded properties
+            loaded_fit.fit = imported_fit.fit
+            loaded_fit.picture.ROI = imported_fit.picture.ROI
+            loaded_fit.picture.background = imported_fit.picture.background
+            loaded_fit.camera.magnification = imported_fit.camera.magnification
+            if imported_fit.fit.options.do_binning:
+                loaded_fit.fit.options.do_binning = imported_fit.fit.options.do_binning
+                loaded_fit.fit.options.binning = imported_fit.fit.options.binning
+                loaded_fit.fit.options.auto_binning = imported_fit.fit.options.auto_binning
+            #-----------------------------------------------------
+        else:
+            return # if no fit available, stop and return nothing
+        
+        # Now we have a loaded_fit object with the good properties (results, values...)
+        # but some methods (eg defined with lambdas) are not well imported
+        # so we use the fit generator
+        
+        if loaded_fit.fit.name in pf.fit2D_dic.keys():
+
+            # we keep the saved fit parameters (options and result)
+            option_save = copy.deepcopy(loaded_fit.fit.options)
+            results_save = loaded_fit.fit.results
+            
+            # we replace the loaded fit by a newly generated instance of the good fitobject
+            loaded_fit.fit = pf.fit2D_dic[loaded_fit.fit.name]
+            loaded_fit.fit.options = option_save
+            loaded_fit.fit.results = results_save
+            if not isinstance(loaded_fit.fit.formula_parameters,str):
+                loaded_fit.fit.updateFormulaFromParameters2D()
+
+            loaded_fit = loaded_fit.adapt_type_from_fit()
+        else:
+            self.print_result('Saved fit name not found in known fit list - abort')
+            return
+        
+        self.print_settings(loaded_fit)
+
+
+        # load ROI
+        self.data.current_fit.picture.ROI = loaded_fit.picture.ROI
+        if draw: self.draw_ROI()
+        
+        # load HOLE
+        self.data.current_fit.picture.hole = loaded_fit.picture.hole
+        if draw: self.draw_HOLE()
+           
+        # load background
+        self.data.current_fit.picture.background = loaded_fit.picture.background
+        if draw: self.draw_background()
+        
+        # display results
+        loaded_fit.load_data()
+        if old_fit:loaded_fit.compute_values()
+        self.plot_fit_results(fitObj=loaded_fit)
+        
+        # print results
+        results_str = loaded_fit.values_to_str()
+        self.print_result(results_str)
+        
+        
     def load_comment(self):
         self.ui.fit_comment_text.setEnabled(True)
         save_dir = os.path.join(self.data.current_file_path, '.fits')
