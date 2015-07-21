@@ -6,6 +6,7 @@ Starts pyfit GUI
 import sys
 from PyQt4 import QtCore, QtGui
 import os
+from PyQt4.QtGui import QMessageBox
 
 
 class StartQT4(QtGui.QMainWindow): #TODO : rename
@@ -185,6 +186,30 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         openFolderAction.setStatusTip("open current folder in explorer")
         openFolderAction.triggered.connect(self.open_current_folder)
         self.ui.file_list.addAction(openFolderAction)
+        
+        moveToArchiveAction = QtGui.QAction("archive",self)
+        moveToArchiveAction.setStatusTip("move to archive folder")
+        moveToArchiveAction.triggered.connect(self.archive_selection)
+        self.ui.file_list.addAction(moveToArchiveAction)
+        
+        deleteSavedFitAction = QtGui.QAction("delete fit",self)
+        deleteSavedFitAction.setStatusTip("delete saved fit")
+        deleteSavedFitAction.triggered.connect(self.debug)
+        self.ui.file_list.addAction(deleteSavedFitAction)
+        
+        menuSeparator = QtGui.QAction(self)
+        menuSeparator.setSeparator(True)
+        self.ui.file_list.addAction(menuSeparator)
+        
+        fitSelectionAction = QtGui.QAction("fit selection",self)
+        fitSelectionAction.setStatusTip("fit selection")
+        fitSelectionAction.triggered.connect(self.fit_from_event)
+        self.ui.file_list.addAction(fitSelectionAction)
+        
+        fitSelectionAction = QtGui.QAction("export selection",self)
+        fitSelectionAction.setStatusTip("export selection")
+        fitSelectionAction.triggered.connect(self.save_quicklist)
+        self.ui.file_list.addAction(fitSelectionAction)
         
         #----------------------------------------------
         
@@ -1022,7 +1047,47 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
                 os.startfile(folder)
         except:
             pass 
-           
+    
+    def archive_selection(self,event=None):
+        
+        # Get confirmation 
+        N = len(self.ui.file_list.selectedIndexes())
+        msg_title = 'Confirm picture archive'
+        if N==1:
+            plur = ''
+        else:
+            plur = 's' 
+        msg_question = 'Send the selection ('+str(N)+" picture"+plur+") to archive ?"
+        confirm_archive = QtGui.QMessageBox.question(self, msg_title, msg_question,
+                                                     QtGui.QMessageBox.Yes|QtGui.QMessageBox.No)
+        
+        # loop over all selected files
+        if confirm_archive==QtGui.QMessageBox.Yes:
+            for i in reversed(self.ui.file_list.selectedIndexes()):
+    
+                # Get image information
+                name = str(self.data.current_file_list[i.row()])
+                root = str(self.settings.current_folder)
+                root = os.path.abspath(root)
+                name = name.replace(self.settings.isfit_str, '')
+                name = name.replace(self.settings.isnofit_str, '')
+                
+                file = os.path.join(root,name)
+                
+                # Create archive dir if necessary
+                save_dir = os.path.join(root, 'archived')
+                if not os.path.isdir(save_dir):
+                    os.mkdir(save_dir)
+                
+                archived_file = os.path.join(save_dir,name)
+                try:   
+                    os.rename(file,archived_file)
+                except:
+                    pass
+                
+                
+            self.update_file_list()
+   
     def refresh_fit_settings(self, event):
         if event is None:
             load = True
@@ -1917,6 +1982,8 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         self.settings.display_interpolation = str(self.ui.display_interpolation.currentText())
         self.display_file(False)
 
+    def fit_from_event(self,e): # some buffer function to call fit from event
+        self.fit_button_clicked()
 
     ##### DEBUGGING
 
