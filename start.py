@@ -368,8 +368,8 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
             i += 1
             
             item = QtGui.QStandardItem(name)
-            font_weight = QtGui.QFont.Light
-            font = QtGui.QFont('Monospace', 9, font_weight)
+            font_weight = QtGui.QFont.Normal
+            font = QtGui.QFont('SansSerif', 8, font_weight)
             item.setFont(font)
             item.setForeground(QtGui.QBrush(font_foreground_color))
             item.setToolTip(name)
@@ -681,9 +681,9 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         '''
         name = index.data().toString()
         item = QtGui.QStandardItem(name)
-        font_weight = QtGui.QFont.Light
+        font_weight = QtGui.QFont.Normal
         font_foreground_color = QtCore.Qt.darkBlue  
-        font = QtGui.QFont('Monospace', 9, font_weight)
+        font = QtGui.QFont('SanSerif', 8, font_weight)
         item.setFont(font)
         item.setForeground(QtGui.QBrush(font_foreground_color))
         item.setToolTip(name)
