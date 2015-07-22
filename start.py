@@ -2021,6 +2021,13 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
     def fit_from_event(self,e): # some buffer function to call fit from event
         self.fit_button_clicked()
 
+
+    ##### MAIN WINDOWS 
+    
+    def keyPressEvent(self, k):
+        self.data.debug=k
+        print(k.key())
+        
     ##### DEBUGGING
 
     def debug(self):
