@@ -830,94 +830,7 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
             cut_x.update_plot()
             cut_y.update_plot()
             
-    def load_fit_old(self, draw=True):
-
-        save_dir = os.path.join(self.data.current_file_path, '.fits')
-        fname = self.data.current_file_name
-        fname = fname[0:len(fname)-4]+'.hdf5'
-        fit_path = os.path.join(save_dir, fname)
-        
-        # Compatibility with old fitting program WnM
-        old_fname = fname[:-5]+'.fit'
-        fit_path_old =  os.path.join(self.data.current_file_path,'saved_fits',old_fname)
-        #---------------------------------------
-            
-        if os.path.isfile(fit_path):
-            old_fit = False
-            self.print_result(self.settings.results_delim)
-            self.print_result("<b> Loading FIT</b>")
-            saved_fit = self.data.current_fit.hdf5_to_fit(fit_path)
-            saved_fit = saved_fit.adapt_type_from_fit()
-        elif os.path.isfile(fit_path_old):
-            #-----------------------------------------------------
-            # Compatibility with old fitting program WnM
-            old_fit = True
-            self.print_result(self.settings.results_delim)
-            self.print_result("<b> Loading FIT</b>")
-            loaded_fit = import_WNM_fit(fit_path_old)
-            if isinstance(loaded_fit,basestring):
-                self.print_result('conversion from WnM not implemented for fit type "'+loaded_fit+'"')
-                return
-            # initialize fit object
-            saved_fit = pf.PyFit2D()
-            # get properties from current fit (which are not stored in saved fit)
-            saved_fit.picture = copy.deepcopy(self.data.current_fit.picture)
-            saved_fit.atom = copy.deepcopy(self.data.current_fit.atom)
-            saved_fit.camera = copy.deepcopy(self.data.current_fit.camera)
-            # loaded properties
-            saved_fit.fit = loaded_fit.fit
-            saved_fit.picture.ROI = loaded_fit.picture.ROI
-            saved_fit.picture.background = loaded_fit.picture.background
-            saved_fit.camera.magnification = loaded_fit.camera.magnification
-            if loaded_fit.fit.options.do_binning:
-                saved_fit.fit.options.do_binning = loaded_fit.fit.options.do_binning
-                saved_fit.fit.options.binning = loaded_fit.fit.options.binning
-                saved_fit.fit.options.auto_binning = loaded_fit.fit.options.auto_binning
-            
-            
-            self.data.debug = saved_fit
-            #-----------------------------------------------------
-        else:
-            return # if no fit available, stop and return nothing
-        
-        # import lambdas from fit generator 
-        if saved_fit.fit.name in pf.fit2D_dic.keys():
-            buffer_fit = pf.fit2D_dic[saved_fit.fit.name]
-            saved_fit.fit.formula = buffer_fit.formula
-            saved_fit.fit.formula_parameters = buffer_fit.formula_parameters
-            if not isinstance(saved_fit.fit.formula_parameters,str):
-                saved_fit.fit.updateFormulaFromParameters2D()
-            saved_fit.fit.values = buffer_fit.values
-            #if old_fit:saved_fit.compute_values()
-        else:
-            self.print_result('Saved fit name not found in known fit list - abort')
-            return
-        
-        self.print_settings(saved_fit)
-
-
-        # load ROI
-        self.data.current_fit.picture.ROI = saved_fit.picture.ROI
-        if draw: self.draw_ROI()
-        
-        # load HOLE
-        self.data.current_fit.picture.hole = saved_fit.picture.hole
-        if draw: self.draw_HOLE()
-           
-        # load background
-        self.data.current_fit.picture.background = saved_fit.picture.background
-        if draw: self.draw_background()
-        
-        # display results
-        saved_fit.load_data()
-        if old_fit:saved_fit.compute_values()
-        self.plot_fit_results(fitObj=saved_fit)
-        
-        # print results
-        results_str = saved_fit.values_to_str()
-        self.print_result(results_str)
-        
-        
+  
 
     ### GUI settings management
 
@@ -1417,12 +1330,40 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
             # 2 - load fit data
 
             save_dir = os.path.join(root, '.fits')
-            name = name[:-4]+'.hdf5'
-            fit_path = os.path.join(save_dir, name)
+            
+            fit_name = name[:-4]+'.hdf5'
+            fit_path = os.path.join(save_dir, fit_name)
+            
+            # Compatibility with old fitting program WnM
+            old_fname = name[:-4]+'.fit'
+            fit_path_old =  os.path.join(root,'saved_fits',old_fname)
+            #---------------------------------------
+                
+            if os.path.isfile(fit_path):
+                fit = self.data.current_fit.hdf5_to_fit(fit_path)
+                
+            elif os.path.isfile(fit_path_old):
+                imported_fit = import_WNM_fit(fit_path_old)
+                if isinstance(imported_fit,basestring):continue
+                # initialize fit object
+                fit = pf.PyFit2D()
+                # get properties from current fit (which are not stored in saved fit)
+                fit.picture = copy.deepcopy(self.data.current_fit.picture)
+                fit.atom = copy.deepcopy(self.data.current_fit.atom)
+                fit.camera = copy.deepcopy(self.data.current_fit.camera)
+                # loaded properties
+                fit.fit = imported_fit.fit
+                fit.picture.ROI = imported_fit.picture.ROI
+                fit.picture.background = imported_fit.picture.background
+                fit.picture.filename = name
+                fit.camera.magnification = imported_fit.camera.magnification
+                fit.load_data()
+                fit.compute_values()
 
-            if not os.path.isfile(fit_path): continue
 
-            fit = self.data.current_fit.hdf5_to_fit(fit_path)
+            else:
+                continue  
+                
         
             # import lambdas from fit generator 
             if fit.fit.name in pf.fit2D_dic.keys():
@@ -1495,12 +1436,38 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
             # 2 - load fit data and get parameters
 
             save_dir = os.path.join(root, '.fits')
-            name = name[0:-4]+'.hdf5'
-            fit_path = os.path.join(save_dir, name)
+            fit_name = name[:-4]+'.hdf5'
+            fit_path = os.path.join(save_dir, fit_name)
+            
+            # Compatibility with old fitting program WnM
+            old_fname = name[:-4]+'.fit'
+            fit_path_old =  os.path.join(root,'saved_fits',old_fname)
+            #---------------------------------------
+                
+            if os.path.isfile(fit_path):
+                fit = self.data.current_fit.hdf5_to_fit(fit_path)
+                
+            elif os.path.isfile(fit_path_old):
+                imported_fit = import_WNM_fit(fit_path_old)
+                if isinstance(imported_fit,basestring):continue
+                # initialize fit object
+                fit = pf.PyFit2D()
+                # get properties from current fit (which are not stored in saved fit)
+                fit.picture = copy.deepcopy(self.data.current_fit.picture)
+                fit.atom = copy.deepcopy(self.data.current_fit.atom)
+                fit.camera = copy.deepcopy(self.data.current_fit.camera)
+                # loaded properties
+                fit.fit = imported_fit.fit
+                fit.picture.ROI = imported_fit.picture.ROI
+                fit.picture.background = imported_fit.picture.background
+                fit.picture.filename = name
+                fit.camera.magnification = imported_fit.camera.magnification
+                fit.load_data()
+                fit.compute_values()
 
-            if not os.path.isfile(fit_path): continue
 
-            fit = self.data.current_fit.hdf5_to_fit(fit_path)
+            else:
+                continue
         
             # import lambdas from fit generator 
             if fit.fit.name in pf.fit2D_dic.keys():
@@ -1561,12 +1528,38 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
             # 2 - load fit data and get parameters
 
             save_dir = os.path.join(root, '.fits')
-            name = name[0:-4]+'.hdf5'
-            fit_path = os.path.join(save_dir, name)
+            fit_name = name[:-4]+'.hdf5'
+            fit_path = os.path.join(save_dir, fit_name)
+            
+            # Compatibility with old fitting program WnM
+            old_fname = name[:-4]+'.fit'
+            fit_path_old =  os.path.join(root,'saved_fits',old_fname)
+            #---------------------------------------
+                
+            if os.path.isfile(fit_path):
+                fit = self.data.current_fit.hdf5_to_fit(fit_path)
+                
+            elif os.path.isfile(fit_path_old):
+                imported_fit = import_WNM_fit(fit_path_old)
+                if isinstance(imported_fit,basestring):continue
+                # initialize fit object
+                fit = pf.PyFit2D()
+                # get properties from current fit (which are not stored in saved fit)
+                fit.picture = copy.deepcopy(self.data.current_fit.picture)
+                fit.atom = copy.deepcopy(self.data.current_fit.atom)
+                fit.camera = copy.deepcopy(self.data.current_fit.camera)
+                # loaded properties
+                fit.fit = imported_fit.fit
+                fit.picture.ROI = imported_fit.picture.ROI
+                fit.picture.background = imported_fit.picture.background
+                fit.picture.filename = name
+                fit.camera.magnification = imported_fit.camera.magnification
+                fit.load_data()
+                fit.compute_values()
 
-            if not os.path.isfile(fit_path): continue
 
-            fit = self.data.current_fit.hdf5_to_fit(fit_path)
+            else:
+                continue
         
             # import lambdas from fit generator 
             if fit.fit.name in pf.fit2D_dic.keys():
@@ -1645,12 +1638,38 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
             # 2 - load fit data
 
             save_dir = os.path.join(root, '.fits')
-            name = name[:-4]+'.hdf5' #TODO WnM compatibility
-            fit_path = os.path.join(save_dir, name)
+            fit_name = name[:-4]+'.hdf5'
+            fit_path = os.path.join(save_dir, fit_name)
+            
+            # Compatibility with old fitting program WnM
+            old_fname = name[:-4]+'.fit'
+            fit_path_old =  os.path.join(root,'saved_fits',old_fname)
+            #---------------------------------------
+                
+            if os.path.isfile(fit_path):
+                fit = self.data.current_fit.hdf5_to_fit(fit_path)
+                
+            elif os.path.isfile(fit_path_old):
+                imported_fit = import_WNM_fit(fit_path_old)
+                if isinstance(imported_fit,basestring):continue
+                # initialize fit object
+                fit = pf.PyFit2D()
+                # get properties from current fit (which are not stored in saved fit)
+                fit.picture = copy.deepcopy(self.data.current_fit.picture)
+                fit.atom = copy.deepcopy(self.data.current_fit.atom)
+                fit.camera = copy.deepcopy(self.data.current_fit.camera)
+                # loaded properties
+                fit.fit = imported_fit.fit
+                fit.picture.ROI = imported_fit.picture.ROI
+                fit.picture.background = imported_fit.picture.background
+                fit.picture.filename = name
+                fit.camera.magnification = imported_fit.camera.magnification
+                fit.load_data()
+                fit.compute_values()
 
-            if not os.path.isfile(fit_path): continue
 
-            fit = self.data.current_fit.hdf5_to_fit(fit_path)
+            else:
+                continue
         
             # import lambdas from fit generator 
             if fit.fit.name in pf.fit2D_dic.keys():
@@ -2371,9 +2390,9 @@ if __name__ == "__main__":
     from matplotlib.patches import Rectangle
     
     from cPickle import dump, load
-    from sqlalchemy.sql.functions import current_date
+    #from sqlalchemy.sql.functions import current_date # not sure why this was here
     
-    update_message("Findig eggs...")
+    update_message("Finding eggs...")
     import oeuf
 
     # start programm
