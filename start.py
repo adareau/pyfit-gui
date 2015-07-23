@@ -28,6 +28,8 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         scroll_widget.setWidgetResizable(True)
         self.setCentralWidget(scroll_widget)
 
+        self.scroll_widget = scroll_widget
+        self.scroll_widget.installEventFilter(self)
         # GUI data and settings
         self.settings = GuiSettings()
         self.load_settings()
@@ -37,7 +39,7 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
 
         self.data.current_file_path = str(self.settings.current_folder)
 
-
+        
         ''' GUI Components '''
         # Toolbar
 
@@ -1839,6 +1841,7 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         self.save_settings()
         event.accept()
 
+    '''
     def keyPressEvent(self, event):
 
         if event.key() == QtCore.Qt.Key_F1:
@@ -1848,8 +1851,60 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
             if event.key() == QtCore.Qt.Key_F:
                 self.fit()
 
+    '''
+        
+    def keyPressEvent(self, k):
+        
+        
+        ## Easter section
+        ## Note to NSA : this keyLog is not for you ^^
+        
+        max_keylog = 40
+        try:
+            event_result = k.text()
+            if k.key() == QtCore.Qt.Key_Up:
+                event_result = 'up'
+            elif k.key() == QtCore.Qt.Key_Down:
+                event_result = 'down'
+            elif k.key() == QtCore.Qt.Key_Left:
+                event_result = 'left'
+            elif k.key() == QtCore.Qt.Key_Right:
+                event_result = 'right'
+            elif k.key() == QtCore.Qt.Key_Enter:
+                event_result = 'enter'
+            elif k.key() == QtCore.Qt.Key_Return:
+                event_result = 'return'
+                
+            self.data.keylog+= str(event_result)
+        
+            #self.print_result(self.data.keylog)
+            
+            
+            if len(self.data.keylog)>max_keylog:
+                self.data.keylog = self.data.keylog[-max_keylog:]
+                
+            res = oeuf.keylog_reader(self)
+            if res:
+                self.data.keylog=''
+                
+        except:
+            pass
+        
+        
+    def eventFilter(self,obj,event):
+        '''
+        Used to consume keystroke detected by main scroll widget
+        (in order to detect the arrow keys)
+        '''
+        result = False # if result = True, the event is absorbed by the filter
 
-
+        if event.type() == QtCore.QEvent.KeyPress:
+            self.data.debug=(obj,event)
+            self.keyPressEvent(event)
+            result = True
+            
+        return result
+    
     ##### GUI components callbacks
     
     def tree_root_button_clicked(self):
@@ -2022,12 +2077,9 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         self.fit_button_clicked()
 
 
-    ##### MAIN WINDOWS 
     
-    def keyPressEvent(self, k):
-        self.data.debug=k
-        print(k.key())
-        
+
+               
     ##### DEBUGGING
 
     def debug(self):
@@ -2160,6 +2212,7 @@ class GuiData():
         self.do_not_load_comment = False
 
         self.debug = ''
+        self.keylog = ''
         
 class CheckListWindow(QtGui.QDialog):
  
@@ -2319,6 +2372,9 @@ if __name__ == "__main__":
     
     from cPickle import dump, load
     from sqlalchemy.sql.functions import current_date
+    
+    update_message("Findig eggs...")
+    import oeuf
 
     # start programm
     update_message("loading finished : starting app !")
