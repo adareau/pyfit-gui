@@ -1840,6 +1840,8 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
             fmt = "%.3e"
             np.savetxt(str(file_name), numpy_stack, delimiter=delimiter, fmt=fmt, 
                        header=delimiter.join(header), comments=comments)
+    
+    
     ### Cam management
 
     def refresh_cam_list(self):
