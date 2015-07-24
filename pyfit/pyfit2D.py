@@ -430,75 +430,74 @@ class PyFit2D():
         """
         
         with h5py.File(fname,"w") as f:
-            
-            # general data
-            dset = f.create_group("general")
-            dset.attrs['type'] = self.type
-                    
-            # pyfit2D self properties save
-            dset = f.create_group("values")
-            if self.values:
-                for key, val in self.values.iteritems():
-                    dset.attrs[key] = val
-                    
-            # fit
-            dset = f.create_group("fit")
-            dset.attrs['name'] = self.fit.name
-            dset.attrs['results'] = self.fit.results
-            
-            # fit_options
-            dset = f.create_group("fit_options")
-            dset.attrs['do_binning'] = self.fit.options.do_binning
-            dset.attrs['binning'] = self.fit.options.binning
-            dset.attrs['auto_binning'] = self.fit.options.auto_binning
-            dset.attrs['binning_maxpoints'] = self.fit.options.binning_maxpoints
-            dset.attrs['askROI'] = self.fit.options.askROI
-            dset.attrs['fit_hole_first'] = self.fit.options.fit_hole_first
-            dset.attrs['askHole'] = self.fit.options.askHole
-            dset.attrs['max_func_eval'] = self.fit.options.max_func_eval
-            
-            # camera
-            dset = f.create_group("camera")
-            dset.attrs['magnification'] = self.camera.magnification
-            dset.attrs['rotate'] = self.camera.rotate
-            dset.attrs['pixel_size_x'] = self.camera.pixel_size_x
-            dset.attrs['pixel_size_y'] = self.camera.pixel_size_y
-            dset.attrs['OD_conversion_formula'] = self.camera.OD_conversion_formula
-            dset.attrs['OD_conversion'] = 'pickled_lambda'
-            dset.attrs['image_size'] = self.camera.image_size
-            dset.attrs['image_ext'] = self.camera.image_ext
-            
-            # picture
-            dset = f.create_group("picture")
-            dset.attrs['filename'] = self.picture.filename
-            dset.attrs['path'] = self.picture.path
-            dset.attrs['ROI'] = self.picture.ROI
-            dset.attrs['background'] = self.picture.background
-            dset.attrs['hole'] = self.picture.hole
-            
-            # atom
-            dset = f.create_group("atom")
-            dset.attrs['name'] = self.atom.name
-            dset.attrs['fluo'] = self.atom.fluo
-            dset.attrs['lbda'] = self.atom.lbda
-            dset.attrs['sigma0'] = self.atom.sigma0
-        
+            self.add_fitgroup_to_hdf5(f)
         
 
-        def add_fitgroup_to_hdf5(self, hdf5_group):
-            '''
-            input : hdf5_group = hdf5 group on a hdf5 file
+    def add_fitgroup_to_hdf5(self, hdf5_group):
+        '''
+        input : hdf5_group = hdf5 group on a hdf5 file
+        
+        example to obtain hdf5_group :
+            >> import h5py
+            >> file = h5py.File("file.hdf5","w")
+            >> hdf5_group = file.create_group('group_1')
             
-            example to obtain hdf5_group :
-                >> import h5py
-                >> file = h5py.File("file.hdf5","w")
-                >> hdf5_group = file.create_group('group_1')
+        this method will store fit data to the hdf5_group given
+        
+        '''
+        # general data
+        dgroup = hdf5_group.create_group("general")
+        dgroup.attrs['type'] = self.type
                 
-            this method will store fit data to the hdf5_group given
+        # pyfit2D self properties save
+        dgroup = hdf5_group.create_group("values")
+        if self.values:
+            for key, val in self.values.iteritems():
+                dgroup.attrs[key] = val
+                
+        # fit
+        dgroup = hdf5_group.create_group("fit")
+        dgroup.attrs['name'] = self.fit.name
+        dgroup.attrs['results'] = self.fit.results
+        
+        # fit_options
+        dgroup = hdf5_group.create_group("fit_options")
+        dgroup.attrs['do_binning'] = self.fit.options.do_binning
+        dgroup.attrs['binning'] = self.fit.options.binning
+        dgroup.attrs['auto_binning'] = self.fit.options.auto_binning
+        dgroup.attrs['binning_maxpoints'] = self.fit.options.binning_maxpoints
+        dgroup.attrs['askROI'] = self.fit.options.askROI
+        dgroup.attrs['fit_hole_first'] = self.fit.options.fit_hole_first
+        dgroup.attrs['askHole'] = self.fit.options.askHole
+        dgroup.attrs['max_func_eval'] = self.fit.options.max_func_eval
+        
+        # camera
+        dgroup = hdf5_group.create_group("camera")
+        dgroup.attrs['magnification'] = self.camera.magnification
+        dgroup.attrs['rotate'] = self.camera.rotate
+        dgroup.attrs['pixel_size_x'] = self.camera.pixel_size_x
+        dgroup.attrs['pixel_size_y'] = self.camera.pixel_size_y
+        dgroup.attrs['OD_conversion_formula'] = self.camera.OD_conversion_formula
+        dgroup.attrs['OD_conversion'] = 'pickled_lambda'
+        dgroup.attrs['image_size'] = self.camera.image_size
+        dgroup.attrs['image_ext'] = self.camera.image_ext
+        
+        # picture
+        dgroup = hdf5_group.create_group("picture")
+        dgroup.attrs['filename'] = self.picture.filename
+        dgroup.attrs['path'] = self.picture.path
+        dgroup.attrs['ROI'] = self.picture.ROI
+        dgroup.attrs['background'] = self.picture.background
+        dgroup.attrs['hole'] = self.picture.hole
+        
+        # atom
+        dgroup = hdf5_group.create_group("atom")
+        dgroup.attrs['name'] = self.atom.name
+        dgroup.attrs['fluo'] = self.atom.fluo
+        dgroup.attrs['lbda'] = self.atom.lbda
+        dgroup.attrs['sigma0'] = self.atom.sigma0
             
-            '''
             
-            pass
         
         
     
@@ -511,58 +510,58 @@ class PyFit2D():
         with h5py.File(fname,"r") as f:
             
             # general data
-            dset = f['general']
-            loaded_fit.type = dset.attrs['type']
+            dgroup = f['general']
+            loaded_fit.type = dgroup.attrs['type']
             
             # pyfit2D self properties save
-            dset = f['values']
+            dgroup = f['values']
             values = {}
-            for key in dset.attrs.keys():
-                values[key] = dset.attrs[key]
+            for key in dgroup.attrs.keys():
+                values[key] = dgroup.attrs[key]
             
             loaded_fit.values = values
             
             # fit
-            dset = f["fit"]
-            loaded_fit.fit.name = dset.attrs['name']
-            loaded_fit.fit.results = dset.attrs['results'] 
+            dgroup = f["fit"]
+            loaded_fit.fit.name = dgroup.attrs['name']
+            loaded_fit.fit.results = dgroup.attrs['results'] 
             
             # fit_options
-            dset = f["fit_options"]
-            loaded_fit.fit.options.do_binning = dset.attrs['do_binning']
-            loaded_fit.fit.options.binning = dset.attrs['binning']
-            loaded_fit.fit.options.auto_binning = dset.attrs['auto_binning']
-            loaded_fit.fit.options.binning_maxpoints = dset.attrs['binning_maxpoints']
-            loaded_fit.fit.options.askROI = dset.attrs['askROI']
-            loaded_fit.fit.options.fit_hole_first = dset.attrs['fit_hole_first']
-            loaded_fit.fit.options.askHole = dset.attrs['askHole']
-            loaded_fit.fit.options.max_func_eval = dset.attrs['max_func_eval']
+            dgroup = f["fit_options"]
+            loaded_fit.fit.options.do_binning = dgroup.attrs['do_binning']
+            loaded_fit.fit.options.binning = dgroup.attrs['binning']
+            loaded_fit.fit.options.auto_binning = dgroup.attrs['auto_binning']
+            loaded_fit.fit.options.binning_maxpoints = dgroup.attrs['binning_maxpoints']
+            loaded_fit.fit.options.askROI = dgroup.attrs['askROI']
+            loaded_fit.fit.options.fit_hole_first = dgroup.attrs['fit_hole_first']
+            loaded_fit.fit.options.askHole = dgroup.attrs['askHole']
+            loaded_fit.fit.options.max_func_eval = dgroup.attrs['max_func_eval']
             
             # camera
-            dset = f["camera"]
-            loaded_fit.camera.magnification = dset.attrs['magnification']
-            loaded_fit.camera.rotate = dset.attrs['rotate']
-            loaded_fit.camera.pixel_size_x = dset.attrs['pixel_size_x']
-            loaded_fit.camera.pixel_size_y = dset.attrs['pixel_size_y']
-            loaded_fit.camera.OD_conversion_formula = dset.attrs['OD_conversion_formula']
-            loaded_fit.camera.OD_conversion = dset.attrs['OD_conversion']
-            loaded_fit.camera.image_size = dset.attrs['image_size']
-            loaded_fit.camera.image_ext = dset.attrs['image_ext']
+            dgroup = f["camera"]
+            loaded_fit.camera.magnification = dgroup.attrs['magnification']
+            loaded_fit.camera.rotate = dgroup.attrs['rotate']
+            loaded_fit.camera.pixel_size_x = dgroup.attrs['pixel_size_x']
+            loaded_fit.camera.pixel_size_y = dgroup.attrs['pixel_size_y']
+            loaded_fit.camera.OD_conversion_formula = dgroup.attrs['OD_conversion_formula']
+            loaded_fit.camera.OD_conversion = dgroup.attrs['OD_conversion']
+            loaded_fit.camera.image_size = dgroup.attrs['image_size']
+            loaded_fit.camera.image_ext = dgroup.attrs['image_ext']
             
             # picture
-            dset = f["picture"]
-            loaded_fit.picture.filename = dset.attrs['filename']
-            loaded_fit.picture.path = dset.attrs['path']
-            loaded_fit.picture.ROI = dset.attrs['ROI']
-            loaded_fit.picture.background = dset.attrs['background']
-            loaded_fit.picture.hole = dset.attrs['hole']
+            dgroup = f["picture"]
+            loaded_fit.picture.filename = dgroup.attrs['filename']
+            loaded_fit.picture.path = dgroup.attrs['path']
+            loaded_fit.picture.ROI = dgroup.attrs['ROI']
+            loaded_fit.picture.background = dgroup.attrs['background']
+            loaded_fit.picture.hole = dgroup.attrs['hole']
             
             # atom
-            dset = f["atom"]
-            loaded_fit.atom.name = dset.attrs['name']
-            loaded_fit.atom.fluo = dset.attrs['fluo']
-            loaded_fit.atom.lbda = dset.attrs['lbda']
-            loaded_fit.atom.sigma0 = dset.attrs['sigma0']
+            dgroup = f["atom"]
+            loaded_fit.atom.name = dgroup.attrs['name']
+            loaded_fit.atom.fluo = dgroup.attrs['fluo']
+            loaded_fit.atom.lbda = dgroup.attrs['lbda']
+            loaded_fit.atom.sigma0 = dgroup.attrs['sigma0']
             
            
         return loaded_fit
