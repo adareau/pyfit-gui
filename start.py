@@ -93,7 +93,7 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         multiple_roi_action.setIcon(icon)
         #TODO : trouver icones dans http://standards.freedesktop.org/icon-naming-spec/icon-naming-spec-latest.html#names
         self.multiple_roi_action = self.ui.plotWindow.manager.get_tool(MultipleROISelectTool)
-        self.data.ROI_list = self.multiple_roi_action.rect_list
+        self.data.ROI_rect_list = self.multiple_roi_action.rect_list
         
         # ROI update management
     
@@ -592,8 +592,8 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
     
     def draw_ROI(self):
 
-        ROI_list = self.data.current_fit.picture.ROI
-        ROI_rect_list = self.data.ROI_list
+        ROI_list = self.data.ROI_list
+        ROI_rect_list = self.data.ROI_rect_list
         
         # if more ROI than rect, add rects
         while len(ROI_list)>len(ROI_rect_list):
@@ -614,18 +614,22 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         
     def get_ROI(self):
 
-        ROI_rect_list = self.data.ROI_list
+        ROI_rect_list = self.data.ROI_rect_list
         
         # reset current ROI list
-        self.data.current_fit.picture.ROI = []
+        self.data.ROI_list = []
         
         for rect in ROI_rect_list:
             r = rect.get_rect()
             ROI = (r[0], r[2], r[1], r[3])
-            self.data.current_fit.picture.ROI.append(ROI)
+            self.data.ROI_list.append(ROI)
+        
+        if len(self.data.ROI_list)>0: 
+            self.data.current_fit.picture.ROI = self.data.ROI_list[0]
+        
         
     def update_ROI(self,p0,p1):
-        ROI_rect_list = self.data.ROI_list
+        ROI_rect_list = self.data.ROI_rect_list
         
         if len(ROI_rect_list)>0:
             # get the ROI new rectangle
@@ -668,9 +672,9 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         Clears all ROIs but one
         '''
         self.get_ROI()
-        ROI_rect_list = self.data.ROI_list
+        ROI_rect_list = self.data.ROI_rect_list
         if len(ROI_rect_list)>0:
-            self.data.current_fit.picture.ROI = [self.data.current_fit.picture.ROI[0]]
+            self.data.ROI_list = [self.data.ROI_list[0]]
             
                
             while len(ROI_rect_list)>1:
@@ -733,7 +737,7 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
     ### FITS
 
 
-    def fit(self, index=None):
+    def fit_old(self, index=None):
 
         if index == None: index = self.ui.file_list.currentIndex()
         if self.data.current_fit.data == []: return
@@ -837,6 +841,122 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         self.ui.file_list.setCurrentIndex(index)
         self.plot_fit_results()
         #self.ui.plotWindow.draw()
+
+    def fit(self, index=None,update_progress_bar=True):
+
+        if index == None: index = self.ui.file_list.currentIndex()
+        if self.data.current_fit.data == []: return
+
+        self.data.current_fit.values = {}
+
+        self.get_ROI()
+        self.get_background()
+        self.get_HOLE()
+        # printing image name before fit
+
+        # TODO changer affichage résultats fit
+        self.print_result(self.settings.results_delim)
+        self.print_result("<b>     Starting FIT</b>")
+        self.print_result("")
+        self.print_settings()
+
+        #### GRID FIT---------------
+        
+        # we perform one fit per ROI
+        roi_index = 0
+        fit_ROI0_saved = copy.deepcopy(self.data.current_fit)
+        N_roi = len(self.data.ROI_list)
+        for ROI in self.data.ROI_list:
+            if update_progress_bar:
+                self.ui.progressBar.setValue(roi_index*100.0/N_roi)
+            self.print_result("<font color=DarkGreen><b>- ROI "+str(roi_index)+"</b></font>")
+            self.data.current_fit.picture.ROI = ROI
+            self.data.current_fit = self.data.current_fit.adapt_type_from_fit()
+            self.data.current_fit.fit.options = self.settings.current_fit_options
+            
+            is_double = self.data.current_fit.fit.__class__.__name__ == 'DoubleFit'
+            
+            # if fit order is 2 (best of two) and fit is a double fit
+            # then we do the fit twice (with different fit order) 
+            # and keep best result !
+            
+            if self.settings.current_fit_order == 2 and is_double:
+                
+                # fit hole first
+                self.print_result("round 1 : hole first")
+                
+                fit_hole_first = copy.deepcopy(self.data.current_fit)
+                fit_hole_first.fit.options.fit_hole_first = True
+                fit_hole_first.do_fit()
+                
+                xm = fit_hole_first.xm_fit
+                ym = fit_hole_first.ym_fit
+                fit_params = fit_hole_first.fit.results
+                fit_res = fit_hole_first.fit.formula((xm, ym), *fit_params)
+                fit_data = fit_hole_first.data_fit
+                
+                err_hole_first = np.sqrt((fit_res-fit_data)**2)
+                err_hole_first = np.sum(np.sum(err_hole_first))
+                
+                # fit out first
+                self.print_result("round 2 : out first")
+                
+                fit_out_first = copy.deepcopy(self.data.current_fit)
+                fit_out_first.fit.options.fit_hole_first = False
+                fit_out_first.do_fit()
+                
+                xm = fit_out_first.xm_fit
+                ym = fit_out_first.ym_fit
+                fit_params = fit_out_first.fit.results
+                fit_res = fit_out_first.fit.formula((xm, ym), *fit_params)
+                fit_data = fit_out_first.data_fit
+                
+                err_out_first = np.sqrt((fit_res-fit_data)**2)
+                err_out_first = np.sum(np.sum(err_out_first))
+                
+                # choose the good one
+                
+                if err_out_first > err_hole_first:
+                    self.print_result(">>> HOLE first wins")
+                    self.data.current_fit = fit_hole_first
+                else:
+                    self.print_result(">>> OUT first wins")
+                    self.data.current_fit = fit_out_first
+                
+            else: # else we fit only once
+                self.data.current_fit.do_fit()
+            
+            ###---------------
+            self.data.current_fit.compute_values()
+            results_string = self.data.current_fit.values_to_str()
+    
+            self.print_result(results_string)
+            self.plot_fit_results()
+            
+            if roi_index ==0:
+                fit_ROI0_saved = copy.deepcopy(self.data.current_fit)
+            roi_index +=1
+        
+        
+        #self.data.current_fit.save_fit()
+        self.data.current_fit = fit_ROI0_saved
+        # update diplayed name
+        
+        
+        name = index.data().toString()
+        item = QtGui.QStandardItem(name)
+        font_weight = QtGui.QFont.Normal
+        font_foreground_color = QtCore.Qt.darkBlue  
+        font = QtGui.QFont('SanSerif', 8, font_weight)
+        item.setFont(font)
+        item.setForeground(QtGui.QBrush(font_foreground_color))
+        item.setToolTip(name)
+        
+
+        self.file_list_model.setItem(index.row(), item)
+        self.ui.file_list.setCurrentIndex(index)
+        
+        self.plot_fit_results()
 
 
     def plot_fit_results(self, fitObj=None):
@@ -2178,8 +2298,15 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
             self.display_file(load_fit=False)
 
             # 3 - fit
-
-            self.fit(i)
+            
+            if N>1: 
+                # if we have more than one fit to do, we let this loop handle the progress bar
+                update_progress_bar = False
+            else:
+                # if we only have one fit to do, the progress bar is handled by the fit function
+                update_progress_bar = True
+                
+            self.fit(i,update_progress_bar=update_progress_bar)
             n += 1.0
 
         #self.update_file_list()
@@ -2318,6 +2445,7 @@ class GuiData():
         self.ed_rectROI = None
 
         self.ROI_list = None
+        self.ROI_rect_list = None
         
         self.rectBackground = None
         self.ed_rectBackground = None

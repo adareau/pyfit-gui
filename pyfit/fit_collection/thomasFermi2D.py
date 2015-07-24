@@ -88,12 +88,12 @@ def Nint_func(pf):
     
     pf.compute_background_value()
     
-    d = pf.data-pf.picture.background_value #TODO : change fit offset to measured offset (from background)
+    d = pf.data_fit-pf.picture.background_value #TODO : change fit offset to measured offset (from background)
     
     # V1
     
-    x = pf.xm[0,:]*pf.camera.pixel_size_x/pf.camera.magnification*1e-6 # in m
-    y = pf.ym[:,0]*pf.camera.pixel_size_y/pf.camera.magnification*1e-6 # in m
+    x = pf.xm_fit[0,:]*pf.camera.pixel_size_x/pf.camera.magnification*1e-6 # in m
+    y = pf.ym_fit[:,0]*pf.camera.pixel_size_y/pf.camera.magnification*1e-6 # in m
     sigma0 = pf.atom.sigma0
     
     d_int = abs(np.trapz(np.trapz(d,x=x,axis=1),x=y.T))
