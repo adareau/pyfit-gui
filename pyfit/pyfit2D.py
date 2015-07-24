@@ -375,6 +375,7 @@ class PyFit2D():
     def fit_to_hdf5(self, fname):
         """
         converts the fit object (self) into a hdf5 format
+        and save it
         
         Structure :
         
@@ -431,22 +432,22 @@ class PyFit2D():
         with h5py.File(fname,"w") as f:
             
             # general data
-            dset = f.create_dataset("general", (0,), dtype='i')
+            dset = f.create_group("general")
             dset.attrs['type'] = self.type
                     
             # pyfit2D self properties save
-            dset = f.create_dataset("values", (0,), dtype='i')
+            dset = f.create_group("values")
             if self.values:
                 for key, val in self.values.iteritems():
                     dset.attrs[key] = val
                     
             # fit
-            dset = f.create_dataset("fit", (0,), dtype='i')
+            dset = f.create_group("fit")
             dset.attrs['name'] = self.fit.name
             dset.attrs['results'] = self.fit.results
             
             # fit_options
-            dset = f.create_dataset("fit_options", (0,), dtype='i')
+            dset = f.create_group("fit_options")
             dset.attrs['do_binning'] = self.fit.options.do_binning
             dset.attrs['binning'] = self.fit.options.binning
             dset.attrs['auto_binning'] = self.fit.options.auto_binning
@@ -457,7 +458,7 @@ class PyFit2D():
             dset.attrs['max_func_eval'] = self.fit.options.max_func_eval
             
             # camera
-            dset = f.create_dataset("camera", (0,), dtype='i')
+            dset = f.create_group("camera")
             dset.attrs['magnification'] = self.camera.magnification
             dset.attrs['rotate'] = self.camera.rotate
             dset.attrs['pixel_size_x'] = self.camera.pixel_size_x
@@ -468,7 +469,7 @@ class PyFit2D():
             dset.attrs['image_ext'] = self.camera.image_ext
             
             # picture
-            dset = f.create_dataset("picture", (0,), dtype='i')
+            dset = f.create_group("picture")
             dset.attrs['filename'] = self.picture.filename
             dset.attrs['path'] = self.picture.path
             dset.attrs['ROI'] = self.picture.ROI
@@ -476,15 +477,31 @@ class PyFit2D():
             dset.attrs['hole'] = self.picture.hole
             
             # atom
-            dset = f.create_dataset("atom", (0,), dtype='i')
+            dset = f.create_group("atom")
             dset.attrs['name'] = self.atom.name
             dset.attrs['fluo'] = self.atom.fluo
             dset.attrs['lbda'] = self.atom.lbda
             dset.attrs['sigma0'] = self.atom.sigma0
         
-        pass
+        
 
-
+        def add_fitgroup_to_hdf5(self, hdf5_group):
+            '''
+            input : hdf5_group = hdf5 group on a hdf5 file
+            
+            example to obtain hdf5_group :
+                >> import h5py
+                >> file = h5py.File("file.hdf5","w")
+                >> hdf5_group = file.create_group('group_1')
+                
+            this method will store fit data to the hdf5_group given
+            
+            '''
+            
+            pass
+        
+        
+    
     def hdf5_to_fit(self,fname):
         """
         reads hdf5 format to generate fit object
