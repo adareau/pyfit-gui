@@ -268,7 +268,32 @@ class MultipleROISelectTool(tools.RectangleTool):
         
         #self.set_shape_style(self.rect)
         
-        plot.replot() 
+        plot.replot()
+        
+        
+    def add_ROI(self, plot):
+        """
+        Method called when shape's rectangular area
+        has just been drawn on screen.
+        Adding the final shape to plot and returning it.
+        """
+        current_index = len(self.rect_list)
+        rect = LabelledRectangle(label_txt=self.name+str(current_index))
+        self.set_shape_style(rect)
+        plot.add_item(rect)  
+        self.rect_list.append(rect)
+        
+        plot.replot()
+        
+    def relabel_ROI(self):
+        
+        i = 0
+        for rect in self.rect_list:
+            rect.label_txt = "ROI_"+str(i)
+            i+=1
+        
+        plot.replot()
+        
    
 class ROISelectTool(RegionSelectTool):
     def __init__(self, *args, **kwargs):

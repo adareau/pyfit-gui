@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'pyfit.ui'
 #
-# Created: Fri Jul 24 11:16:54 2015
+# Created: Fri Jul 24 16:45:47 2015
 #      by: PyQt4 UI code generator 4.9.6
 #
 # WARNING! All changes made in this file will be lost!
@@ -305,6 +305,11 @@ class Ui_PyFit(object):
         self.fitButton.setDefault(False)
         self.fitButton.setFlat(False)
         self.fitButton.setObjectName(_fromUtf8("fitButton"))
+        self.clear_ROI_button = QtGui.QPushButton(self.tab_3)
+        self.clear_ROI_button.setGeometry(QtCore.QRect(20, 520, 61, 21))
+        self.clear_ROI_button.setDefault(False)
+        self.clear_ROI_button.setFlat(True)
+        self.clear_ROI_button.setObjectName(_fromUtf8("clear_ROI_button"))
         self.tabWidget.addTab(self.tab_3, _fromUtf8(""))
         self.tab_4 = QtGui.QWidget()
         self.tab_4.setObjectName(_fromUtf8("tab_4"))
@@ -419,6 +424,7 @@ class Ui_PyFit(object):
         self.hide_variable_txt.setText(_translate("PyFit", "some variables are hidden", None))
         self.refresh_file_list.setText(_translate("PyFit", "refresh", None))
         self.fitButton.setText(_translate("PyFit", "FIT", None))
+        self.clear_ROI_button.setText(_translate("PyFit", "clear ROIs", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_3), _translate("PyFit", "Display and Fit", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_4), _translate("PyFit", "...", None))
         self.console_dock.setWindowTitle(_translate("PyFit", "console", None))

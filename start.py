@@ -114,6 +114,9 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         self.roi_tool.pyfit_gui = self 
         self.data.rectROI.hide()
         
+        # clear ROI
+        toolbar.addWidget(self.ui.clear_ROI_button)
+        self.ui.clear_ROI_button.clicked.connect(self.clear_ROIs)
         
         toolbar.addSeparator()
         
@@ -589,43 +592,51 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
     
     def draw_ROI(self):
 
-        r = self.data.current_fit.picture.ROI
-        ROI_rect = self.data.rectROI
-        ROI_rect.set_rect(r[0], r[2], r[1], r[3])
+        ROI_list = self.data.current_fit.picture.ROI
+        ROI_rect_list = self.data.ROI_list
+        
+        # if more ROI than rect, add rects
+        while len(ROI_list)>len(ROI_rect_list):
+            self.multiple_roi_action.add_ROI(self.ui.plotWindow.screen.plot)
+            
+        while len(ROI_rect_list)>len(ROI_list):
+            r = ROI_rect_list[-1]
+            self.ui.plotWindow.screen.plot.del_item(r)
+            ROI_rect_list.pop(-1)
+        
+        #self.multiple_roi_action.relabel_ROI
+        
+        for r,ROI_rect in zip(ROI_list,ROI_rect_list):
+            ROI_rect.set_rect(r[0], r[2], r[1], r[3])
+            
         self.ui.plotWindow.screen.plot.replot()
-
-    def get_ROI_old(self):
-
-        ROI_rect = self.data.rectROI
-        r = ROI_rect.get_rect()
-
-        self.data.current_fit.picture.ROI = (r[0], r[2], r[1], r[3])
-    
+        
+        
     def get_ROI(self):
 
-        ROI_list = self.data.ROI_list
+        ROI_rect_list = self.data.ROI_list
         
         # reset current ROI list
         self.data.current_fit.picture.ROI = []
         
-        for rect in ROI_list:
+        for rect in ROI_rect_list:
             r = rect.get_rect()
             ROI = (r[0], r[2], r[1], r[3])
             self.data.current_fit.picture.ROI.append(ROI)
         
     def update_ROI(self,p0,p1):
-        ROI_list = self.data.ROI_list
+        ROI_rect_list = self.data.ROI_list
         
-        if len(ROI_list)>0:
+        if len(ROI_rect_list)>0:
             # get the ROI new rectangle
             ROI_selection_rect = self.data.rectROI
             r = ROI_selection_rect.get_rect()
             new_ROI =  (r[0], r[2], r[1], r[3])
             # choose the ROI to update
-            if len(ROI_list)>1:
+            if len(ROI_rect_list)>1:
                 # ask which one to change
                 title='ROI Update'
-                choices = [str(i) for i in range(len(ROI_list))]
+                choices = [str(i) for i in range(len(ROI_rect_list))]
                 msg = 'Select ROI to update'
                 choice_window = ComboBoxWindow(title = title, choices = choices, msg=msg)
 
@@ -639,7 +650,7 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
             else:
                 roi_index = 0
                
-            ROI_rect = ROI_list[roi_index]
+            ROI_rect = ROI_rect_list[roi_index]
             
             # update rect
             ROI_rect.set_rect(r[0], r[1], r[2], r[3])
@@ -651,7 +662,24 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         else:
             self.print_warning("You have to define at least one ROI First")
         
-        
+    
+    def clear_ROIs(self):
+        '''
+        Clears all ROIs but one
+        '''
+        self.get_ROI()
+        ROI_rect_list = self.data.ROI_list
+        if len(ROI_rect_list)>0:
+            self.data.current_fit.picture.ROI = [self.data.current_fit.picture.ROI[0]]
+            
+               
+            while len(ROI_rect_list)>1:
+                r = ROI_rect_list[-1]
+                self.ui.plotWindow.screen.plot.del_item(r)
+                ROI_rect_list.pop(-1)
+                
+            self.ui.plotWindow.screen.plot.replot()
+           
     def draw_HOLE(self):
 
         r = self.data.current_fit.picture.hole
