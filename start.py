@@ -574,7 +574,7 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         self.ui.plotWindow.cutY.clear_plot()
         
         # load fit
-        if load_fit: self.load_fit(draw=False)
+        if load_fit: self.load_fit(draw=True)
         if load_fit and not self.settings.disable_comment: self.load_comment()
         
         if self.settings.display_hole:
@@ -736,111 +736,6 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
 
     ### FITS
 
-
-    def fit_old(self, index=None):
-
-        if index == None: index = self.ui.file_list.currentIndex()
-        if self.data.current_fit.data == []: return
-
-        self.data.current_fit.values = {}
-
-        self.get_ROI()
-        self.get_background()
-        self.get_HOLE()
-        # printing image name before fit
-
-        # TODO changer affichage résultats fit
-        self.print_result(self.settings.results_delim)
-        self.print_result("<b>     Starting FIT</b>")
-        self.print_result("")
-        self.print_settings()
-
-        #### FIT---------------
-        
-        self.data.current_fit = self.data.current_fit.adapt_type_from_fit()
-        self.data.current_fit.fit.options = self.settings.current_fit_options
-        
-        is_double = self.data.current_fit.fit.__class__.__name__ == 'DoubleFit'
-        
-        # if fit order is 2 (best of two) and fit is a double fit
-        # then we do the fit twice (with different fit order) 
-        # and keep best result !
-        if self.settings.current_fit_order == 2 and is_double:
-            
-            # fit hole first
-            self.print_result("round 1 : hole first")
-            
-            fit_hole_first = copy.deepcopy(self.data.current_fit)
-            fit_hole_first.fit.options.fit_hole_first = True
-            fit_hole_first.do_fit()
-            
-            xm = fit_hole_first.xm_fit
-            ym = fit_hole_first.ym_fit
-            fit_params = fit_hole_first.fit.results
-            fit_res = fit_hole_first.fit.formula((xm, ym), *fit_params)
-            fit_data = fit_hole_first.data_fit
-            
-            err_hole_first = np.sqrt((fit_res-fit_data)**2)
-            err_hole_first = np.sum(np.sum(err_hole_first))
-            
-            # fit out first
-            self.print_result("round 2 : out first")
-            
-            fit_out_first = copy.deepcopy(self.data.current_fit)
-            fit_out_first.fit.options.fit_hole_first = False
-            fit_out_first.do_fit()
-            
-            xm = fit_out_first.xm_fit
-            ym = fit_out_first.ym_fit
-            fit_params = fit_out_first.fit.results
-            fit_res = fit_out_first.fit.formula((xm, ym), *fit_params)
-            fit_data = fit_out_first.data_fit
-            
-            err_out_first = np.sqrt((fit_res-fit_data)**2)
-            err_out_first = np.sum(np.sum(err_out_first))
-            
-            # choose the good one
-            
-            if err_out_first > err_hole_first:
-                self.print_result(">>> HOLE first wins")
-                self.data.current_fit = fit_hole_first
-            else:
-                self.print_result(">>> OUT first wins")
-                self.data.current_fit = fit_out_first
-            
-        else: # else we fit only once
-            self.data.current_fit.do_fit()
-        
-        ###---------------
-        self.data.current_fit.compute_values()
-        results_string = self.data.current_fit.values_to_str()
-
-        self.print_result(results_string)
-
-        self.data.current_fit.save_fit()
-
-        # update diplayed name
-        
-        ''' old version
-        name = index.data().toString()
-        name = name.replace(self.settings.isnofit_str, self.settings.isfit_str)
-        self.file_list_model.setData(index, name)
-        '''
-        name = index.data().toString()
-        item = QtGui.QStandardItem(name)
-        font_weight = QtGui.QFont.Normal
-        font_foreground_color = QtCore.Qt.darkBlue  
-        font = QtGui.QFont('SanSerif', 8, font_weight)
-        item.setFont(font)
-        item.setForeground(QtGui.QBrush(font_foreground_color))
-        item.setToolTip(name)
-        
-        #self.file_list_model.setData(index,item)
-        #self.data.debug = (index,item,name)
-        self.file_list_model.setItem(index.row(), item)
-        self.ui.file_list.setCurrentIndex(index)
-        self.plot_fit_results()
-        #self.ui.plotWindow.draw()
 
     def fit(self, index=None,update_progress_bar=True):
 
@@ -1078,23 +973,27 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
 
     ### GUI settings management
 
-    def load_fit(self, draw=True):
-
-        save_dir = os.path.join(self.data.current_file_path, '.fits')
-        fname = self.data.current_file_name
+    def load_fit(self, draw=True, root=None, fname=None):
+        if root is None:
+            root = self.data.current_file_path
+            fname = self.data.current_file_name
+        save_dir = os.path.join(root, '.fits')
         fname = fname[0:len(fname)-4]+'.hdf5'
         fit_path = os.path.join(save_dir, fname)
         
         # Compatibility with old fitting program WnM
         old_fname = fname[:-5]+'.fit'
-        fit_path_old =  os.path.join(self.data.current_file_path,'saved_fits',old_fname)
+        fit_path_old =  os.path.join(root,'saved_fits',old_fname)
         #---------------------------------------
         loaded_fit_collection = []
-        roi_index = []  
+        roi_index = []
+        result_collection = [] 
+        
         if os.path.isfile(fit_path):
             old_fit = False
-            self.print_result(self.settings.results_delim)
-            self.print_result("<b> Loading FIT</b>")
+            if draw:
+                self.print_result(self.settings.results_delim)
+                self.print_result("<b> Loading FIT</b>")
 
             with h5py.File(fit_path,"r") as hdf5_fit:
                 for roi in hdf5_fit.keys():
@@ -1109,12 +1008,13 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
             #-----------------------------------------------------
             # Compatibility with old fitting program WnM
             old_fit = True
-            self.print_result(self.settings.results_delim)
-            self.print_result("<b> Loading FIT (WnM)</b>")
+            if draw:
+                self.print_result(self.settings.results_delim)
+                self.print_result("<b> Loading FIT (WnM)</b>")
             fit_collection,roi_index = import_WNM_fit(fit_path_old)
             if isinstance(fit_collection,basestring):
                 self.print_result('conversion from WnM not implemented for fit type "'+imported_fit+'"')
-                return
+                return ([],[])
             
             for imported_fit in fit_collection:
                 # initialize fit object
@@ -1135,16 +1035,17 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
                 #-----------------------------------------------------
                 loaded_fit_collection.append(loaded_fit)
         else:
-            return # if no fit available, stop and return nothing
+            return ([],[]) # if no fit available, stop and return nothing
         
         
-        self.print_settings(loaded_fit)
+        if draw: self.print_settings(loaded_fit)
         self.data.ROI_list = []
+         
         for loaded_fit,roi in zip(loaded_fit_collection,roi_index):
             # Now we have a loaded_fit object with the good properties (results, values...)
             # but some methods (eg defined with lambdas) are not well imported
             # so we use the fit generator
-            self.print_result("<font color=DarkGreen><b>- ROI "+str(roi)+"</b></font>")
+            if draw: self.print_result("<font color=DarkGreen><b>- ROI "+str(roi)+"</b></font>")
             if loaded_fit.fit.name in pf.fit2D_dic.keys():
     
                 # we keep the saved fit parameters (options and result)
@@ -1161,7 +1062,7 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
                 loaded_fit = loaded_fit.adapt_type_from_fit()
             else:
                 self.print_result('Saved fit name not found in known fit list - abort')
-                return
+                return ([],[])
         
     
             # load ROI
@@ -1180,16 +1081,20 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
                 loaded_fit.generate_xy_fit_mesh()
                 loaded_fit.compute_values()
             if roi ==0:
-                self.plot_fit_results(fitObj=loaded_fit) # we always plot the ROI_0 results
+                if draw: self.plot_fit_results(fitObj=loaded_fit) # we always plot the ROI_0 results
             
             
             # print results
-            results_str = loaded_fit.values_to_str()
-            self.print_result(results_str)
-        
+            if draw:
+                results_str = loaded_fit.values_to_str()
+                self.print_result(results_str)
+            
+            result_collection.append(loaded_fit)
         if draw: self.draw_ROI()
         if draw: self.draw_HOLE()
         if draw: self.draw_background()
+        
+        return (result_collection,roi_index)
         
         
         
@@ -1776,7 +1681,7 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
                 self.print_result(out)
 
 
-    def send_to_console(self):
+    def send_to_console_old(self):
         
         params = {}
 
@@ -1792,7 +1697,7 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
             name = name.replace(self.settings.isfit_str, '')
             name = name.replace(self.settings.isnofit_str, '')
 
-
+            
             # 2 - load fit data and get parameters
 
             save_dir = os.path.join(root, '.fits')
@@ -1862,7 +1767,56 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
 
         self.pythonshell.interpreter.namespace['res'] = to_send
     
+    def send_to_console(self):
+        
+        params = {}
+        
+        for i in reversed(self.ui.file_list.selectedIndexes()):
+
+            # 1 - Get file name
+
+            #name = str(i.data().toString())
+            name = str(self.data.current_file_list[i.row()])
+            root = str(self.settings.current_folder)
+            root = os.path.abspath(root)
+
+            name = name.replace(self.settings.isfit_str, '')
+            name = name.replace(self.settings.isnofit_str, '')
+            
+            # 2 - Load fit collection
+            
+            loaded_fit_collection, roi_index = self.load_fit(draw=False,
+                                                              root = root,
+                                                              fname = name)
+            
+            
+            for fit, roi in zip(loaded_fit_collection, roi_index):
+                fit.picture.parseVariables()
     
+                all_params = dict(fit.picture.variables.items()+fit.values.items())
+                
+                if not params.has_key(roi):
+                    params[roi] ={}
+                    
+                for n, v in all_params.iteritems():
+                    if params[roi].has_key(n):
+                        params[roi][n].append(v)
+                    else:
+                        params[roi][n] = [v]
+        
+         # Matlab structure like dict
+        to_send = AttrDict()
+        for roi in params.keys():
+            to_send['roi'+str(roi)] = AttrDict()
+            for n,v in params[roi].iteritems():
+                to_send['roi'+str(roi)][n] = np.array(v)
+
+                
+
+        # send
+
+        self.pythonshell.interpreter.namespace['res'] = to_send
+        
     def save_quicklist(self):
         
         # 1) Get list of variables to save and save format
