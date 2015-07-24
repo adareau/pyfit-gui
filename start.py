@@ -80,19 +80,42 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         for tool in self.ui.plotWindow.tools:
             self.ui.plotWindow.manager.add_tool(tool)
 
-        # ROI management
+
+        toolbar.addSeparator()
+        # Multiple ROI management
+    
+        self.ui.plotWindow.manager.add_tool(MultipleROISelectTool)
+        multiple_roi_action = toolbar.actions()[-1]
+        multiple_roi_action.setText("add ROI")
+        multiple_roi_action.setToolTip("Select ROIs")
+        multiple_roi_action.setStatusTip("click and draw a new region of interest")
+        icon = QtGui.QIcon.fromTheme("edit-cut")
+        multiple_roi_action.setIcon(icon)
+        #TODO : trouver icones dans http://standards.freedesktop.org/icon-naming-spec/icon-naming-spec-latest.html#names
+        self.multiple_roi_action = self.ui.plotWindow.manager.get_tool(MultipleROISelectTool)
+        self.data.ROI_list = self.multiple_roi_action.rect_list
+        
+        # ROI update management
+    
         self.ui.plotWindow.manager.add_tool(ROISelectTool)
         roi_action = toolbar.actions()[-1]
-        roi_action.setText("ROI")
+        roi_action.setText("update ROI")
         roi_action.setToolTip("Select ROI")
         roi_action.setStatusTip("click and draw new region of interest")
         icon = QtGui.QIcon.fromTheme("edit-cut")
         roi_action.setIcon(icon)
-        #TODO : trouver icones dans
-        # http://standards.freedesktop.org/icon-naming-spec/icon-naming-spec-latest.html#names
+        #TODO : trouver icones dans http://standards.freedesktop.org/icon-naming-spec/icon-naming-spec-latest.html#names
         self.roi_tool = self.ui.plotWindow.manager.get_tool(ROISelectTool)
         self.ui.plotWindow.screen.plot.add_item(self.roi_tool.rect)
         self.data.rectROI = self.roi_tool.rect
+        
+        # we give the ROI selection tool a reference to the pyfit-gui to be able to call
+        # the update ROI function when rectangle is drawn
+        self.roi_tool.pyfit_gui = self 
+        self.data.rectROI.hide()
+        
+        
+        toolbar.addSeparator()
         
         # Background management
         self.ui.plotWindow.manager.add_tool(BKGNDSelectTool)
@@ -563,7 +586,6 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
     ### ROI and background
     # ROI ----------------------------------
     
-
     
     def draw_ROI(self):
 
@@ -572,14 +594,64 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         ROI_rect.set_rect(r[0], r[2], r[1], r[3])
         self.ui.plotWindow.screen.plot.replot()
 
-
-    def get_ROI(self):
+    def get_ROI_old(self):
 
         ROI_rect = self.data.rectROI
         r = ROI_rect.get_rect()
 
         self.data.current_fit.picture.ROI = (r[0], r[2], r[1], r[3])
+    
+    def get_ROI(self):
 
+        ROI_list = self.data.ROI_list
+        
+        # reset current ROI list
+        self.data.current_fit.picture.ROI = []
+        
+        for rect in ROI_list:
+            r = rect.get_rect()
+            ROI = (r[0], r[2], r[1], r[3])
+            self.data.current_fit.picture.ROI.append(ROI)
+        
+    def update_ROI(self,p0,p1):
+        ROI_list = self.data.ROI_list
+        
+        if len(ROI_list)>0:
+            # get the ROI new rectangle
+            ROI_selection_rect = self.data.rectROI
+            r = ROI_selection_rect.get_rect()
+            new_ROI =  (r[0], r[2], r[1], r[3])
+            # choose the ROI to update
+            if len(ROI_list)>1:
+                # ask which one to change
+                title='ROI Update'
+                choices = [str(i) for i in range(len(ROI_list))]
+                msg = 'Select ROI to update'
+                choice_window = ComboBoxWindow(title = title, choices = choices, msg=msg)
+
+                result = choice_window.exec_()        
+                
+                if result:
+                    cbbox = choice_window.drop_list
+                    roi_index = int(cbbox.currentText())
+                else:
+                    return
+            else:
+                roi_index = 0
+               
+            ROI_rect = ROI_list[roi_index]
+            
+            # update rect
+            ROI_rect.set_rect(r[0], r[1], r[2], r[3])
+            self.ui.plotWindow.screen.plot.replot()
+            # update fit ROI
+            self.get_ROI()
+            
+            
+        else:
+            self.print_warning("You have to define at least one ROI First")
+        
+        
     def draw_HOLE(self):
 
         r = self.data.current_fit.picture.hole
@@ -1252,6 +1324,9 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
     def print_result(self, txt):
         self.ui.result_text.append(txt)
 
+    def print_warning(self,txt):
+        self.print_result("<font color=DarkOrange><b>- Warning : </b>"+txt+"</font>")
+        
     def flush_results(self):
         self.ui.result_text.setText("")
 
@@ -2159,6 +2234,7 @@ class GuiSettings():
         self.current_fit_type = 'Gauss'
         self.current_fit_options = pf.pyfit_classes.FitOptions()
         self.current_fit_order = 0
+        self.ROI_number = 2
         
         # Display
 
@@ -2189,8 +2265,6 @@ class GuiSettings():
         for param, value in vars(gs).iteritems():
             setattr(self, param, value)
 
-
-
 class GuiData():
 
     def __init__(self, gui):
@@ -2211,9 +2285,12 @@ class GuiData():
         self.fit2D_dic = pf.fit2D_dic
         self.fit1D_dic = pf.fit1D_dic
 
+        self.ROI_tools = []
         self.rectROI = None
         self.ed_rectROI = None
 
+        self.ROI_list = None
+        
         self.rectBackground = None
         self.ed_rectBackground = None
         
@@ -2333,7 +2410,47 @@ class CheckListWindow(QtGui.QDialog):
         for c in self.cboxes:
             c.setChecked(False)
         self.selected = []
+
+class ComboBoxWindow(QtGui.QDialog):
+ 
+    def __init__(self, parent=None, title='Window Title',
+                 choices = ['1', '2'], 
+                 msg = 'check to hide variable'):
+        super(ComboBoxWindow, self).__init__(parent)
+ 
+   
+        layout = QtGui.QGridLayout()
+
+        text_1 = QtGui.QLabel(msg)
+        layout.addWidget(text_1,0,0,1,2)
         
+        self.drop_list = QtGui.QComboBox()
+        for c in choices:
+                self.drop_list.addItem(c)
+        
+        
+        layout.addWidget(self.drop_list,1,0,1,2)
+                
+   
+        button_OK = QtGui.QPushButton('OK')
+        button_cancel = QtGui.QPushButton('Cancel')
+
+        
+        button_OK.setMaximumWidth(70)
+        button_cancel.setMaximumWidth(70)
+
+        
+        button_OK.clicked.connect(self.accept)
+        button_cancel.clicked.connect(self.reject)
+
+        
+        layout.addWidget(button_OK,2,0)
+        layout.addWidget(button_cancel,2,1)
+        
+        
+        self.setLayout(layout)
+        self.setWindowTitle(title)
+                
 class AttrDict(dict): # Matlab like dictionnary
     def __init__(self, *args, **kwargs):
         super(AttrDict, self).__init__(*args, **kwargs)
@@ -2379,7 +2496,8 @@ if __name__ == "__main__":
     update_message("loading pyfit...")
     import pyfit as pf
     update_message("loading screen (guiqwt)...")
-    from GuiqwtScreen import ROISelectTool, BKGNDSelectTool, HOLESelectTool
+    from GuiqwtScreen import ROISelectTool, BKGNDSelectTool, HOLESelectTool, MultipleROISelectTool
+    
     from import_WNM_fit import import_WNM_fit
     update_message("loading internal shell (spyderlib)...")
     from spyderlib.widgets import internalshell
