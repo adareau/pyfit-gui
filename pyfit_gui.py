@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'pyfit.ui'
 #
-# Created: Fri Jul 24 16:45:47 2015
+# Created: Fri Jul 24 17:58:01 2015
 #      by: PyQt4 UI code generator 4.9.6
 #
 # WARNING! All changes made in this file will be lost!
@@ -369,7 +369,7 @@ class Ui_PyFit(object):
 
         self.retranslateUi(PyFit)
         self.tabWidget.setCurrentIndex(0)
-        self.fitEditorTab.setCurrentIndex(3)
+        self.fitEditorTab.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(PyFit)
 
     def retranslateUi(self, PyFit):

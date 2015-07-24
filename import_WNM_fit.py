@@ -71,6 +71,8 @@ def import_WNM_fit(filename):
         # -2 due to index difference (-1 for fit center, -1 for ROI start)
         p_new = np.array([p[0],p[1],p[3],p[2],p[5]+ROI[0]-2,p[4]+ROI[2]-2])
         fit.fit.results = p_new
+        fit_collection = [fit]
+        roi_index = [0]
         
     elif fit_type == 'TF':
         # OLD : order of parameters: offset,ampl,sx,sy,cx,cy
@@ -81,6 +83,8 @@ def import_WNM_fit(filename):
         # -2 due to index difference (-1 for fit center, -1 for ROI start)
         p_new = np.array([p[0],p[1],p[3],p[2],p[5]+ROI[0]-2,p[4]+ROI[2]-2])
         fit.fit.results = p_new
+        fit_collection = [fit]
+        roi_index = [0]
     
     elif fit_type == 'ConcentricBoseTF' or fit_type == 'ConcentricBoseTF2':  
         # OLD : order of parameters: offset,ampl1,sx1,sy1,cx,cy,ampl2,sx2,sy2 (Bose first, TF then)
@@ -90,12 +94,15 @@ def import_WNM_fit(filename):
         fit.fit = pf.fit2D_dic['BoseTF']
         p_new = np.array([p[0],p[1],p[3],p[2],p[5]+ROI[0]-2,p[4]+ROI[2]-2,p[6],p[8],p[7]])
         fit.fit.results = p_new
+        fit_collection = [fit]
+        roi_index = [0]
+        
     else: # not known...
-        return fit_type
+        return (fit_type,0)
         
     
     
-    return fit
+    return (fit_collection, roi_index)
 
 
 
