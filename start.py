@@ -119,6 +119,14 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         #self.ui.plotWindow.manager.register_all_curve_tools()
 
         toolbar.addSeparator()
+        
+        # Measure built-in tools from guiqwt
+        
+        self.ui.plotWindow.manager.add_tool(XCursorTool)
+        self.ui.plotWindow.manager.add_tool(AnnotatedSegmentTool)
+        
+        toolbar.addSeparator()
+        
         '''
         # HINT : old toolbar version
         # I only keep it to have an example on toolbar button integration
@@ -526,7 +534,6 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
 
     ### ROI and background
     # ROI ----------------------------------
-    
     
     def update_scale_factor(self):
         self.display_file()
@@ -2671,7 +2678,7 @@ if __name__ == "__main__":
     import h5py
     update_message("loading screen (guiqwt)...")
     from GuiqwtScreen import ROISelectTool, BKGNDSelectTool, HOLESelectTool, MultipleROISelectTool
-    
+    from guiqwt.tools import AnnotatedSegmentTool, XCursorTool
     from import_WNM_fit import import_WNM_fit
     update_message("loading internal shell (spyderlib)...")
     from spyderlib.widgets import internalshell
