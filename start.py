@@ -1479,7 +1479,6 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
                 self.ui.list_plot_y.setCurrentIndex(i)
 
 
-
     def plot_list(self):
 
         X = []
@@ -1657,7 +1656,8 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         # send
 
         self.pythonshell.interpreter.namespace['res'] = to_send
-        
+    
+  
     def save_quicklist(self):
         
         # 1) Get list of variables to save and save format
@@ -1666,7 +1666,7 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
                                        variables=self.data.available_variables,
                                        selected = self.settings.variables_to_save,
                                        msg = 'choose variables to save',
-                                       droplist_choice=['txt'],
+                                       droplist_choice=['txt','hdf5'],
                                        droplist_msg="save format")
         result = check_window.exec_()        
         
@@ -1684,8 +1684,10 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         
         # 3) Gather all variables
         
-        vars = {vname:[] for vname in self.settings.variables_to_save}
-
+        params = {}
+        vars_txt = {vname:[] for vname in self.settings.variables_to_save} # for txt format saving
+        vars_txt['ROI']=[]
+                
         for i in reversed(self.ui.file_list.selectedIndexes()):
 
             # 1 - Get file name
@@ -1694,84 +1696,64 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
             name = str(self.data.current_file_list[i.row()])
             root = str(self.settings.current_folder)
             root = os.path.abspath(root)
+
             name = name.replace(self.settings.isfit_str, '')
             name = name.replace(self.settings.isnofit_str, '')
-
-
-            # 2 - load fit data
-
-            save_dir = os.path.join(root, '.fits')
-            fit_name = name[:-4]+'.hdf5'
-            fit_path = os.path.join(save_dir, fit_name)
             
-            # Compatibility with old fitting program WnM
-            old_fname = name[:-4]+'.fit'
-            fit_path_old =  os.path.join(root,'saved_fits',old_fname)
-            #---------------------------------------
-                
-            if os.path.isfile(fit_path):
-                fit = self.data.current_fit.hdf5_to_fit(fit_path)
-                
-            elif os.path.isfile(fit_path_old):
-                imported_fit = import_WNM_fit(fit_path_old)
-                if isinstance(imported_fit,basestring):continue
-                # initialize fit object
-                fit = pf.PyFit2D()
-                # get properties from current fit (which are not stored in saved fit)
-                fit.picture = copy.deepcopy(self.data.current_fit.picture)
-                fit.atom = copy.deepcopy(self.data.current_fit.atom)
-                fit.camera = copy.deepcopy(self.data.current_fit.camera)
-                # loaded properties
-                fit.fit = imported_fit.fit
-                fit.picture.ROI = imported_fit.picture.ROI
-                fit.picture.background = imported_fit.picture.background
-                fit.picture.filename = name
-                fit.camera.magnification = imported_fit.camera.magnification
-                fit.load_data()
-                fit.compute_values()
-
-
-            else:
-                continue
-        
-            # import lambdas from fit generator 
-            if fit.fit.name in pf.fit2D_dic.keys():
-                buffer_fit = pf.fit2D_dic[fit.fit.name]
-                fit.fit.formula = buffer_fit.formula
-                fit.fit.formula_parameters = buffer_fit.formula_parameters
-                if not isinstance(fit.fit.formula_parameters,str):
-                    fit.fit.updateFormulaFromParameters2D()
-                fit.fit.values = buffer_fit.values
-                
-            else:
-                self.print_result('Saved fit name not found in known fit list - abort')
-                return
-
-            fit.picture.parseVariables()
-
-            all_params = dict(fit.picture.variables.items()+fit.values.items())
+            # 2 - Load fit collection
             
-            for vname in self.settings.variables_to_save:
-                if all_params.has_key(vname):
-                    vars[vname].append(all_params[vname])
-                else:
-                    vars[vname].append(-1)
+            loaded_fit_collection, roi_index = self.load_fit(draw=False,
+                                                              root = root,
+                                                              fname = name)
             
-
+            
+            for fit, roi in zip(loaded_fit_collection, roi_index):
+                fit.picture.parseVariables()
+    
+                all_params = dict(fit.picture.variables.items()+fit.values.items())
+                
+                if not params.has_key(roi):
+                    params[roi] ={}
+                    
+                for n, v in all_params.iteritems():
+                    if params[roi].has_key(n):
+                        params[roi][n].append(v)
+                    else:
+                        params[roi][n] = [v]
+                
+                vars_txt['ROI'].append(roi)     
+                for vname in self.settings.variables_to_save:
+                    if all_params.has_key(vname):
+                        vars_txt[vname].append(all_params[vname])
+                    else:
+                        vars_txt[vname].append(-1)
+                
+                        
+                        
+        self.data.debug = vars_txt    
+        # 4) Save, depending on format :
         
-        self.data.debug=vars        
-        
-        # TEST
-        if format=='txt':
-            numpy_stack = np.transpose(np.vstack(vars.values()))
-            header = vars.keys()                         
+        if format=='txt': # TODO : change saving format depending on variable...
+            '''
+            txt format : saved in text file, ROI index is considered as a variable
+            '''
+            
+            numpy_stack = np.transpose(np.vstack(vars_txt.values()))
+            header = vars_txt.keys()                         
             delimiter = '\t'
             comments = 'Generated by PyFit on '+str(datetime.datetime.now())+'\n'
-            fmt = "%.3e"
+            fmt = "%.5e"
             np.savetxt(str(file_name), numpy_stack, delimiter=delimiter, fmt=fmt, 
                        header=delimiter.join(header), comments=comments)
     
-    
+        if format=='hdf5':
+            with h5py.File(str(file_name),"w") as f:
+                for roi, roi_params in params.iteritems():
+                    roi_group = f.create_group('roi'+str(roi))
+                    roi_group.attrs['roi_index'] = roi
+                    for n, v in roi_params.iteritems():
+                        roi_group.create_dataset(n,data=v)
+                        
     ### Cam management
 
     def refresh_cam_list(self):
