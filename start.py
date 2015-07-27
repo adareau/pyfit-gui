@@ -7,6 +7,7 @@ import sys
 from PyQt4 import QtCore, QtGui
 import os
 from PyQt4.QtGui import QMessageBox
+from sympy.physics.vector.dyadic import Dyadic
 
 
 class StartQT4(QtGui.QMainWindow): #TODO : rename
@@ -80,19 +81,45 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         for tool in self.ui.plotWindow.tools:
             self.ui.plotWindow.manager.add_tool(tool)
 
-        # ROI management
+
+        toolbar.addSeparator()
+        # Multiple ROI management
+    
+        self.ui.plotWindow.manager.add_tool(MultipleROISelectTool)
+        multiple_roi_action = toolbar.actions()[-1]
+        multiple_roi_action.setText("add ROI")
+        multiple_roi_action.setToolTip("Select ROIs")
+        multiple_roi_action.setStatusTip("click and draw a new region of interest")
+        icon = QtGui.QIcon.fromTheme("edit-cut")
+        multiple_roi_action.setIcon(icon)
+        #TODO : trouver icones dans http://standards.freedesktop.org/icon-naming-spec/icon-naming-spec-latest.html#names
+        self.multiple_roi_action = self.ui.plotWindow.manager.get_tool(MultipleROISelectTool)
+        self.data.ROI_rect_list = self.multiple_roi_action.rect_list
+        
+        # ROI update management
+    
         self.ui.plotWindow.manager.add_tool(ROISelectTool)
         roi_action = toolbar.actions()[-1]
-        roi_action.setText("ROI")
-        roi_action.setToolTip("Select ROI")
-        roi_action.setStatusTip("click and draw new region of interest")
+        roi_action.setText("edit ROI")
+        roi_action.setToolTip("edit ROI")
+        roi_action.setStatusTip("click and draw to edit region of interest")
         icon = QtGui.QIcon.fromTheme("edit-cut")
         roi_action.setIcon(icon)
-        #TODO : trouver icones dans
-        # http://standards.freedesktop.org/icon-naming-spec/icon-naming-spec-latest.html#names
+        #TODO : trouver icones dans http://standards.freedesktop.org/icon-naming-spec/icon-naming-spec-latest.html#names
         self.roi_tool = self.ui.plotWindow.manager.get_tool(ROISelectTool)
         self.ui.plotWindow.screen.plot.add_item(self.roi_tool.rect)
         self.data.rectROI = self.roi_tool.rect
+        
+        # we give the ROI selection tool a reference to the pyfit-gui to be able to call
+        # the update ROI function when rectangle is drawn
+        self.roi_tool.pyfit_gui = self 
+        self.data.rectROI.hide()
+        
+        # clear ROI
+        toolbar.addWidget(self.ui.clear_ROI_button)
+        self.ui.clear_ROI_button.clicked.connect(self.clear_ROIs)
+        
+        toolbar.addSeparator()
         
         # Background management
         self.ui.plotWindow.manager.add_tool(BKGNDSelectTool)
@@ -310,7 +337,12 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         
         for fit in self.data.fit1D_dic:
             self.ui.list_fit_type.addItem(fit)
-
+        
+        
+        # Extra tools (+) Tab
+        
+        self.ui.gen_grid_button.clicked.connect(self.generate_ROI_grid)
+        
         # Fit button
 
         self.ui.fitButton.clicked.connect(self.fit_button_clicked)
@@ -548,7 +580,7 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         self.ui.plotWindow.cutY.clear_plot()
         
         # load fit
-        if load_fit: self.load_fit(draw=False)
+        if load_fit: self.load_fit(draw=True)
         if load_fit and not self.settings.disable_comment: self.load_comment()
         
         if self.settings.display_hole:
@@ -563,23 +595,216 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
     ### ROI and background
     # ROI ----------------------------------
     
-
     
     def draw_ROI(self):
 
-        r = self.data.current_fit.picture.ROI
-        ROI_rect = self.data.rectROI
-        ROI_rect.set_rect(r[0], r[2], r[1], r[3])
+        ROI_list = self.data.ROI_list
+        ROI_rect_list = self.data.ROI_rect_list
+        
+        # if more ROI than rect, add rects
+        while len(ROI_list)>len(ROI_rect_list):
+            self.multiple_roi_action.add_ROI(self.ui.plotWindow.screen.plot)
+            
+        while len(ROI_rect_list)>len(ROI_list):
+            r = ROI_rect_list[-1]
+            self.ui.plotWindow.screen.plot.del_item(r)
+            ROI_rect_list.pop(-1)
+        
+        #self.multiple_roi_action.relabel_ROI
+        
+        for r,ROI_rect in zip(ROI_list,ROI_rect_list):
+            ROI_rect.set_rect(r[0], r[2], r[1], r[3])
+            
         self.ui.plotWindow.screen.plot.replot()
-
-
+        
+        
     def get_ROI(self):
 
-        ROI_rect = self.data.rectROI
-        r = ROI_rect.get_rect()
+        ROI_rect_list = self.data.ROI_rect_list
+        
+        # reset current ROI list
+        self.data.ROI_list = []
+        
+        for rect in ROI_rect_list:
+            r = rect.get_rect()
+            ROI = (r[0], r[2], r[1], r[3])
+            self.data.ROI_list.append(ROI)
+        
+        if len(self.data.ROI_list)>0: 
+            self.data.current_fit.picture.ROI = self.data.ROI_list[0]
+        
+        
+    def update_ROI(self,p0,p1):
+        ROI_rect_list = self.data.ROI_rect_list
+        
+        if len(ROI_rect_list)>0:
+            # get the ROI new rectangle
+            ROI_selection_rect = self.data.rectROI
+            r = ROI_selection_rect.get_rect()
+            new_ROI =  (r[0], r[2], r[1], r[3])
+            # choose the ROI to update
+            if len(ROI_rect_list)>1:
+                # ask which one to change
+                title='ROI Update'
+                choices = [str(i) for i in range(len(ROI_rect_list))]
+                msg = 'Select ROI to update'
+                choice_window = ComboBoxWindow(title = title, choices = choices, msg=msg)
 
-        self.data.current_fit.picture.ROI = (r[0], r[2], r[1], r[3])
+                result = choice_window.exec_()        
+                
+                if result:
+                    cbbox = choice_window.drop_list
+                    roi_index = int(cbbox.currentText())
+                else:
+                    return
+            else:
+                roi_index = 0
+               
+            ROI_rect = ROI_rect_list[roi_index]
+            
+            # update rect
+            ROI_rect.set_rect(r[0], r[1], r[2], r[3])
+            self.ui.plotWindow.screen.plot.replot()
+            # update fit ROI
+            self.get_ROI()
+            
+            
+        else:
+            self.print_warning("You have to define at least one ROI First")
+        
+    
+    def clear_ROIs(self):
+        '''
+        Clears all ROIs but one
+        '''
+        self.get_ROI()
+        ROI_rect_list = self.data.ROI_rect_list
+        if len(ROI_rect_list)>0:
+            self.data.ROI_list = [self.data.ROI_list[0]]
+            
+               
+            while len(ROI_rect_list)>1:
+                r = ROI_rect_list[-1]
+                self.ui.plotWindow.screen.plot.del_item(r)
+                ROI_rect_list.pop(-1)
+                
+            self.ui.plotWindow.screen.plot.replot()
+    
+    
+    def generate_ROI_grid(self):
+        
+        self.print_result(self.settings.results_delim)
+        self.print_result("<b> Generate ROI grid FIT</b>")
+        
+        # 1 -- Ask settings
+        
+        settings_window = GridROIWindow()
+        result = settings_window.exec_()        
+        
+        if not result:
+            self.print_warning("--> Aborted")
+            return
+        
+        index_center = int(settings_window.center_roi.value())
+        index_edge = int(settings_window.edge_roi.value())
+        order_edge = int(settings_window.edge_order.value())
+        order_grid = int(settings_window.grid_max_order.value())
+        
+        if index_center > len(self.data.ROI_list) or index_edge > len(self.data.ROI_list):
+            self.print_warning("--> Aborted : index must correspond to a defined ROI")
+        
+        # 2 -- Fit center and edge
+        
+        # Load image data
+        
+        index = self.ui.file_list.currentIndex()
+            
+        if self.data.current_fit.data == []: self.data.current_fit.load_data()
 
+        self.data.current_fit.values = {}
+        self.data.current_fit.generate_xy_fit_mesh()
+        self.get_ROI()
+        self.get_background()
+        self.get_HOLE()
+        
+        ROI_center = self.data.ROI_list[index_center]
+        ROI_edge = self.data.ROI_list[index_edge]
+        
+        # Fit center
+        
+        self.print_result("<font color=DarkGreen><b>- Fitting center </b></font>")
+        self.data.current_fit.picture.ROI = ROI_center
+        self.data.current_fit = self.data.current_fit.adapt_type_from_fit()
+        self.data.current_fit.fit.options = self.settings.current_fit_options
+        self.data.current_fit.do_fit()
+        self.data.current_fit.compute_values()
+        
+        if not self.data.current_fit.values.has_key('cx'):
+            self.print_warning("--> Selected fit must have a 'cx' value")
+            return
+        elif not self.data.current_fit.values.has_key('cy'):
+            self.print_warning("--> Selected fit must have a 'cy' value")
+            return
+        
+        cx_center = self.data.current_fit.values['cx']
+        cy_center = self.data.current_fit.values['cy']
+        
+        self.print_result('--> done !')
+        
+        # Fit edge
+        
+        self.print_result("<font color=DarkGreen><b>- Fitting edge </b></font>")
+        self.data.current_fit.picture.ROI = ROI_edge
+        self.data.current_fit = self.data.current_fit.adapt_type_from_fit()
+        self.data.current_fit.fit.options = self.settings.current_fit_options
+        self.data.current_fit.do_fit()
+        self.data.current_fit.compute_values()
+        
+        cx_edge = self.data.current_fit.values['cx']
+        cy_edge = self.data.current_fit.values['cy']
+        
+        self.print_result('--> done !')
+        
+        # 3 -- define grid
+        
+        self.print_result('define grid')
+        dx = (cx_edge-cx_center)/order_edge
+        dy = (cy_edge-cy_center)/order_edge
+        
+        if np.abs(dx)>np.abs(dy):
+            width = dx
+        else:
+            width = dy
+        
+        
+        self.data.ROI_list = []
+        
+        x0 = cx_center-width/2.0
+        y0 = cy_center-width/2.0
+        width = width
+        # center :
+        ROI = np.array([x0,x0+width,y0,y0+width])
+        self.data.ROI_list.append(ROI)
+        
+        for i in range(1,order_grid+1):
+            xp = x0+i*dx
+            yp = y0+i*dy
+            
+            xm = x0-i*dx
+            ym = y0-i*dy
+            
+            ROI_plus = np.array([xp,xp+width,yp,yp+width])
+            ROI_minus = np.array([xm,xm+width,ym,ym+width])
+            
+            self.data.ROI_list.append(ROI_plus)
+            self.data.ROI_list.append(ROI_minus)
+            
+        # 4 -- update ROI rectangles and plot
+        self.print_result('draw ROI')
+        self.draw_ROI()
+            
+       
+        
     def draw_HOLE(self):
 
         r = self.data.current_fit.picture.hole
@@ -633,7 +858,7 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
     ### FITS
 
 
-    def fit(self, index=None):
+    def fit(self, index=None,update_progress_bar=True):
 
         if index == None: index = self.ui.file_list.currentIndex()
         if self.data.current_fit.data == []: return
@@ -651,77 +876,113 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         self.print_result("")
         self.print_settings()
 
-        #### FIT---------------
+        #### GRID FIT---------------
         
-        self.data.current_fit = self.data.current_fit.adapt_type_from_fit()
-        self.data.current_fit.fit.options = self.settings.current_fit_options
+        # we perform one fit per ROI
+        roi_index = 0
+        self.data.fit_list = []
+        N_roi = len(self.data.ROI_list)
+        for ROI in self.data.ROI_list:
+            if update_progress_bar:
+                self.ui.progressBar.setValue(roi_index*100.0/N_roi)
+            self.print_result("<font color=DarkGreen><b>- ROI "+str(roi_index)+"</b></font>")
+            self.data.current_fit.picture.ROI = ROI
+            self.data.current_fit = self.data.current_fit.adapt_type_from_fit()
+            self.data.current_fit.fit.options = self.settings.current_fit_options
+            
+            is_double = self.data.current_fit.fit.__class__.__name__ == 'DoubleFit'
+            
+            # if fit order is 2 (best of two) and fit is a double fit
+            # then we do the fit twice (with different fit order) 
+            # and keep best result !
+            
+            if self.settings.current_fit_order == 2 and is_double:
+                
+                # fit hole first
+                self.print_result("round 1 : hole first")
+                
+                fit_hole_first = copy.deepcopy(self.data.current_fit)
+                fit_hole_first.fit.options.fit_hole_first = True
+                fit_hole_first.do_fit()
+                
+                xm = fit_hole_first.xm_fit
+                ym = fit_hole_first.ym_fit
+                fit_params = fit_hole_first.fit.results
+                fit_res = fit_hole_first.fit.formula((xm, ym), *fit_params)
+                fit_data = fit_hole_first.data_fit
+                
+                err_hole_first = np.sqrt((fit_res-fit_data)**2)
+                err_hole_first = np.sum(np.sum(err_hole_first))
+                
+                # fit out first
+                self.print_result("round 2 : out first")
+                
+                fit_out_first = copy.deepcopy(self.data.current_fit)
+                fit_out_first.fit.options.fit_hole_first = False
+                fit_out_first.do_fit()
+                
+                xm = fit_out_first.xm_fit
+                ym = fit_out_first.ym_fit
+                fit_params = fit_out_first.fit.results
+                fit_res = fit_out_first.fit.formula((xm, ym), *fit_params)
+                fit_data = fit_out_first.data_fit
+                
+                err_out_first = np.sqrt((fit_res-fit_data)**2)
+                err_out_first = np.sum(np.sum(err_out_first))
+                
+                # choose the good one
+                
+                if err_out_first > err_hole_first:
+                    self.print_result(">>> HOLE first wins")
+                    self.data.current_fit = fit_hole_first
+                else:
+                    self.print_result(">>> OUT first wins")
+                    self.data.current_fit = fit_out_first
+                
+            else: # else we fit only once
+                self.data.current_fit.do_fit()
+            
+            ###---------------
+            self.data.current_fit.compute_values()
+            results_string = self.data.current_fit.values_to_str()
+    
+            self.print_result(results_string)
+            self.plot_fit_results()
+            self.data.fit_list.append(copy.deepcopy(self.data.current_fit))
+            roi_index +=1
         
-        is_double = self.data.current_fit.fit.__class__.__name__ == 'DoubleFit'
         
-        # if fit order is 2 (best of two) and fit is a double fit
-        # then we do the fit twice (with different fit order) 
-        # and keep best result !
-        if self.settings.current_fit_order == 2 and is_double:
-            
-            # fit hole first
-            self.print_result("round 1 : hole first")
-            
-            fit_hole_first = copy.deepcopy(self.data.current_fit)
-            fit_hole_first.fit.options.fit_hole_first = True
-            fit_hole_first.do_fit()
-            
-            xm = fit_hole_first.xm_fit
-            ym = fit_hole_first.ym_fit
-            fit_params = fit_hole_first.fit.results
-            fit_res = fit_hole_first.fit.formula((xm, ym), *fit_params)
-            fit_data = fit_hole_first.data_fit
-            
-            err_hole_first = np.sqrt((fit_res-fit_data)**2)
-            err_hole_first = np.sum(np.sum(err_hole_first))
-            
-            # fit out first
-            self.print_result("round 2 : out first")
-            
-            fit_out_first = copy.deepcopy(self.data.current_fit)
-            fit_out_first.fit.options.fit_hole_first = False
-            fit_out_first.do_fit()
-            
-            xm = fit_out_first.xm_fit
-            ym = fit_out_first.ym_fit
-            fit_params = fit_out_first.fit.results
-            fit_res = fit_out_first.fit.formula((xm, ym), *fit_params)
-            fit_data = fit_out_first.data_fit
-            
-            err_out_first = np.sqrt((fit_res-fit_data)**2)
-            err_out_first = np.sum(np.sum(err_out_first))
-            
-            # choose the good one
-            
-            if err_out_first > err_hole_first:
-                self.print_result(">>> HOLE first wins")
-                self.data.current_fit = fit_hole_first
-            else:
-                self.print_result(">>> OUT first wins")
-                self.data.current_fit = fit_out_first
-            
-        else: # else we fit only once
-            self.data.current_fit.do_fit()
+        self.data.current_fit = copy.deepcopy(self.data.fit_list[0])
         
-        ###---------------
-        self.data.current_fit.compute_values()
-        results_string = self.data.current_fit.values_to_str()
-
-        self.print_result(results_string)
-
-        self.data.current_fit.save_fit()
-
+        # Save fit :
+        
+        save_dir = os.path.join(self.data.current_fit.picture.path, '.fits')
+        if not os.path.isdir(save_dir):
+            os.mkdir(save_dir)
+        fname = self.data.current_fit.picture.filename
+        fname = fname[0:len(fname)-4]+'.hdf5'
+        save_path = os.path.join(save_dir, fname)
+        with h5py.File(save_path,"w") as f:
+            roi_index = 0
+            for fit in self.data.fit_list:
+                # copy fit
+                fc = copy.deepcopy(fit)
+                fc.data = []
+                fc.xm = []
+                fc.ym = []
+                fc.data_fit = []
+                fc.xm_fit = []
+                fc.ym_fit = []
+                fc.camera.OD_conversion='pickled_lambda'
+                # create hdf5 group
+                dgroup = f.create_group('fit_ROI_'+str(roi_index))
+                dgroup.attrs["roi_index"] = roi_index
+                # add fit group to hdf5
+                fc.add_fitgroup_to_hdf5(dgroup)
+                roi_index +=1
         # update diplayed name
         
-        ''' old version
-        name = index.data().toString()
-        name = name.replace(self.settings.isnofit_str, self.settings.isfit_str)
-        self.file_list_model.setData(index, name)
-        '''
+        
         name = index.data().toString()
         item = QtGui.QStandardItem(name)
         font_weight = QtGui.QFont.Normal
@@ -731,12 +992,11 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         item.setForeground(QtGui.QBrush(font_foreground_color))
         item.setToolTip(name)
         
-        #self.file_list_model.setData(index,item)
-        #self.data.debug = (index,item,name)
+
         self.file_list_model.setItem(index.row(), item)
         self.ui.file_list.setCurrentIndex(index)
+        
         self.plot_fit_results()
-        #self.ui.plotWindow.draw()
 
 
     def plot_fit_results(self, fitObj=None):
@@ -834,98 +1094,129 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
 
     ### GUI settings management
 
-    def load_fit(self, draw=True):
-
-        save_dir = os.path.join(self.data.current_file_path, '.fits')
-        fname = self.data.current_file_name
+    def load_fit(self, draw=True, root=None, fname=None):
+        if root is None:
+            root = self.data.current_file_path
+            fname = self.data.current_file_name
+        save_dir = os.path.join(root, '.fits')
         fname = fname[0:len(fname)-4]+'.hdf5'
         fit_path = os.path.join(save_dir, fname)
         
         # Compatibility with old fitting program WnM
         old_fname = fname[:-5]+'.fit'
-        fit_path_old =  os.path.join(self.data.current_file_path,'saved_fits',old_fname)
+        fit_path_old =  os.path.join(root,'saved_fits',old_fname)
         #---------------------------------------
-            
+        loaded_fit_collection = []
+        roi_index = []
+        result_collection = [] 
+        
         if os.path.isfile(fit_path):
             old_fit = False
-            self.print_result(self.settings.results_delim)
-            self.print_result("<b> Loading FIT</b>")
-            loaded_fit = self.data.current_fit.hdf5_to_fit(fit_path)
+            if draw:
+                self.print_result(self.settings.results_delim)
+                self.print_result("<b> Loading FIT</b>")
+
+            with h5py.File(fit_path,"r") as hdf5_fit:
+                for roi in hdf5_fit.keys():
+                    fit_group = hdf5_fit[roi]
+                    roi_index.append(fit_group.attrs['roi_index'])
+                    loaded_fit = self.data.current_fit.hdf5group_to_fit(fit_group)
+                    loaded_fit_collection.append(loaded_fit)
+                
+            
 
         elif os.path.isfile(fit_path_old):
             #-----------------------------------------------------
             # Compatibility with old fitting program WnM
             old_fit = True
-            self.print_result(self.settings.results_delim)
-            self.print_result("<b> Loading FIT</b>")
-            imported_fit = import_WNM_fit(fit_path_old)
-            if isinstance(imported_fit,basestring):
+            if draw:
+                self.print_result(self.settings.results_delim)
+                self.print_result("<b> Loading FIT (WnM)</b>")
+            fit_collection,roi_index = import_WNM_fit(fit_path_old)
+            if isinstance(fit_collection,basestring):
                 self.print_result('conversion from WnM not implemented for fit type "'+imported_fit+'"')
-                return
-            # initialize fit object
-            loaded_fit = pf.PyFit2D()
-            # get properties from current fit (which are not stored in saved fit)
-            loaded_fit.picture = copy.deepcopy(self.data.current_fit.picture)
-            loaded_fit.atom = copy.deepcopy(self.data.current_fit.atom)
-            loaded_fit.camera = copy.deepcopy(self.data.current_fit.camera)
-            # loaded properties
-            loaded_fit.fit = imported_fit.fit
-            loaded_fit.picture.ROI = imported_fit.picture.ROI
-            loaded_fit.picture.background = imported_fit.picture.background
-            loaded_fit.camera.magnification = imported_fit.camera.magnification
-            if imported_fit.fit.options.do_binning:
-                loaded_fit.fit.options.do_binning = imported_fit.fit.options.do_binning
-                loaded_fit.fit.options.binning = imported_fit.fit.options.binning
-                loaded_fit.fit.options.auto_binning = imported_fit.fit.options.auto_binning
-            #-----------------------------------------------------
-        else:
-            return # if no fit available, stop and return nothing
-        
-        # Now we have a loaded_fit object with the good properties (results, values...)
-        # but some methods (eg defined with lambdas) are not well imported
-        # so we use the fit generator
-        
-        if loaded_fit.fit.name in pf.fit2D_dic.keys():
-
-            # we keep the saved fit parameters (options and result)
-            option_save = copy.deepcopy(loaded_fit.fit.options)
-            results_save = loaded_fit.fit.results
+                return ([],[])
             
-            # we replace the loaded fit by a newly generated instance of the good fitobject
-            loaded_fit.fit = pf.fit2D_dic[loaded_fit.fit.name]
-            loaded_fit.fit.options = option_save
-            loaded_fit.fit.results = results_save
-            if not isinstance(loaded_fit.fit.formula_parameters,str):
-                loaded_fit.fit.updateFormulaFromParameters2D()
-
-            loaded_fit = loaded_fit.adapt_type_from_fit()
+            for imported_fit in fit_collection:
+                # initialize fit object
+                loaded_fit = pf.PyFit2D()
+                # get properties from current fit (which are not stored in saved fit)
+                loaded_fit.picture = copy.deepcopy(self.data.current_fit.picture)
+                loaded_fit.atom = copy.deepcopy(self.data.current_fit.atom)
+                loaded_fit.camera = copy.deepcopy(self.data.current_fit.camera)
+                # loaded properties
+                loaded_fit.fit = imported_fit.fit
+                loaded_fit.picture.ROI = imported_fit.picture.ROI
+                loaded_fit.picture.background = imported_fit.picture.background
+                loaded_fit.camera.magnification = imported_fit.camera.magnification
+                if imported_fit.fit.options.do_binning:
+                    loaded_fit.fit.options.do_binning = imported_fit.fit.options.do_binning
+                    loaded_fit.fit.options.binning = imported_fit.fit.options.binning
+                    loaded_fit.fit.options.auto_binning = imported_fit.fit.options.auto_binning
+                #-----------------------------------------------------
+                loaded_fit_collection.append(loaded_fit)
         else:
-            self.print_result('Saved fit name not found in known fit list - abort')
-            return
+            return ([],[]) # if no fit available, stop and return nothing
         
-        self.print_settings(loaded_fit)
-
-
-        # load ROI
-        self.data.current_fit.picture.ROI = loaded_fit.picture.ROI
+        
+        if draw: self.print_settings(loaded_fit)
+        self.data.ROI_list = []
+         
+        for loaded_fit,roi in zip(loaded_fit_collection,roi_index):
+            # Now we have a loaded_fit object with the good properties (results, values...)
+            # but some methods (eg defined with lambdas) are not well imported
+            # so we use the fit generator
+            if draw: self.print_result("<font color=DarkGreen><b>- ROI "+str(roi)+"</b></font>")
+            if loaded_fit.fit.name in pf.fit2D_dic.keys():
+    
+                # we keep the saved fit parameters (options and result)
+                option_save = copy.deepcopy(loaded_fit.fit.options)
+                results_save = loaded_fit.fit.results
+                
+                # we replace the loaded fit by a newly generated instance of the good fitobject
+                loaded_fit.fit = pf.fit2D_dic[loaded_fit.fit.name]
+                loaded_fit.fit.options = option_save
+                loaded_fit.fit.results = results_save
+                if not isinstance(loaded_fit.fit.formula_parameters,str):
+                    loaded_fit.fit.updateFormulaFromParameters2D()
+    
+                loaded_fit = loaded_fit.adapt_type_from_fit()
+            else:
+                self.print_result('Saved fit name not found in known fit list - abort')
+                return ([],[])
+        
+    
+            # load ROI
+            self.data.ROI_list.append(loaded_fit.picture.ROI)
+            
+            # load HOLE
+            self.data.current_fit.picture.hole = loaded_fit.picture.hole
+                           
+            # load background
+            self.data.current_fit.picture.background = loaded_fit.picture.background
+            
+            # display results
+            self.data.debug = loaded_fit
+            loaded_fit.load_data()
+            if old_fit:
+                loaded_fit.generate_xy_fit_mesh()
+                loaded_fit.compute_values()
+            if roi ==0:
+                if draw: self.plot_fit_results(fitObj=loaded_fit) # we always plot the ROI_0 results
+            
+            
+            # print results
+            if draw:
+                results_str = loaded_fit.values_to_str()
+                self.print_result(results_str)
+            
+            result_collection.append(loaded_fit)
         if draw: self.draw_ROI()
-        
-        # load HOLE
-        self.data.current_fit.picture.hole = loaded_fit.picture.hole
         if draw: self.draw_HOLE()
-           
-        # load background
-        self.data.current_fit.picture.background = loaded_fit.picture.background
         if draw: self.draw_background()
         
-        # display results
-        loaded_fit.load_data()
-        if old_fit:loaded_fit.compute_values()
-        self.plot_fit_results(fitObj=loaded_fit)
+        return (result_collection,roi_index)
         
-        # print results
-        results_str = loaded_fit.values_to_str()
-        self.print_result(results_str)
         
         
     def load_comment(self):
@@ -1252,6 +1543,9 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
     def print_result(self, txt):
         self.ui.result_text.append(txt)
 
+    def print_warning(self,txt):
+        self.print_result("<font color=DarkOrange><b>- Warning : </b>"+txt+"</font>")
+        
     def flush_results(self):
         self.ui.result_text.setText("")
 
@@ -1306,16 +1600,18 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
                 self.ui.list_plot_y.setCurrentIndex(i)
 
 
-
     def plot_list(self):
 
         X = []
         Y = []
         x_name = str(self.ui.list_plot_x.currentText())
         y_name = str(self.ui.list_plot_y.currentText())
-
+        
+        roi_to_plot = int(self.ui.ROI_quickplot_spinbox.value()) #TODO : changer
+        params = {}
+        
         for i in reversed(self.ui.file_list.selectedIndexes()):
-
+            
             # 1 - Get file name
 
             #name = str(i.data().toString())
@@ -1325,66 +1621,24 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
 
             name = name.replace(self.settings.isfit_str, '')
             name = name.replace(self.settings.isnofit_str, '')
-
-
-            # 2 - load fit data
-
-            save_dir = os.path.join(root, '.fits')
             
-            fit_name = name[:-4]+'.hdf5'
-            fit_path = os.path.join(save_dir, fit_name)
+            # 2 - Load fit collection
             
-            # Compatibility with old fitting program WnM
-            old_fname = name[:-4]+'.fit'
-            fit_path_old =  os.path.join(root,'saved_fits',old_fname)
-            #---------------------------------------
+            loaded_fit_collection, roi_index = self.load_fit(draw=False,
+                                                              root = root,
+                                                              fname = name)
+
                 
-            if os.path.isfile(fit_path):
-                fit = self.data.current_fit.hdf5_to_fit(fit_path)
+
+
+            if roi_to_plot in roi_index:
+                fit = loaded_fit_collection[roi_index == roi_to_plot]
+                fit.picture.parseVariables()
+                all_params = dict(fit.picture.variables.items()+fit.values.items())
                 
-            elif os.path.isfile(fit_path_old):
-                imported_fit = import_WNM_fit(fit_path_old)
-                if isinstance(imported_fit,basestring):continue
-                # initialize fit object
-                fit = pf.PyFit2D()
-                # get properties from current fit (which are not stored in saved fit)
-                fit.picture = copy.deepcopy(self.data.current_fit.picture)
-                fit.atom = copy.deepcopy(self.data.current_fit.atom)
-                fit.camera = copy.deepcopy(self.data.current_fit.camera)
-                # loaded properties
-                fit.fit = imported_fit.fit
-                fit.picture.ROI = imported_fit.picture.ROI
-                fit.picture.background = imported_fit.picture.background
-                fit.picture.filename = name
-                fit.camera.magnification = imported_fit.camera.magnification
-                fit.load_data()
-                fit.compute_values()
-
-
-            else:
-                continue  
-                
-        
-            # import lambdas from fit generator 
-            if fit.fit.name in pf.fit2D_dic.keys():
-                buffer_fit = pf.fit2D_dic[fit.fit.name]
-                fit.fit.formula = buffer_fit.formula
-                fit.fit.formula_parameters = buffer_fit.formula_parameters
-                if not isinstance(fit.fit.formula_parameters,str):
-                    fit.fit.updateFormulaFromParameters2D()
-                fit.fit.values = buffer_fit.values
-                
-            else:
-                self.print_result('Saved fit name not found in known fit list - abort')
-                return
-
-            fit.picture.parseVariables()
-
-            all_params = dict(fit.picture.variables.items()+fit.values.items())
-
-            if all_params.has_key(x_name) and all_params.has_key(y_name):
-                X.append(all_params[x_name])
-                Y.append(all_params[y_name])
+                if all_params.has_key(x_name) and all_params.has_key(y_name):
+                    X.append(all_params[x_name])
+                    Y.append(all_params[y_name])
 
 
         if X and self.settings.fit_list:
@@ -1416,10 +1670,11 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
             plt.ylabel(y_name.replace('_', ' '))
             plt.show()
 
+
     def stat_list(self):
 
         params = {}
-
+        
         for i in reversed(self.ui.file_list.selectedIndexes()):
 
             # 1 - Get file name
@@ -1431,87 +1686,54 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
 
             name = name.replace(self.settings.isfit_str, '')
             name = name.replace(self.settings.isnofit_str, '')
-
-
-            # 2 - load fit data and get parameters
-
-            save_dir = os.path.join(root, '.fits')
-            fit_name = name[:-4]+'.hdf5'
-            fit_path = os.path.join(save_dir, fit_name)
             
-            # Compatibility with old fitting program WnM
-            old_fname = name[:-4]+'.fit'
-            fit_path_old =  os.path.join(root,'saved_fits',old_fname)
-            #---------------------------------------
-                
-            if os.path.isfile(fit_path):
-                fit = self.data.current_fit.hdf5_to_fit(fit_path)
-                
-            elif os.path.isfile(fit_path_old):
-                imported_fit = import_WNM_fit(fit_path_old)
-                if isinstance(imported_fit,basestring):continue
-                # initialize fit object
-                fit = pf.PyFit2D()
-                # get properties from current fit (which are not stored in saved fit)
-                fit.picture = copy.deepcopy(self.data.current_fit.picture)
-                fit.atom = copy.deepcopy(self.data.current_fit.atom)
-                fit.camera = copy.deepcopy(self.data.current_fit.camera)
-                # loaded properties
-                fit.fit = imported_fit.fit
-                fit.picture.ROI = imported_fit.picture.ROI
-                fit.picture.background = imported_fit.picture.background
-                fit.picture.filename = name
-                fit.camera.magnification = imported_fit.camera.magnification
-                fit.load_data()
-                fit.compute_values()
-
-
-            else:
-                continue
-        
-            # import lambdas from fit generator 
-            if fit.fit.name in pf.fit2D_dic.keys():
-                buffer_fit = pf.fit2D_dic[fit.fit.name]
-                fit.fit.formula = buffer_fit.formula
-                fit.fit.formula_parameters = buffer_fit.formula_parameters
-                if not isinstance(fit.fit.formula_parameters,str):
-                    fit.fit.updateFormulaFromParameters2D()
-                fit.fit.values = buffer_fit.values
-                
-            else:
-                self.print_result('Saved fit name not found in known fit list - abort')
-                return
+            # 2 - Load fit collection
             
-            fit.picture.parseVariables()
-
-            all_params = dict(fit.picture.variables.items()+fit.values.items())
-
-            for n, v in all_params.iteritems():
-                if params.has_key(n):
-                    params[n].append(v)
-                else:
-                    params[n] = [v]
+            loaded_fit_collection, roi_index = self.load_fit(draw=False,
+                                                              root = root,
+                                                              fname = name)
+            
+            
+            for fit, roi in zip(loaded_fit_collection, roi_index):
+                fit.picture.parseVariables()
+    
+                all_params = dict(fit.picture.variables.items()+fit.values.items())
+                
+                if not params.has_key(roi):
+                    params[roi] ={}
+                    
+                for n, v in all_params.iteritems():
+                    if params[roi].has_key(n):
+                        params[roi][n].append(v)
+                    else:
+                        params[roi][n] = [v]       
+        #------------------------------------------------------
 
         # Display results
 
         if params:
-            params = OrderedDict(sorted(params.items()))
-
             self.print_result(self.settings.results_delim)
             self.print_result("<b>     Selection Statistics</b>")
             self.print_result("")
-            for n, v in params.iteritems():
-                out = ' - '+n+' = \t'
-                out += '%1.2e'%np.mean(v)
-                out += ' +/- '
-                out += '%1.1e'%np.std(v)
-                self.print_result(out)
-
-
+            
+            for roi, params_roi in params.iteritems():
+                params_roi = OrderedDict(sorted(params_roi.items()))
+                self.print_result("<font color=DarkGreen><b>- ROI "+str(roi)+"</b></font>")
+                
+                for n, v in params_roi.iteritems():
+                    out = ' - '+n+' = \t'
+                    out += '%1.2e'%np.mean(v)
+                    out += ' +/- '
+                    out += '%1.1e'%np.std(v)
+                    self.print_result(out)
+                    
+                self.print_result('')
+                
+                   
     def send_to_console(self):
         
         params = {}
-
+        
         for i in reversed(self.ui.file_list.selectedIndexes()):
 
             # 1 - Get file name
@@ -1523,78 +1745,40 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
 
             name = name.replace(self.settings.isfit_str, '')
             name = name.replace(self.settings.isnofit_str, '')
-
-
-            # 2 - load fit data and get parameters
-
-            save_dir = os.path.join(root, '.fits')
-            fit_name = name[:-4]+'.hdf5'
-            fit_path = os.path.join(save_dir, fit_name)
             
-            # Compatibility with old fitting program WnM
-            old_fname = name[:-4]+'.fit'
-            fit_path_old =  os.path.join(root,'saved_fits',old_fname)
-            #---------------------------------------
-                
-            if os.path.isfile(fit_path):
-                fit = self.data.current_fit.hdf5_to_fit(fit_path)
-                
-            elif os.path.isfile(fit_path_old):
-                imported_fit = import_WNM_fit(fit_path_old)
-                if isinstance(imported_fit,basestring):continue
-                # initialize fit object
-                fit = pf.PyFit2D()
-                # get properties from current fit (which are not stored in saved fit)
-                fit.picture = copy.deepcopy(self.data.current_fit.picture)
-                fit.atom = copy.deepcopy(self.data.current_fit.atom)
-                fit.camera = copy.deepcopy(self.data.current_fit.camera)
-                # loaded properties
-                fit.fit = imported_fit.fit
-                fit.picture.ROI = imported_fit.picture.ROI
-                fit.picture.background = imported_fit.picture.background
-                fit.picture.filename = name
-                fit.camera.magnification = imported_fit.camera.magnification
-                fit.load_data()
-                fit.compute_values()
-
-
-            else:
-                continue
-        
-            # import lambdas from fit generator 
-            if fit.fit.name in pf.fit2D_dic.keys():
-                buffer_fit = pf.fit2D_dic[fit.fit.name]
-                fit.fit.formula = buffer_fit.formula
-                fit.fit.formula_parameters = buffer_fit.formula_parameters
-                if not isinstance(fit.fit.formula_parameters,str):
-                    fit.fit.updateFormulaFromParameters2D()
-                fit.fit.values = buffer_fit.values
-                
-            else:
-                self.print_result('Saved fit name not found in known fit list - abort')
-                return
+            # 2 - Load fit collection
             
-            fit.picture.parseVariables()
-
-            all_params = dict(fit.picture.variables.items()+fit.values.items())
-
-            for n, v in all_params.iteritems():
-                if params.has_key(n):
-                    params[n].append(v)
-                else:
-                    params[n] = [v]
-        
-        to_send = AttrDict() # Matlab structure like dict
-        for n,v in params.iteritems():
-            to_send[n] = np.array(v)
-
+            loaded_fit_collection, roi_index = self.load_fit(draw=False,
+                                                              root = root,
+                                                              fname = name)
+            
+            
+            for fit, roi in zip(loaded_fit_collection, roi_index):
+                fit.picture.parseVariables()
+    
+                all_params = dict(fit.picture.variables.items()+fit.values.items())
                 
+                if not params.has_key(roi):
+                    params[roi] ={}
+                    
+                for n, v in all_params.iteritems():
+                    if params[roi].has_key(n):
+                        params[roi][n].append(v)
+                    else:
+                        params[roi][n] = [v]
+        
+         # Matlab structure like dict
+        to_send = AttrDict()
+        for roi in params.keys():
+            to_send['roi'+str(roi)] = AttrDict()
+            for n,v in params[roi].iteritems():
+                to_send['roi'+str(roi)][n] = np.array(v)
 
         # send
 
         self.pythonshell.interpreter.namespace['res'] = to_send
     
-    
+  
     def save_quicklist(self):
         
         # 1) Get list of variables to save and save format
@@ -1603,7 +1787,7 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
                                        variables=self.data.available_variables,
                                        selected = self.settings.variables_to_save,
                                        msg = 'choose variables to save',
-                                       droplist_choice=['txt'],
+                                       droplist_choice=['txt','hdf5'],
                                        droplist_msg="save format")
         result = check_window.exec_()        
         
@@ -1621,8 +1805,10 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         
         # 3) Gather all variables
         
-        vars = {vname:[] for vname in self.settings.variables_to_save}
-
+        params = {}
+        vars_txt = {vname:[] for vname in self.settings.variables_to_save} # for txt format saving
+        vars_txt['ROI']=[]
+                
         for i in reversed(self.ui.file_list.selectedIndexes()):
 
             # 1 - Get file name
@@ -1631,82 +1817,64 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
             name = str(self.data.current_file_list[i.row()])
             root = str(self.settings.current_folder)
             root = os.path.abspath(root)
+
             name = name.replace(self.settings.isfit_str, '')
             name = name.replace(self.settings.isnofit_str, '')
-
-
-            # 2 - load fit data
-
-            save_dir = os.path.join(root, '.fits')
-            fit_name = name[:-4]+'.hdf5'
-            fit_path = os.path.join(save_dir, fit_name)
             
-            # Compatibility with old fitting program WnM
-            old_fname = name[:-4]+'.fit'
-            fit_path_old =  os.path.join(root,'saved_fits',old_fname)
-            #---------------------------------------
-                
-            if os.path.isfile(fit_path):
-                fit = self.data.current_fit.hdf5_to_fit(fit_path)
-                
-            elif os.path.isfile(fit_path_old):
-                imported_fit = import_WNM_fit(fit_path_old)
-                if isinstance(imported_fit,basestring):continue
-                # initialize fit object
-                fit = pf.PyFit2D()
-                # get properties from current fit (which are not stored in saved fit)
-                fit.picture = copy.deepcopy(self.data.current_fit.picture)
-                fit.atom = copy.deepcopy(self.data.current_fit.atom)
-                fit.camera = copy.deepcopy(self.data.current_fit.camera)
-                # loaded properties
-                fit.fit = imported_fit.fit
-                fit.picture.ROI = imported_fit.picture.ROI
-                fit.picture.background = imported_fit.picture.background
-                fit.picture.filename = name
-                fit.camera.magnification = imported_fit.camera.magnification
-                fit.load_data()
-                fit.compute_values()
-
-
-            else:
-                continue
-        
-            # import lambdas from fit generator 
-            if fit.fit.name in pf.fit2D_dic.keys():
-                buffer_fit = pf.fit2D_dic[fit.fit.name]
-                fit.fit.formula = buffer_fit.formula
-                fit.fit.formula_parameters = buffer_fit.formula_parameters
-                if not isinstance(fit.fit.formula_parameters,str):
-                    fit.fit.updateFormulaFromParameters2D()
-                fit.fit.values = buffer_fit.values
-                
-            else:
-                self.print_result('Saved fit name not found in known fit list - abort')
-                return
-
-            fit.picture.parseVariables()
-
-            all_params = dict(fit.picture.variables.items()+fit.values.items())
+            # 2 - Load fit collection
             
-            for vname in self.settings.variables_to_save:
-                if all_params.has_key(vname):
-                    vars[vname].append(all_params[vname])
-                else:
-                    vars[vname].append(-1)
+            loaded_fit_collection, roi_index = self.load_fit(draw=False,
+                                                              root = root,
+                                                              fname = name)
             
-
+            
+            for fit, roi in zip(loaded_fit_collection, roi_index):
+                fit.picture.parseVariables()
+    
+                all_params = dict(fit.picture.variables.items()+fit.values.items())
+                
+                if not params.has_key(roi):
+                    params[roi] ={}
+                    
+                for n, v in all_params.iteritems():
+                    if params[roi].has_key(n):
+                        params[roi][n].append(v)
+                    else:
+                        params[roi][n] = [v]
+                
+                vars_txt['ROI'].append(roi)     
+                for vname in self.settings.variables_to_save:
+                    if all_params.has_key(vname):
+                        vars_txt[vname].append(all_params[vname])
+                    else:
+                        vars_txt[vname].append(-1)
+                
+                        
+                        
+        self.data.debug = vars_txt    
+        # 4) Save, depending on format :
         
-        self.data.debug=vars        
-        
-        # TEST
-        if format=='txt':
-            numpy_stack = np.transpose(np.vstack(vars.values()))
-            header = vars.keys()                         
+        if format=='txt': # TODO : change saving format depending on variable...
+            '''
+            txt format : saved in text file, ROI index is considered as a variable
+            '''
+            
+            numpy_stack = np.transpose(np.vstack(vars_txt.values()))
+            header = vars_txt.keys()                         
             delimiter = '\t'
             comments = 'Generated by PyFit on '+str(datetime.datetime.now())+'\n'
-            fmt = "%.3e"
+            fmt = "%.5e"
             np.savetxt(str(file_name), numpy_stack, delimiter=delimiter, fmt=fmt, 
                        header=delimiter.join(header), comments=comments)
+    
+        if format=='hdf5':
+            with h5py.File(str(file_name),"w") as f:
+                for roi, roi_params in params.iteritems():
+                    roi_group = f.create_group('roi'+str(roi))
+                    roi_group.attrs['roi_index'] = roi
+                    for n, v in roi_params.iteritems():
+                        roi_group.create_dataset(n,data=v)
+                        
     ### Cam management
 
     def refresh_cam_list(self):
@@ -1874,7 +2042,19 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         
     def keyPressEvent(self, k):
         
+        # Keyboard shortcut
         
+        if k.modifiers() & QtCore.Qt.ControlModifier:
+            if k.key() == QtCore.Qt.Key_F:
+                self.fit_button_clicked()
+                
+            elif k.key() == QtCore.Qt.Key_E: # edit roi
+                self.roi_tool.activate()
+                
+            elif k.key() == QtCore.Qt.Key_R: # add new roi
+                self.multiple_roi_action.activate()
+                
+                
         ## Easter section
         ## Note to NSA : this keyLog is not for you ^^
         
@@ -2075,8 +2255,15 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
             self.display_file(load_fit=False)
 
             # 3 - fit
-
-            self.fit(i)
+            
+            if N>1: 
+                # if we have more than one fit to do, we let this loop handle the progress bar
+                update_progress_bar = False
+            else:
+                # if we only have one fit to do, the progress bar is handled by the fit function
+                update_progress_bar = True
+                
+            self.fit(i,update_progress_bar=update_progress_bar)
             n += 1.0
 
         #self.update_file_list()
@@ -2159,6 +2346,7 @@ class GuiSettings():
         self.current_fit_type = 'Gauss'
         self.current_fit_options = pf.pyfit_classes.FitOptions()
         self.current_fit_order = 0
+        self.ROI_number = 2
         
         # Display
 
@@ -2189,8 +2377,6 @@ class GuiSettings():
         for param, value in vars(gs).iteritems():
             setattr(self, param, value)
 
-
-
 class GuiData():
 
     def __init__(self, gui):
@@ -2211,9 +2397,14 @@ class GuiData():
         self.fit2D_dic = pf.fit2D_dic
         self.fit1D_dic = pf.fit1D_dic
 
+        self.ROI_tools = []
         self.rectROI = None
         self.ed_rectROI = None
 
+        self.ROI_list = None
+        self.ROI_rect_list = None
+        self.fit_list = None
+        
         self.rectBackground = None
         self.ed_rectBackground = None
         
@@ -2333,7 +2524,131 @@ class CheckListWindow(QtGui.QDialog):
         for c in self.cboxes:
             c.setChecked(False)
         self.selected = []
+
+class ComboBoxWindow(QtGui.QDialog):
+ 
+    def __init__(self, parent=None, title='Window Title',
+                 choices = ['1', '2'], 
+                 msg = 'check to hide variable'):
+        super(ComboBoxWindow, self).__init__(parent)
+ 
+   
+        layout = QtGui.QGridLayout()
+
+        text_1 = QtGui.QLabel(msg)
+        layout.addWidget(text_1,0,0,1,2)
         
+        self.drop_list = QtGui.QComboBox()
+        for c in choices:
+                self.drop_list.addItem(c)
+        
+        
+        layout.addWidget(self.drop_list,1,0,1,2)
+                
+   
+        button_OK = QtGui.QPushButton('OK')
+        button_cancel = QtGui.QPushButton('Cancel')
+
+        
+        button_OK.setMaximumWidth(70)
+        button_cancel.setMaximumWidth(70)
+
+        
+        button_OK.clicked.connect(self.accept)
+        button_cancel.clicked.connect(self.reject)
+
+        
+        layout.addWidget(button_OK,2,0)
+        layout.addWidget(button_cancel,2,1)
+        
+        
+        self.setLayout(layout)
+        self.setWindowTitle(title)
+
+class GridROIWindow(QtGui.QDialog):
+ 
+    def __init__(self, parent=None):
+        
+        super(GridROIWindow, self).__init__(parent)
+ 
+   
+        layout = QtGui.QGridLayout()
+
+        i_col = 0
+        text_1 = QtGui.QLabel("Generate GRID of ROIs")
+        font_weight = QtGui.QFont.Bold
+        font_foreground_color = QtCore.Qt.darkBlue  
+        font = QtGui.QFont('SanSerif', 8, font_weight)
+        text_1.setFont(font)
+        layout.addWidget(text_1,i_col,0,1,2)
+        i_col +=1
+        
+        txt = QtGui.QLabel("0th order ROI index")
+        layout.addWidget(txt,i_col,0,1,2)
+        i_col +=1
+        
+        self.center_roi = QtGui.QSpinBox()
+        self.center_roi.setRange(0,99)
+        layout.addWidget(self.center_roi,i_col,0,1,2)
+        i_col +=1
+        
+        txt = QtGui.QLabel("-------------------")
+        layout.addWidget(txt,i_col,0,1,2)
+        i_col +=1
+        
+        txt = QtGui.QLabel("Nth order ROI settings")
+        layout.addWidget(txt,i_col,0,1,2)
+        i_col +=1
+        
+        txt = QtGui.QLabel("ROI index")
+        layout.addWidget(txt,i_col,0)
+        
+        txt = QtGui.QLabel("order")
+        layout.addWidget(txt,i_col,1)
+        i_col +=1
+        
+        self.edge_roi = QtGui.QSpinBox()
+        self.edge_roi.setRange(0,99)
+        self.edge_roi.setValue(1)
+        
+        layout.addWidget(self.edge_roi,i_col,0)
+        
+        self.edge_order = QtGui.QSpinBox()
+        self.edge_order.setRange(1,99)
+        layout.addWidget(self.edge_order,i_col,1)
+        i_col +=1
+        
+        txt = QtGui.QLabel("-------------------")
+        layout.addWidget(txt,i_col,0,1,2)
+        i_col +=1
+        
+        txt = QtGui.QLabel("Generate grid up to order :")
+        layout.addWidget(txt,i_col,0,1,2)
+        i_col +=1
+        
+        self.grid_max_order = QtGui.QSpinBox()
+        self.grid_max_order.setRange(1,99)
+        layout.addWidget(self.grid_max_order,i_col,0,1,2)
+        i_col +=1
+        
+        
+        
+        button_OK = QtGui.QPushButton('OK')
+        button_cancel = QtGui.QPushButton('Cancel')
+
+        button_OK.setMaximumWidth(70)
+        button_cancel.setMaximumWidth(70)
+
+        button_OK.clicked.connect(self.accept)
+        button_cancel.clicked.connect(self.reject)
+
+        layout.addWidget(button_OK,i_col,0)
+        layout.addWidget(button_cancel,i_col,1)
+        
+        
+        self.setLayout(layout)
+        self.setWindowTitle("ROI GRID Generation")
+                       
 class AttrDict(dict): # Matlab like dictionnary
     def __init__(self, *args, **kwargs):
         super(AttrDict, self).__init__(*args, **kwargs)
@@ -2378,8 +2693,10 @@ if __name__ == "__main__":
     update_message("displaying quick message : Hello world ^(°0°)^")
     update_message("loading pyfit...")
     import pyfit as pf
+    import h5py
     update_message("loading screen (guiqwt)...")
-    from GuiqwtScreen import ROISelectTool, BKGNDSelectTool, HOLESelectTool
+    from GuiqwtScreen import ROISelectTool, BKGNDSelectTool, HOLESelectTool, MultipleROISelectTool
+    
     from import_WNM_fit import import_WNM_fit
     update_message("loading internal shell (spyderlib)...")
     from spyderlib.widgets import internalshell

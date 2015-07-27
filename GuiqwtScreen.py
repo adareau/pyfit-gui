@@ -230,7 +230,70 @@ class RegionSelectTool(tools.RectangleTool):
         
         plot.replot()
         
- 
+
+        
+class MultipleROISelectTool(tools.RectangleTool):
+    def __init__(self, *args, **kwargs):
+        super(MultipleROISelectTool,self).__init__(*args, **kwargs)
+        
+        self.name = "ROI_"
+        
+        self.rect_list = []
+        
+        
+        #self.set_shape_style(self.rect)
+        #self.p0=(0,0)
+        #self.p1=(0,0)
+        
+
+    
+    def add_shape_to_plot(self, plot, p0, p1):
+        """
+        Method called when shape's rectangular area
+        has just been drawn on screen.
+        Adding the final shape to plot and returning it.
+        """
+        self.p0 = p0
+        self.p1 = p1
+        
+        current_index = len(self.rect_list)
+        
+        rect = LabelledRectangle(label_txt=self.name+str(current_index))
+        self.set_shape_style(rect)
+        plot.add_item(rect)
+        rect.move_local_point_to(0,p0)
+        rect.move_local_point_to(2,p1)
+        
+        self.rect_list.append(rect)
+        
+        #self.set_shape_style(self.rect)
+        
+        plot.replot()
+        
+        
+    def add_ROI(self, plot):
+        """
+        Method called when shape's rectangular area
+        has just been drawn on screen.
+        Adding the final shape to plot and returning it.
+        """
+        current_index = len(self.rect_list)
+        rect = LabelledRectangle(label_txt=self.name+str(current_index))
+        self.set_shape_style(rect)
+        plot.add_item(rect)  
+        self.rect_list.append(rect)
+        
+        plot.replot()
+        
+    def relabel_ROI(self):
+        
+        i = 0
+        for rect in self.rect_list:
+            rect.label_txt = "ROI_"+str(i)
+            i+=1
+        
+        plot.replot()
+        
    
 class ROISelectTool(RegionSelectTool):
     def __init__(self, *args, **kwargs):
@@ -248,6 +311,28 @@ class ROISelectTool(RegionSelectTool):
         
         self.rect.shape.shapeparam.line.update_param(line.build_pen())
         '''
+        
+        self.pyfit_gui = None # used to pass reference to pyfit-gui
+
+    
+    def add_shape_to_plot(self, plot, p0, p1):
+        """
+        Method called when shape's rectangular area
+        has just been drawn on screen.
+        Adding the final shape to plot and returning it.
+        """
+        
+        self.p0 = p0
+        self.p1 = p1
+        self.rect.move_local_point_to(0,p0)
+        self.rect.move_local_point_to(2,p1)
+        #self.set_shape_style(self.rect)
+        
+        plot.replot()
+        
+        if self.pyfit_gui is not None:
+            self.pyfit_gui.update_ROI(p0,p1)
+        
         
          
 class BKGNDSelectTool(RegionSelectTool):
