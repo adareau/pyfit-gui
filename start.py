@@ -99,9 +99,9 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
     
         self.ui.plotWindow.manager.add_tool(ROISelectTool)
         roi_action = toolbar.actions()[-1]
-        roi_action.setText("update ROI")
-        roi_action.setToolTip("Select ROI")
-        roi_action.setStatusTip("click and draw new region of interest")
+        roi_action.setText("edit ROI")
+        roi_action.setToolTip("edit ROI")
+        roi_action.setStatusTip("click and draw to edit region of interest")
         icon = QtGui.QIcon.fromTheme("edit-cut")
         roi_action.setIcon(icon)
         #TODO : trouver icones dans http://standards.freedesktop.org/icon-naming-spec/icon-naming-spec-latest.html#names
@@ -1921,7 +1921,19 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         
     def keyPressEvent(self, k):
         
+        # Keyboard shortcut
         
+        if k.modifiers() & QtCore.Qt.ControlModifier:
+            if k.key() == QtCore.Qt.Key_F:
+                self.fit_button_clicked()
+                
+            elif k.key() == QtCore.Qt.Key_E: # edit roi
+                self.roi_tool.activate()
+                
+            elif k.key() == QtCore.Qt.Key_R: # add new roi
+                self.multiple_roi_action.activate()
+                
+                
         ## Easter section
         ## Note to NSA : this keyLog is not for you ^^
         
