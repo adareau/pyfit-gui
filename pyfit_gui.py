@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'pyfit.ui'
 #
-# Created: Mon Jul 27 10:10:44 2015
+# Created: Mon Jul 27 11:57:30 2015
 #      by: PyQt4 UI code generator 4.9.6
 #
 # WARNING! All changes made in this file will be lost!
@@ -78,6 +78,9 @@ class Ui_PyFit(object):
         self.groupBox_3.setObjectName(_fromUtf8("groupBox_3"))
         self.fitEditorTab = QtGui.QTabWidget(self.groupBox_3)
         self.fitEditorTab.setGeometry(QtCore.QRect(7, 20, 211, 231))
+        font = QtGui.QFont()
+        font.setPointSize(8)
+        self.fitEditorTab.setFont(font)
         self.fitEditorTab.setObjectName(_fromUtf8("fitEditorTab"))
         self.fit_settings_tab = QtGui.QWidget()
         self.fit_settings_tab.setObjectName(_fromUtf8("fit_settings_tab"))
@@ -287,6 +290,14 @@ class Ui_PyFit(object):
         self.hide_variable_txt_4.setWordWrap(False)
         self.hide_variable_txt_4.setObjectName(_fromUtf8("hide_variable_txt_4"))
         self.fitEditorTab.addTab(self.tab_2, _fromUtf8(""))
+        self.tab_5 = QtGui.QWidget()
+        self.tab_5.setObjectName(_fromUtf8("tab_5"))
+        self.gen_grid_button = QtGui.QPushButton(self.tab_5)
+        self.gen_grid_button.setGeometry(QtCore.QRect(10, 10, 91, 21))
+        self.gen_grid_button.setDefault(False)
+        self.gen_grid_button.setFlat(False)
+        self.gen_grid_button.setObjectName(_fromUtf8("gen_grid_button"))
+        self.fitEditorTab.addTab(self.tab_5, _fromUtf8(""))
         self.hide_variables_button = QtGui.QPushButton(self.tab_3)
         self.hide_variables_button.setGeometry(QtCore.QRect(1110, 520, 51, 21))
         self.hide_variables_button.setObjectName(_fromUtf8("hide_variables_button"))
@@ -382,7 +393,7 @@ class Ui_PyFit(object):
 
         self.retranslateUi(PyFit)
         self.tabWidget.setCurrentIndex(0)
-        self.fitEditorTab.setCurrentIndex(3)
+        self.fitEditorTab.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(PyFit)
 
     def retranslateUi(self, PyFit):
@@ -434,6 +445,8 @@ class Ui_PyFit(object):
         self.save_quicklist_button.setText(_translate("PyFit", "Save", None))
         self.hide_variable_txt_4.setText(_translate("PyFit", "ROI", None))
         self.fitEditorTab.setTabText(self.fitEditorTab.indexOf(self.tab_2), _translate("PyFit", "List", None))
+        self.gen_grid_button.setText(_translate("PyFit", "Generate GRID", None))
+        self.fitEditorTab.setTabText(self.fitEditorTab.indexOf(self.tab_5), _translate("PyFit", "+", None))
         self.hide_variables_button.setText(_translate("PyFit", "choose", None))
         self.hide_variable_txt.setText(_translate("PyFit", "some variables are hidden", None))
         self.refresh_file_list.setText(_translate("PyFit", "refresh", None))

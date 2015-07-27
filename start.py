@@ -7,6 +7,7 @@ import sys
 from PyQt4 import QtCore, QtGui
 import os
 from PyQt4.QtGui import QMessageBox
+from sympy.physics.vector.dyadic import Dyadic
 
 
 class StartQT4(QtGui.QMainWindow): #TODO : rename
@@ -336,7 +337,12 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         
         for fit in self.data.fit1D_dic:
             self.ui.list_fit_type.addItem(fit)
-
+        
+        
+        # Extra tools (+) Tab
+        
+        self.ui.gen_grid_button.clicked.connect(self.generate_ROI_grid)
+        
         # Fit button
 
         self.ui.fitButton.clicked.connect(self.fit_button_clicked)
@@ -683,7 +689,122 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
                 ROI_rect_list.pop(-1)
                 
             self.ui.plotWindow.screen.plot.replot()
-           
+    
+    
+    def generate_ROI_grid(self):
+        
+        self.print_result(self.settings.results_delim)
+        self.print_result("<b> Generate ROI grid FIT</b>")
+        
+        # 1 -- Ask settings
+        
+        settings_window = GridROIWindow()
+        result = settings_window.exec_()        
+        
+        if not result:
+            self.print_warning("--> Aborted")
+            return
+        
+        index_center = int(settings_window.center_roi.value())
+        index_edge = int(settings_window.edge_roi.value())
+        order_edge = int(settings_window.edge_order.value())
+        order_grid = int(settings_window.grid_max_order.value())
+        
+        if index_center > len(self.data.ROI_list) or index_edge > len(self.data.ROI_list):
+            self.print_warning("--> Aborted : index must correspond to a defined ROI")
+        
+        # 2 -- Fit center and edge
+        
+        # Load image data
+        
+        index = self.ui.file_list.currentIndex()
+            
+        if self.data.current_fit.data == []: self.data.current_fit.load_data()
+
+        self.data.current_fit.values = {}
+        self.data.current_fit.generate_xy_fit_mesh()
+        self.get_ROI()
+        self.get_background()
+        self.get_HOLE()
+        
+        ROI_center = self.data.ROI_list[index_center]
+        ROI_edge = self.data.ROI_list[index_edge]
+        
+        # Fit center
+        
+        self.print_result("<font color=DarkGreen><b>- Fitting center </b></font>")
+        self.data.current_fit.picture.ROI = ROI_center
+        self.data.current_fit = self.data.current_fit.adapt_type_from_fit()
+        self.data.current_fit.fit.options = self.settings.current_fit_options
+        self.data.current_fit.do_fit()
+        self.data.current_fit.compute_values()
+        
+        if not self.data.current_fit.values.has_key('cx'):
+            self.print_warning("--> Selected fit must have a 'cx' value")
+            return
+        elif not self.data.current_fit.values.has_key('cy'):
+            self.print_warning("--> Selected fit must have a 'cy' value")
+            return
+        
+        cx_center = self.data.current_fit.values['cx']
+        cy_center = self.data.current_fit.values['cy']
+        
+        self.print_result('--> done !')
+        
+        # Fit edge
+        
+        self.print_result("<font color=DarkGreen><b>- Fitting edge </b></font>")
+        self.data.current_fit.picture.ROI = ROI_edge
+        self.data.current_fit = self.data.current_fit.adapt_type_from_fit()
+        self.data.current_fit.fit.options = self.settings.current_fit_options
+        self.data.current_fit.do_fit()
+        self.data.current_fit.compute_values()
+        
+        cx_edge = self.data.current_fit.values['cx']
+        cy_edge = self.data.current_fit.values['cy']
+        
+        self.print_result('--> done !')
+        
+        # 3 -- define grid
+        
+        self.print_result('define grid')
+        dx = (cx_edge-cx_center)/order_edge
+        dy = (cy_edge-cy_center)/order_edge
+        
+        if np.abs(dx)>np.abs(dy):
+            width = dx
+        else:
+            width = dy
+        
+        
+        self.data.ROI_list = []
+        
+        x0 = cx_center-width/2.0
+        y0 = cy_center-width/2.0
+        width = width
+        # center :
+        ROI = np.array([x0,x0+width,y0,y0+width])
+        self.data.ROI_list.append(ROI)
+        
+        for i in range(1,order_grid+1):
+            xp = x0+i*dx
+            yp = y0+i*dy
+            
+            xm = x0-i*dx
+            ym = y0-i*dy
+            
+            ROI_plus = np.array([xp,xp+width,yp,yp+width])
+            ROI_minus = np.array([xm,xm+width,ym,ym+width])
+            
+            self.data.ROI_list.append(ROI_plus)
+            self.data.ROI_list.append(ROI_minus)
+            
+        # 4 -- update ROI rectangles and plot
+        self.print_result('draw ROI')
+        self.draw_ROI()
+            
+       
+        
     def draw_HOLE(self):
 
         r = self.data.current_fit.picture.hole
@@ -2443,7 +2564,91 @@ class ComboBoxWindow(QtGui.QDialog):
         
         self.setLayout(layout)
         self.setWindowTitle(title)
-                
+
+class GridROIWindow(QtGui.QDialog):
+ 
+    def __init__(self, parent=None):
+        
+        super(GridROIWindow, self).__init__(parent)
+ 
+   
+        layout = QtGui.QGridLayout()
+
+        i_col = 0
+        text_1 = QtGui.QLabel("Generate GRID of ROIs")
+        font_weight = QtGui.QFont.Bold
+        font_foreground_color = QtCore.Qt.darkBlue  
+        font = QtGui.QFont('SanSerif', 8, font_weight)
+        text_1.setFont(font)
+        layout.addWidget(text_1,i_col,0,1,2)
+        i_col +=1
+        
+        txt = QtGui.QLabel("0th order ROI index")
+        layout.addWidget(txt,i_col,0,1,2)
+        i_col +=1
+        
+        self.center_roi = QtGui.QSpinBox()
+        self.center_roi.setRange(0,99)
+        layout.addWidget(self.center_roi,i_col,0,1,2)
+        i_col +=1
+        
+        txt = QtGui.QLabel("-------------------")
+        layout.addWidget(txt,i_col,0,1,2)
+        i_col +=1
+        
+        txt = QtGui.QLabel("Nth order ROI settings")
+        layout.addWidget(txt,i_col,0,1,2)
+        i_col +=1
+        
+        txt = QtGui.QLabel("ROI index")
+        layout.addWidget(txt,i_col,0)
+        
+        txt = QtGui.QLabel("order")
+        layout.addWidget(txt,i_col,1)
+        i_col +=1
+        
+        self.edge_roi = QtGui.QSpinBox()
+        self.edge_roi.setRange(0,99)
+        self.edge_roi.setValue(1)
+        
+        layout.addWidget(self.edge_roi,i_col,0)
+        
+        self.edge_order = QtGui.QSpinBox()
+        self.edge_order.setRange(1,99)
+        layout.addWidget(self.edge_order,i_col,1)
+        i_col +=1
+        
+        txt = QtGui.QLabel("-------------------")
+        layout.addWidget(txt,i_col,0,1,2)
+        i_col +=1
+        
+        txt = QtGui.QLabel("Generate grid up to order :")
+        layout.addWidget(txt,i_col,0,1,2)
+        i_col +=1
+        
+        self.grid_max_order = QtGui.QSpinBox()
+        self.grid_max_order.setRange(1,99)
+        layout.addWidget(self.grid_max_order,i_col,0,1,2)
+        i_col +=1
+        
+        
+        
+        button_OK = QtGui.QPushButton('OK')
+        button_cancel = QtGui.QPushButton('Cancel')
+
+        button_OK.setMaximumWidth(70)
+        button_cancel.setMaximumWidth(70)
+
+        button_OK.clicked.connect(self.accept)
+        button_cancel.clicked.connect(self.reject)
+
+        layout.addWidget(button_OK,i_col,0)
+        layout.addWidget(button_cancel,i_col,1)
+        
+        
+        self.setLayout(layout)
+        self.setWindowTitle("ROI GRID Generation")
+                       
 class AttrDict(dict): # Matlab like dictionnary
     def __init__(self, *args, **kwargs):
         super(AttrDict, self).__init__(*args, **kwargs)

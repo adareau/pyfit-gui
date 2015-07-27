@@ -65,14 +65,22 @@ class PyFit2D():
         x = xm[1,:]
         y = ym[:,1]
         
-        ix_start = x[x<=self.picture.ROI[0]].argmax()
-        ix_stop = x[x<=self.picture.ROI[1]].argmax()
-        iy_start = y[y<=self.picture.ROI[2]].argmax()
-        iy_stop = y[y<=self.picture.ROI[3]].argmax()
+        # TODO : improve (use mask ?)
+        ROI_xmin = np.min(self.picture.ROI[:2])
+        ROI_xmax = np.max(self.picture.ROI[:2])
+        
+        ROI_ymin = np.min(self.picture.ROI[2:])
+        ROI_ymax = np.max(self.picture.ROI[2:])
+        
+        ix_start = x[x<=ROI_xmin].argmax()
+        ix_stop = x[x<=ROI_xmax].argmax()
+        iy_start = y[y<=ROI_ymin].argmax()
+        iy_stop = y[y<=ROI_ymax].argmax()
         
         xm = xm[iy_start:iy_stop,ix_start:ix_stop]
         ym = ym[iy_start:iy_stop,ix_start:ix_stop]
         data_fit = data_fit[iy_start:iy_stop,ix_start:ix_stop]
+        #--------------
         
         # Remove background ?
         if self.fit.options.remove_background:
@@ -149,7 +157,6 @@ class PyFit2D():
         pf_guess.data = data_fit
         pf_guess.xm = xm
         pf_guess.ym = ym
-        
         guess = self.fit.guess(pf_guess)
         
         
@@ -229,10 +236,16 @@ class PyFit2D():
         x = xm[1,:]
         y = ym[:,1]
         
-        ix_start = x[x<=self.picture.background[0]].argmax()
-        ix_stop = x[x<=self.picture.background[1]].argmax()
-        iy_start = y[y<=self.picture.background[2]].argmax()
-        iy_stop = y[y<=self.picture.background[3]].argmax()
+        bckgnd_xmin = np.min(self.picture.background[:2])
+        bckgnd_xmax = np.max(self.picture.background[:2])
+        
+        bckgnd_ymin = np.min(self.picture.background[2:])
+        bckgnd_ymax = np.max(self.picture.background[2:])
+        
+        ix_start = x[x<=bckgnd_xmin].argmax()
+        ix_stop = x[x<=bckgnd_xmax].argmax()
+        iy_start = y[y<=bckgnd_ymin].argmax()
+        iy_stop = y[y<=bckgnd_ymax].argmax()
 
         data_fit = data_fit[iy_start:iy_stop,ix_start:ix_stop]
         
@@ -255,10 +268,16 @@ class PyFit2D():
         x = xm[1,:]
         y = ym[:,1]
         
-        ix_start = x[x<=self.picture.ROI[0]].argmax()
-        ix_stop = x[x<=self.picture.ROI[1]].argmax()
-        iy_start = y[y<=self.picture.ROI[2]].argmax()
-        iy_stop = y[y<=self.picture.ROI[3]].argmax()
+        ROI_xmin = np.min(self.picture.ROI[:2])
+        ROI_xmax = np.max(self.picture.ROI[:2])
+        
+        ROI_ymin = np.min(self.picture.ROI[2:])
+        ROI_ymax = np.max(self.picture.ROI[2:])
+        
+        ix_start = x[x<=ROI_xmin].argmax()
+        ix_stop = x[x<=ROI_xmax].argmax()
+        iy_start = y[y<=ROI_ymin].argmax()
+        iy_stop = y[y<=ROI_ymax].argmax()
         
         xm = xm[iy_start:iy_stop,ix_start:ix_stop]
         ym = ym[iy_start:iy_stop,ix_start:ix_stop]
@@ -673,10 +692,16 @@ class PyDoubleFit2D(PyFit2D):
         x = xm[1,:]
         y = ym[:,1]
         
-        ix_start = x[x<=self.picture.ROI[0]].argmax()
-        ix_stop = x[x<=self.picture.ROI[1]].argmax()
-        iy_start = y[y<=self.picture.ROI[2]].argmax()
-        iy_stop = y[y<=self.picture.ROI[3]].argmax()
+        ROI_xmin = np.min(self.picture.ROI[:2])
+        ROI_xmax = np.max(self.picture.ROI[:2])
+        
+        ROI_ymin = np.min(self.picture.ROI[2:])
+        ROI_ymax = np.max(self.picture.ROI[2:])
+        
+        ix_start = x[x<=ROI_xmin].argmax()
+        ix_stop = x[x<=ROI_xmax].argmax()
+        iy_start = y[y<=ROI_ymin].argmax()
+        iy_stop = y[y<=ROI_ymax].argmax()
         
         xm = xm[iy_start:iy_stop,ix_start:ix_stop]
         ym = ym[iy_start:iy_stop,ix_start:ix_stop]
@@ -724,10 +749,17 @@ class PyDoubleFit2D(PyFit2D):
         x = xm[1,:]
         y = ym[:,1]
         
-        ix_start = x[x<=self.hole[0]].argmax()
-        ix_stop = x[x<=self.hole[1]].argmax()
-        iy_start = y[y<=self.hole[2]].argmax()
-        iy_stop = y[y<=self.hole[3]].argmax()
+        hole_xmin = np.min(self.picture.hole[:2])
+        hole_xmax = np.max(self.picture.hole[:2])
+        
+        hole_ymin = np.min(self.picture.hole[2:])
+        hole_ymax = np.max(self.picture.hole[2:])
+        
+        ix_start = x[x<=hole_xmin].argmax()
+        ix_stop = x[x<=hole_xmax].argmax()
+        iy_start = y[y<=hole_ymin].argmax()
+        iy_stop = y[y<=hole_ymax].argmax()
+        
         
         xhole = xm[iy_start:iy_stop,ix_start:ix_stop]
         yhole = ym[iy_start:iy_stop,ix_start:ix_stop]
@@ -834,10 +866,16 @@ class PyDoubleFit2D(PyFit2D):
         x = xm[1,:]
         y = ym[:,1]
         
-        ix_start = x[x<=self.picture.ROI[0]].argmax()
-        ix_stop = x[x<=self.picture.ROI[1]].argmax()
-        iy_start = y[y<=self.picture.ROI[2]].argmax()
-        iy_stop = y[y<=self.picture.ROI[3]].argmax()
+        ROI_xmin = np.min(self.picture.ROI[:2])
+        ROI_xmax = np.max(self.picture.ROI[:2])
+        
+        ROI_ymin = np.min(self.picture.ROI[2:])
+        ROI_ymax = np.max(self.picture.ROI[2:])
+        
+        ix_start = x[x<=ROI_xmin].argmax()
+        ix_stop = x[x<=ROI_xmax].argmax()
+        iy_start = y[y<=ROI_ymin].argmax()
+        iy_stop = y[y<=ROI_ymax].argmax()
         
         xm = xm[iy_start:iy_stop,ix_start:ix_stop]
         ym = ym[iy_start:iy_stop,ix_start:ix_stop]
