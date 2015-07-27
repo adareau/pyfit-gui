@@ -1550,10 +1550,11 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
             plt.ylabel(y_name.replace('_', ' '))
             plt.show()
 
+
     def stat_list(self):
 
         params = {}
-
+        
         for i in reversed(self.ui.file_list.selectedIndexes()):
 
             # 1 - Get file name
@@ -1565,82 +1566,50 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
 
             name = name.replace(self.settings.isfit_str, '')
             name = name.replace(self.settings.isnofit_str, '')
-
-
-            # 2 - load fit data and get parameters
-
-            save_dir = os.path.join(root, '.fits')
-            fit_name = name[:-4]+'.hdf5'
-            fit_path = os.path.join(save_dir, fit_name)
             
-            # Compatibility with old fitting program WnM
-            old_fname = name[:-4]+'.fit'
-            fit_path_old =  os.path.join(root,'saved_fits',old_fname)
-            #---------------------------------------
-                
-            if os.path.isfile(fit_path):
-                fit = self.data.current_fit.hdf5_to_fit(fit_path)
-                
-            elif os.path.isfile(fit_path_old):
-                imported_fit = import_WNM_fit(fit_path_old)
-                if isinstance(imported_fit,basestring):continue
-                # initialize fit object
-                fit = pf.PyFit2D()
-                # get properties from current fit (which are not stored in saved fit)
-                fit.picture = copy.deepcopy(self.data.current_fit.picture)
-                fit.atom = copy.deepcopy(self.data.current_fit.atom)
-                fit.camera = copy.deepcopy(self.data.current_fit.camera)
-                # loaded properties
-                fit.fit = imported_fit.fit
-                fit.picture.ROI = imported_fit.picture.ROI
-                fit.picture.background = imported_fit.picture.background
-                fit.picture.filename = name
-                fit.camera.magnification = imported_fit.camera.magnification
-                fit.load_data()
-                fit.compute_values()
-
-
-            else:
-                continue
-        
-            # import lambdas from fit generator 
-            if fit.fit.name in pf.fit2D_dic.keys():
-                buffer_fit = pf.fit2D_dic[fit.fit.name]
-                fit.fit.formula = buffer_fit.formula
-                fit.fit.formula_parameters = buffer_fit.formula_parameters
-                if not isinstance(fit.fit.formula_parameters,str):
-                    fit.fit.updateFormulaFromParameters2D()
-                fit.fit.values = buffer_fit.values
-                
-            else:
-                self.print_result('Saved fit name not found in known fit list - abort')
-                return
+            # 2 - Load fit collection
             
-            fit.picture.parseVariables()
-
-            all_params = dict(fit.picture.variables.items()+fit.values.items())
-
-            for n, v in all_params.iteritems():
-                if params.has_key(n):
-                    params[n].append(v)
-                else:
-                    params[n] = [v]
+            loaded_fit_collection, roi_index = self.load_fit(draw=False,
+                                                              root = root,
+                                                              fname = name)
+            
+            
+            for fit, roi in zip(loaded_fit_collection, roi_index):
+                fit.picture.parseVariables()
+    
+                all_params = dict(fit.picture.variables.items()+fit.values.items())
+                
+                if not params.has_key(roi):
+                    params[roi] ={}
+                    
+                for n, v in all_params.iteritems():
+                    if params[roi].has_key(n):
+                        params[roi][n].append(v)
+                    else:
+                        params[roi][n] = [v]       
+        #------------------------------------------------------
 
         # Display results
 
         if params:
-            params = OrderedDict(sorted(params.items()))
-
             self.print_result(self.settings.results_delim)
             self.print_result("<b>     Selection Statistics</b>")
             self.print_result("")
-            for n, v in params.iteritems():
-                out = ' - '+n+' = \t'
-                out += '%1.2e'%np.mean(v)
-                out += ' +/- '
-                out += '%1.1e'%np.std(v)
-                self.print_result(out)
-
+            
+            for roi, params_roi in params.iteritems():
+                params_roi = OrderedDict(sorted(params_roi.items()))
+                self.print_result("<font color=DarkGreen><b>- ROI "+str(roi)+"</b></font>")
+                
+                for n, v in params_roi.iteritems():
+                    out = ' - '+n+' = \t'
+                    out += '%1.2e'%np.mean(v)
+                    out += ' +/- '
+                    out += '%1.1e'%np.std(v)
+                    self.print_result(out)
+                    
+                self.print_result('')
+                
+                   
     def send_to_console(self):
         
         params = {}
