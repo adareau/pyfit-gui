@@ -1486,9 +1486,12 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         Y = []
         x_name = str(self.ui.list_plot_x.currentText())
         y_name = str(self.ui.list_plot_y.currentText())
-
+        
+        roi_to_plot = int(self.ui.ROI_quickplot_spinbox.value()) #TODO : changer
+        params = {}
+        
         for i in reversed(self.ui.file_list.selectedIndexes()):
-
+            
             # 1 - Get file name
 
             #name = str(i.data().toString())
@@ -1498,66 +1501,24 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
 
             name = name.replace(self.settings.isfit_str, '')
             name = name.replace(self.settings.isnofit_str, '')
-
-
-            # 2 - load fit data
-
-            save_dir = os.path.join(root, '.fits')
             
-            fit_name = name[:-4]+'.hdf5'
-            fit_path = os.path.join(save_dir, fit_name)
+            # 2 - Load fit collection
             
-            # Compatibility with old fitting program WnM
-            old_fname = name[:-4]+'.fit'
-            fit_path_old =  os.path.join(root,'saved_fits',old_fname)
-            #---------------------------------------
+            loaded_fit_collection, roi_index = self.load_fit(draw=False,
+                                                              root = root,
+                                                              fname = name)
+
                 
-            if os.path.isfile(fit_path):
-                fit = self.data.current_fit.hdf5_to_fit(fit_path)
+
+
+            if roi_to_plot in roi_index:
+                fit = loaded_fit_collection[roi_index == roi_to_plot]
+                fit.picture.parseVariables()
+                all_params = dict(fit.picture.variables.items()+fit.values.items())
                 
-            elif os.path.isfile(fit_path_old):
-                imported_fit = import_WNM_fit(fit_path_old)
-                if isinstance(imported_fit,basestring):continue
-                # initialize fit object
-                fit = pf.PyFit2D()
-                # get properties from current fit (which are not stored in saved fit)
-                fit.picture = copy.deepcopy(self.data.current_fit.picture)
-                fit.atom = copy.deepcopy(self.data.current_fit.atom)
-                fit.camera = copy.deepcopy(self.data.current_fit.camera)
-                # loaded properties
-                fit.fit = imported_fit.fit
-                fit.picture.ROI = imported_fit.picture.ROI
-                fit.picture.background = imported_fit.picture.background
-                fit.picture.filename = name
-                fit.camera.magnification = imported_fit.camera.magnification
-                fit.load_data()
-                fit.compute_values()
-
-
-            else:
-                continue  
-                
-        
-            # import lambdas from fit generator 
-            if fit.fit.name in pf.fit2D_dic.keys():
-                buffer_fit = pf.fit2D_dic[fit.fit.name]
-                fit.fit.formula = buffer_fit.formula
-                fit.fit.formula_parameters = buffer_fit.formula_parameters
-                if not isinstance(fit.fit.formula_parameters,str):
-                    fit.fit.updateFormulaFromParameters2D()
-                fit.fit.values = buffer_fit.values
-                
-            else:
-                self.print_result('Saved fit name not found in known fit list - abort')
-                return
-
-            fit.picture.parseVariables()
-
-            all_params = dict(fit.picture.variables.items()+fit.values.items())
-
-            if all_params.has_key(x_name) and all_params.has_key(y_name):
-                X.append(all_params[x_name])
-                Y.append(all_params[y_name])
+                if all_params.has_key(x_name) and all_params.has_key(y_name):
+                    X.append(all_params[x_name])
+                    Y.append(all_params[y_name])
 
 
         if X and self.settings.fit_list:

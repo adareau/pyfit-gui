@@ -202,7 +202,7 @@
         </rect>
        </property>
        <property name="currentIndex">
-        <number>0</number>
+        <number>3</number>
        </property>
        <widget class="QWidget" name="fit_settings_tab">
         <attribute name="title">
@@ -815,10 +815,10 @@
         <widget class="QPushButton" name="quickPlotButton">
          <property name="geometry">
           <rect>
-           <x>150</x>
-           <y>10</y>
-           <width>41</width>
-           <height>41</height>
+           <x>149</x>
+           <y>8</y>
+           <width>51</width>
+           <height>31</height>
           </rect>
          </property>
          <property name="text">
@@ -842,7 +842,7 @@
          <property name="geometry">
           <rect>
            <x>47</x>
-           <y>70</y>
+           <y>80</y>
            <width>151</width>
            <height>22</height>
           </rect>
@@ -852,7 +852,7 @@
          <property name="geometry">
           <rect>
            <x>7</x>
-           <y>70</y>
+           <y>80</y>
            <width>61</width>
            <height>22</height>
           </rect>
@@ -911,6 +911,42 @@
          </property>
          <property name="text">
           <string>Save</string>
+         </property>
+        </widget>
+        <widget class="QSpinBox" name="ROI_quickplot_spinbox">
+         <property name="geometry">
+          <rect>
+           <x>170</x>
+           <y>39</y>
+           <width>31</width>
+           <height>22</height>
+          </rect>
+         </property>
+        </widget>
+        <widget class="QLabel" name="hide_variable_txt_4">
+         <property name="geometry">
+          <rect>
+           <x>146</x>
+           <y>43</y>
+           <width>21</width>
+           <height>16</height>
+          </rect>
+         </property>
+         <property name="font">
+          <font>
+           <weight>50</weight>
+           <bold>false</bold>
+           <kerning>true</kerning>
+          </font>
+         </property>
+         <property name="text">
+          <string>ROI</string>
+         </property>
+         <property name="textFormat">
+          <enum>Qt::AutoText</enum>
+         </property>
+         <property name="wordWrap">
+          <bool>false</bool>
          </property>
         </widget>
        </widget>
@@ -1003,7 +1039,7 @@
      <widget class="QPushButton" name="fitButton">
       <property name="geometry">
        <rect>
-        <x>710</x>
+        <x>716</x>
         <y>450</y>
         <width>75</width>
         <height>41</height>
