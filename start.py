@@ -42,38 +42,7 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
 
         
         ''' GUI Components '''
-        # Toolbar
-
-        # Setting up the toolbar (we use the navigation toolbar from MPLWidget)
-        # first let's add it to the top frame
-        #XXX screen
-        '''
-        toolbar_layout = QtGui.QVBoxLayout(self.ui.toolbar)
-        toolbar_layout.addWidget(self.ui.plotWindow.navigation)
-
-        # then add all the extra toolbar buttons
-        toolbar = self.ui.plotWindow.navigation
-
-
-        toolbar.addSeparator()
-        toolbar.addWidget(self.ui.toolbar_ROI)
-        toolbar.addWidget(self.ui.toolbar_zoom2ROI)
-        toolbar.addWidget(self.ui.toolbar_background)
-        toolbar.addWidget(self.ui.toolbar_zoom2BKGND)
-
-        self.ui.toolbar_ROI.clicked.connect(self.set_ROI)
-        self.ui.toolbar_zoom2ROI.clicked.connect(self.zoom_to_ROI)
-        self.ui.toolbar_background.clicked.connect(self.set_background)
-        self.ui.toolbar_zoom2BKGND.clicked.connect(self.zoom_to_BKGND)
-        '''
-        '''
-        a = 600
-        self.ui.plotWindow.resize(int(a),int(a/1.338))
-
-        self.ui.plotWindow.setLayout(QtGui.QHBoxLayout())
-        self.ui.plotWindow.layout().addWidget(GuiqwtScreen(self))
-        self.ui.plotWindow.updateGeometry()
-        '''
+       
         toolbar = self.ui.toolBar
 
         self.ui.plotWindow.manager.add_toolbar(toolbar, id(toolbar))
@@ -244,22 +213,19 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         
         # plot Window
         #XXX screen
-        '''
-        image_size_x = self.data.current_fit.camera.image_size[0]
-        image_size_y = self.data.current_fit.camera.image_size[1]
 
-        start_image = np.zeros([image_size_x,image_size_y])
-
-        self.ui.plotWindow.main_axes.subplot2grid((2,2),(0,0))
-        self.ui.plotWindow.canvas.ax.subplot2grid((2,2),(0,0))
-
-        self.ui.plotWindow.main_axes.imshow(start_image,extent=(0,
-                                                image_size_x, 0, image_size_x),
-                                     cmap=plt.get_cmap(self.settings.colormap))
-
-        self.ui.plotWindow.main_axes.set_xlim([0,image_size_x])
-        self.ui.plotWindow.main_axes.set_ylim([0,image_size_y])
-        '''
+        screen = self.ui.plotWindow.screen
+        y_axis = screen.image.yAxis()
+        x_axis = screen.image.xAxis()
+        
+        screen.plot.set_axis_title(y_axis,'Y')
+        screen.plot.set_axis_title(x_axis,'X')
+        
+        screen.plot.set_axis_unit(y_axis,'pixels')
+        screen.plot.set_axis_unit(x_axis,'pixels')
+        
+        self.axes_in_microns_box_clicked('')
+        
         # Fit settings Tab
 
         self.ui.fit_binning_box.clicked.connect(self.refresh_fit_settings)
@@ -320,6 +286,7 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         self.ui.display_interpolation.currentIndexChanged.connect(\
                                             self.display_interpolation_clicked)
 
+        self.ui.axes_in_microns_box.clicked.connect(self.axes_in_microns_box_clicked)
         
         # Comment editing/displaying zone
         
@@ -519,48 +486,13 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         data = self.data.current_fit.data
 
         #XXX display
-        '''
-        # plotting
-        xlim = self.ui.plotWindow.main_axes.get_xlim()
-        ylim = self.ui.plotWindow.main_axes.get_ylim()
-
-        ax = self.ui.plotWindow.main_axes
-        ax.cla()
-        self.ui.plotWindow.small_axes.cla()
-        self.ui.plotWindow.cutx_axes.cla()
-        self.ui.plotWindow.cuty_axes.cla()
-
-        self.ui.plotWindow.refreshLabelsAndTicks()
-
-        cmap = str(self.ui.colormap_type.currentText())
-        interp = str(self.ui.display_interpolation.currentText())
-
-
-        img = ax.imshow(data,extent=(xm.min(), xm.max(), ym.max(), ym.min()),
-                        cmap=plt.get_cmap(cmap),
-                        interpolation =interp)
-
-        img.set_clim(self.settings.colormap_min,self.settings.colormap_max)
-
-
-        self.ui.plotWindow.main_axes.set_xlim(xlim)
-        self.ui.plotWindow.main_axes.set_ylim(ylim)
-
-
-        if load_fit:self.load_fit(draw=False)
-
-
-        self.draw_ROI(draw=False)
-        self.draw_background(draw=False)
-
-        self.ui.plotWindow.draw()
-        '''
+       
         #self.draw_ROI(draw=False)
         #self.draw_HOLE()
         
         screen = self.ui.plotWindow.screen
-        screen.x = xm[0, :]*1.0
-        screen.y = ym[:, 0]*1.0
+        screen.x = xm[0, :]*self.data.scale_factor
+        screen.y = ym[:, 0]*self.data.scale_factor
         screen.data = data
         
         colormap_scale = (self.settings.colormap_min*1.0,
@@ -596,6 +528,20 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
     # ROI ----------------------------------
     
     
+    def update_scale_factor(self):
+        self.display_file()
+        self.ui.plotWindow.screen.reset_image()
+        
+        '''
+        for r in self.data.ROI_rect_list:
+            self.ui.plotWindow.screen.plot.del_item(r)
+            
+        self.multiple_roi_action.rect_list = []
+        '''
+        
+        self.display_file()
+        
+        
     def draw_ROI(self):
 
         ROI_list = self.data.ROI_list
@@ -604,6 +550,7 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         # if more ROI than rect, add rects
         while len(ROI_list)>len(ROI_rect_list):
             self.multiple_roi_action.add_ROI(self.ui.plotWindow.screen.plot)
+
             
         while len(ROI_rect_list)>len(ROI_list):
             r = ROI_rect_list[-1]
@@ -613,7 +560,8 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         #self.multiple_roi_action.relabel_ROI
         
         for r,ROI_rect in zip(ROI_list,ROI_rect_list):
-            ROI_rect.set_rect(r[0], r[2], r[1], r[3])
+            r_scaled = np.array([ri for ri in r])*self.data.scale_factor
+            ROI_rect.set_rect(r_scaled[0], r_scaled[2], r_scaled[1], r_scaled[3])
             
         self.ui.plotWindow.screen.plot.replot()
         
@@ -627,7 +575,8 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         
         for rect in ROI_rect_list:
             r = rect.get_rect()
-            ROI = (r[0], r[2], r[1], r[3])
+            r_scaled = np.array([ri for ri in r])/self.data.scale_factor
+            ROI = (r_scaled[0], r_scaled[2], r_scaled[1], r_scaled[3])
             self.data.ROI_list.append(ROI)
         
         if len(self.data.ROI_list)>0: 
@@ -641,7 +590,8 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
             # get the ROI new rectangle
             ROI_selection_rect = self.data.rectROI
             r = ROI_selection_rect.get_rect()
-            new_ROI =  (r[0], r[2], r[1], r[3])
+            r_scaled = np.array([ri for ri in r])/self.data.scale_factor
+            new_ROI =  (r_scaled[0], r_scaled[2], r_scaled[1], r_scaled[3])
             # choose the ROI to update
             if len(ROI_rect_list)>1:
                 # ask which one to change
@@ -808,8 +758,9 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
     def draw_HOLE(self):
 
         r = self.data.current_fit.picture.hole
+        r_scaled = np.array([ri for ri in r])*self.data.scale_factor
         HOLE_rect = self.data.rectHOLE
-        HOLE_rect.set_rect(r[0], r[2], r[1], r[3])
+        HOLE_rect.set_rect(r_scaled[0], r_scaled[2], r_scaled[1], r_scaled[3])
         self.ui.plotWindow.screen.plot.replot()
 
 
@@ -817,8 +768,8 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
 
         HOLE_rect = self.data.rectHOLE
         r = HOLE_rect.get_rect()
-
-        self.data.current_fit.picture.hole = (r[0], r[2], r[1], r[3])
+        r_scaled = np.array([ri for ri in r])/self.data.scale_factor
+        self.data.current_fit.picture.hole = (r_scaled[0], r_scaled[2], r_scaled[1], r_scaled[3])
 
     def zoom_to_ROI(self):
 
@@ -834,16 +785,17 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
     
     def draw_background(self):
         r = self.data.current_fit.picture.background
+        r_scaled = np.array([ri for ri in r])*self.data.scale_factor
         BCKGND_rect = self.data.rectBackground
-        BCKGND_rect.set_rect(r[0], r[2], r[1], r[3])
+        BCKGND_rect.set_rect(r_scaled[0], r_scaled[2], r_scaled[1], r_scaled[3])
         self.ui.plotWindow.screen.plot.replot()
 
     def get_background(self):
 
         BCKGND_rect = self.data.rectBackground
         r = BCKGND_rect.get_rect()
-
-        self.data.current_fit.picture.background = (r[0], r[2], r[1], r[3])
+        r_scaled = np.array([ri for ri in r])/self.data.scale_factor
+        self.data.current_fit.picture.background = (r_scaled[0], r_scaled[2], r_scaled[1], r_scaled[3])
 
 
     def zoom_to_BKGND(self):
@@ -1023,8 +975,8 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
                 v = p.vertices
                 x = v[:,0]
                 y = v[:,1]
-                screen.level_xy[i][0] = x
-                screen.level_xy[i][1] = y
+                screen.level_xy[i][0] = x*self.data.scale_factor
+                screen.level_xy[i][1] = y*self.data.scale_factor
             screen.update_contour()
             #self.ui.plotWindow.draw()
         else:
@@ -1059,16 +1011,16 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
 
 
             cut_x = self.ui.plotWindow.cutX
-            cut_x.xdata = x
+            cut_x.xdata = x*self.data.scale_factor
             cut_x.ydata = data_cutx
-            cut_x.xfit = xfit
+            cut_x.xfit = xfit*self.data.scale_factor
             cut_x.yfit = fitObj.fit.formula((xfit,cy),*fit_params)
             
             cut_y = self.ui.plotWindow.cutY
             cut_y.xdata = data_cuty
-            cut_y.ydata = y
+            cut_y.ydata = y*self.data.scale_factor
             cut_y.xfit = fitObj.fit.formula((cx,yfit),*fit_params)
-            cut_y.yfit = yfit
+            cut_y.yfit = yfit*self.data.scale_factor
             
             if is_double:
                 if fitObj.fit.params_in:
@@ -1076,14 +1028,14 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
                     p_in = fitObj.fit.params_in(p)
                     p_out = fitObj.fit.params_out(p)
                     
-                    cut_x.xfit_in = xfit
+                    cut_x.xfit_in = xfit*self.data.scale_factor
                     cut_x.yfit_in = fitObj.fit.fit_in.formula((xfit,cy),*p_in)
-                    cut_y.yfit_in = yfit
+                    cut_y.yfit_in = yfit*self.data.scale_factor
                     cut_y.xfit_in = fitObj.fit.fit_in.formula((cx,yfit),*p_in)
                     
-                    cut_x.xfit_out = xfit
+                    cut_x.xfit_out = xfit*self.data.scale_factor
                     cut_x.yfit_out = fitObj.fit.fit_out.formula((xfit,cy),*p_out)
-                    cut_y.yfit_out = yfit
+                    cut_y.yfit_out = yfit*self.data.scale_factor
                     cut_y.xfit_out = fitObj.fit.fit_out.formula((cx,yfit),*p_out)
                     
                     
@@ -1196,7 +1148,6 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
             self.data.current_fit.picture.background = loaded_fit.picture.background
             
             # display results
-            self.data.debug = loaded_fit
             loaded_fit.load_data()
             if old_fit:
                 loaded_fit.generate_xy_fit_mesh()
@@ -1423,7 +1374,8 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         bools = [['display_fit_contour', self.ui.disp_fit_contour_box],
                  ['display_hole', self.ui.display_hole_box],
                  ['disable_comment', self.ui.disable_comment_box],
-                 ['fit_list', self.ui.fit_list_box]]
+                 ['fit_list', self.ui.fit_list_box],
+                 ['axes_in_microns',self.ui.axes_in_microns_box]] 
 
         params = [['colormap_min', self.ui.colormap_min],
                   ['colormap_max', self.ui.colormap_max]]
@@ -1521,8 +1473,8 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
                     settings = load(output)
                     for cname in settings.cam_list:
                         settings.cam_list[cname].update_OD_conversion()
-
                     self.settings.load_old_version(settings)
+                    
                 except:
                     pass
                 #self.settings = settings
@@ -1851,7 +1803,7 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
                 
                         
                         
-        self.data.debug = vars_txt    
+       
         # 4) Save, depending on format :
         
         if format=='txt': # TODO : change saving format depending on variable...
@@ -2098,7 +2050,6 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         result = False # if result = True, the event is absorbed by the filter
 
         if event.type() == QtCore.QEvent.KeyPress:
-            self.data.debug=(obj,event)
             self.keyPressEvent(event)
             result = True
             
@@ -2282,8 +2233,27 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
     def fit_from_event(self,e): # some buffer function to call fit from event
         self.fit_button_clicked()
 
-
-    
+    def axes_in_microns_box_clicked(self,e):
+        self.refresh_gui_settings(e)
+        
+        screen = self.ui.plotWindow.screen
+        y_axis = screen.image.yAxis()
+        x_axis = screen.image.xAxis()
+           
+        
+        if self.settings.axes_in_microns:
+            cam = self.data.current_fit.camera
+            self.data.scale_factor = cam.pixel_size_x*1.0/cam.magnification
+            unit = 'microns'
+            
+        else:
+            self.data.scale_factor = 1.0
+            unit = 'pixels'
+        
+        screen.plot.set_axis_unit(y_axis,unit)
+        screen.plot.set_axis_unit(x_axis,unit)
+        
+        self.update_scale_factor()
 
                
     ##### DEBUGGING
@@ -2356,6 +2326,7 @@ class GuiSettings():
         self.colormap = 'jet'
         self.display_interpolation = 'none'
         self.display_hole = False
+        self.axes_in_microns = False
         
         # Lists
 
@@ -2415,7 +2386,9 @@ class GuiData():
         self.interpolations = ['none', 'linear']
         self.interpolations_dic = {'none' : INTERP_NEAREST,
                                    'linear' : INTERP_LINEAR}
-
+        
+        self.scale_factor = 1.0
+        
         self.tictoc_start = time.time()
 
         self.current_comment_file = ''
@@ -2423,6 +2396,8 @@ class GuiData():
 
         self.debug = ''
         self.keylog = ''
+        
+        
         
 class CheckListWindow(QtGui.QDialog):
  

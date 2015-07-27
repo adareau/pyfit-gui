@@ -207,7 +207,7 @@
         </font>
        </property>
        <property name="currentIndex">
-        <number>0</number>
+        <number>2</number>
        </property>
        <widget class="QWidget" name="fit_settings_tab">
         <attribute name="title">
@@ -764,6 +764,19 @@
          </property>
          <property name="text">
           <string>show hole rect.</string>
+         </property>
+        </widget>
+        <widget class="QCheckBox" name="axes_in_microns_box">
+         <property name="geometry">
+          <rect>
+           <x>10</x>
+           <y>120</y>
+           <width>101</width>
+           <height>17</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>axes in microns</string>
          </property>
         </widget>
        </widget>

@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'pyfit.ui'
 #
-# Created: Mon Jul 27 11:57:30 2015
+# Created: Mon Jul 27 15:56:29 2015
 #      by: PyQt4 UI code generator 4.9.6
 #
 # WARNING! All changes made in this file will be lost!
@@ -233,6 +233,9 @@ class Ui_PyFit(object):
         self.display_hole_box = QtGui.QCheckBox(self.tab)
         self.display_hole_box.setGeometry(QtCore.QRect(10, 140, 101, 17))
         self.display_hole_box.setObjectName(_fromUtf8("display_hole_box"))
+        self.axes_in_microns_box = QtGui.QCheckBox(self.tab)
+        self.axes_in_microns_box.setGeometry(QtCore.QRect(10, 120, 101, 17))
+        self.axes_in_microns_box.setObjectName(_fromUtf8("axes_in_microns_box"))
         self.fitEditorTab.addTab(self.tab, _fromUtf8(""))
         self.tab_2 = QtGui.QWidget()
         self.tab_2.setObjectName(_fromUtf8("tab_2"))
@@ -393,7 +396,7 @@ class Ui_PyFit(object):
 
         self.retranslateUi(PyFit)
         self.tabWidget.setCurrentIndex(0)
-        self.fitEditorTab.setCurrentIndex(0)
+        self.fitEditorTab.setCurrentIndex(2)
         QtCore.QMetaObject.connectSlotsByName(PyFit)
 
     def retranslateUi(self, PyFit):
@@ -434,6 +437,7 @@ class Ui_PyFit(object):
         self.refresh_display_button.setText(_translate("PyFit", "Refresh", None))
         self.fit_binning_label2_9.setText(_translate("PyFit", "interpolation", None))
         self.display_hole_box.setText(_translate("PyFit", "show hole rect.", None))
+        self.axes_in_microns_box.setText(_translate("PyFit", "axes in microns", None))
         self.fitEditorTab.setTabText(self.fitEditorTab.indexOf(self.tab), _translate("PyFit", "Disp", None))
         self.label_3.setText(_translate("PyFit", "X :", None))
         self.label_4.setText(_translate("PyFit", "Y :", None))

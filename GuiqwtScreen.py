@@ -106,6 +106,17 @@ class ImageScreen(QWidget):
         self.plot.replot()
         
         pass
+    
+    def reset_image(self):
+        self.plot.del_item(self.image)
+        self.image = make.xyimage(self.x,self.y,self.data,colormap='jet')
+        self.plot.add_item(self.image)
+        self.image.setZ(-1)
+        self.plot.replot()
+        
+    
+    
+        
         
 class CutScreen(QWidget):
 
@@ -453,5 +464,5 @@ def test():
     app.exec_()
     
 if __name__ == '__main__':
-    test()
-    
+    #test()
+    pass
