@@ -332,8 +332,13 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         #--- FINAL
         self.refresh_fit_settings(None)
         self.refresh_gui_settings(None)
-
-        self.update_file_list()
+        
+        # if calendar browsing is enabled in settings, then load current date
+        if self.settings.calendar_in_use:
+            date = self.ui.calendar.date()
+            self.calendar_date_changed(date)
+        else:
+            self.update_file_list()
 
         #--- Dock console
         # XXX remove for debug
@@ -2080,8 +2085,9 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
             idx = self.folder_tree_model.index(root)
             self.ui.folder_tree.setRootIndex(idx)
             self.settings.current_folder = root
+            self.settings.calendar_in_use = False
             self.update_file_list()
-                        
+                                 
     def folder_tree_dblclicked(self, index):
 
         indexItem = self.folder_tree_model.index(index.row(), 0, index.parent())
@@ -2089,6 +2095,7 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         self.ui.folder_tree.setRootIndex(indexItem)
         self.settings.path_root = filePath
         self.settings.current_folder = filePath
+        self.settings.calendar_in_use = False
         self.update_file_list()
 
     def folder_tree_clicked(self, index):
@@ -2096,6 +2103,7 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         indexItem = self.folder_tree_model.index(index.row(), 0, index.parent())
         filePath = self.folder_tree_model.filePath(indexItem)
         self.settings.current_folder = filePath
+        self.settings.calendar_in_use = False
         self.update_file_list()
 
     def folder_tree_back_clicked(self):
@@ -2106,6 +2114,7 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         new_root = self.folder_tree_model.filePath(index.parent())
         self.settings.path_root = new_root
         self.settings.current_folder = new_root
+        self.settings.calendar_in_use = False
         self.update_file_list()
 
     def calendar_date_changed(self,date):
@@ -2125,6 +2134,7 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
             
             
             self.settings.current_folder = new_path
+            self.settings.calendar_in_use = True
             self.update_file_list()
             
         else:
@@ -2314,11 +2324,13 @@ class GuiSettings():
         self.calendar_monthfolder = "%b%Y"
         self.calendar_dayfolder = "%d%b%Y"
         self.calendar_picturefolder = "Pictures"
+        self.calendar_in_use = True # at startup : if True load current day directory, else keep saved current_folder
         
         # Files list
         
         self.variables_to_hide = []
         self.variables_to_save = []
+        
         # Camera
 
         self.current_cam = 'lumenera'
