@@ -1603,6 +1603,7 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
 
             if roi_to_plot in roi_index:
                 fit = loaded_fit_collection[roi_index == roi_to_plot]
+                fit.picture.filename = name
                 fit.picture.parseVariables()
                 all_params = dict(fit.picture.variables.items()+fit.values.items())
                 
@@ -1665,6 +1666,7 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
             
             
             for fit, roi in zip(loaded_fit_collection, roi_index):
+                fit.picture.filename = name
                 fit.picture.parseVariables()
     
                 all_params = dict(fit.picture.variables.items()+fit.values.items())
@@ -1724,8 +1726,8 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
             
             
             for fit, roi in zip(loaded_fit_collection, roi_index):
+                fit.picture.filename = name #TODO : improve ?
                 fit.picture.parseVariables()
-    
                 all_params = dict(fit.picture.variables.items()+fit.values.items())
                 
                 if not params.has_key(roi):
