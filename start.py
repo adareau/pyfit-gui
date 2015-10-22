@@ -14,10 +14,11 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
     """
     Our pyfit gui object
     """
+    #--- >>> GUI init
     def __init__(self, parent=None):
 
         ''' Initialize GUI '''
-        # Link to ui
+        #--- Link to ui
         QtGui.QWidget.__init__(self, parent)
         self.ui = Ui_PyFit()
         self.ui.setupUi(self)
@@ -31,7 +32,8 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
 
         self.scroll_widget = scroll_widget
         self.scroll_widget.installEventFilter(self)
-        # GUI data and settings
+        
+        #--- GUI data and settings
         self.settings = GuiSettings()
         self.load_settings()
 
@@ -41,7 +43,7 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         self.data.current_file_path = str(self.settings.current_folder)
 
         
-        ''' GUI Components '''
+        #--- GUI Components
        
         toolbar = self.ui.toolBar
 
@@ -52,7 +54,8 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
 
 
         toolbar.addSeparator()
-        # Multiple ROI management
+        
+        #--- Multiple ROI management
     
         self.ui.plotWindow.manager.add_tool(MultipleROISelectTool)
         multiple_roi_action = toolbar.actions()[-1]
@@ -65,7 +68,7 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         self.multiple_roi_action = self.ui.plotWindow.manager.get_tool(MultipleROISelectTool)
         self.data.ROI_rect_list = self.multiple_roi_action.rect_list
         
-        # ROI update management
+        #--- ROI update management
     
         self.ui.plotWindow.manager.add_tool(ROISelectTool)
         roi_action = toolbar.actions()[-1]
@@ -90,7 +93,7 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         
         toolbar.addSeparator()
         
-        # Background management
+        #--- Background management
         self.ui.plotWindow.manager.add_tool(BKGNDSelectTool)
         bkgnd_action = toolbar.actions()[-1]
         bkgnd_action.setText("BKGND")
@@ -102,7 +105,7 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         self.ui.plotWindow.screen.plot.add_item(self.bkgnd_tool.rect)
         self.data.rectBackground = self.bkgnd_tool.rect
         
-        # Hole management
+        #--- Hole management
         self.ui.plotWindow.manager.add_tool(HOLESelectTool)
         hole_action = toolbar.actions()[-1]
         hole_action.setText("HOLE")
@@ -141,7 +144,7 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         self.ui.toolbar_background.clicked.connect(self.set_background)
         self.ui.toolbar_zoom2BKGND.clicked.connect(self.zoom_to_BKGND)
         '''
-        # file tree browser
+        #--- file tree browser
 
         self.folder_tree_model = QtGui.QFileSystemModel()
         root = self.settings.path_root
@@ -165,7 +168,7 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         self.ui.tree_root_button.clicked.connect(self.tree_root_button_clicked)
         self.ui.tree_root_button.setToolTip("change root for ''tree'' browsing")
         
-        # calendar
+        #--- calendar
         current_date = datetime.datetime.now()
         today = QtCore.QDate(current_date.year, current_date.month, current_date.day)
         
@@ -177,7 +180,7 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         popup_calendar.currentPageChanged.connect(self.calendar_page_changed)
         self.calendar_page_changed(current_date.year, current_date.month)
         
-        # file list
+        #--- file list
 
         self.file_list_model = None
         #self.ui.file_list.clicked.connect(self.file_list_clicked)
@@ -185,7 +188,7 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         self.ui.hide_variables_button.clicked.connect(self.choose_variables_to_hide)
         
         
-        #---- Context menu actions for list
+        #--- context menu actions for list
         # open current folder
         
         openFolderAction = QtGui.QAction("open folder",self)
@@ -219,7 +222,7 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         
         #----------------------------------------------
         
-        # plot Window
+        #--- plot Window
         #XXX screen
 
         screen = self.ui.plotWindow.screen
@@ -234,7 +237,7 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         
         self.axes_in_microns_box_clicked('')
         
-        # Fit settings Tab
+        #--- fit settings Tab
 
         self.ui.fit_binning_box.clicked.connect(self.refresh_fit_settings)
         self.ui.fit_exclude_hole_box.clicked.connect(self.refresh_fit_settings)
@@ -257,7 +260,7 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         self.ui.fit_order.addItems(['hole first','out first','best of two'])
         self.ui.fit_order.currentIndexChanged.connect(self.refresh_fit_settings)
         
-        # Cam settings tab
+        #--- cam settings tab
 
         self.refresh_cam_list()
         self.display_cam_settings(0)
@@ -275,7 +278,7 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         self.ui.cam_px_sizex.textEdited.connect(self.cam_settings_changed)
         self.ui.cam_px_sizey.textEdited.connect(self.cam_settings_changed)
 
-        # Display settings tab
+        #--- display settings tab
 
         self.ui.disp_fit_contour_box.clicked.connect(self.refresh_gui_settings)
         self.ui.colormap_max.textEdited.connect(self.refresh_gui_settings)
@@ -296,13 +299,13 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
 
         self.ui.axes_in_microns_box.clicked.connect(self.axes_in_microns_box_clicked)
         
-        # Comment editing/displaying zone
+        #--- comment editing/displaying zone
         
         self.ui.fit_comment_text.textChanged.connect(self.comment_text_changed)
         self.ui.fit_comment_text.setEnabled(False)
         self.ui.disable_comment_box.clicked.connect(self.refresh_gui_settings)
         
-        # Quick list Tab
+        #--- quick list Tab
 
         self.ui.quickPlotButton.clicked.connect(self.plot_list)
         self.ui.quickStatsButton.clicked.connect(self.stat_list)
@@ -314,25 +317,25 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
             self.ui.list_fit_type.addItem(fit)
         
         
-        # Extra tools (+) Tab
+        #--- extra tools (+) Tab
         
         self.ui.gen_grid_button.clicked.connect(self.generate_ROI_grid)
         
-        # Fit button
+        #--- fit button
 
         self.ui.fitButton.clicked.connect(self.fit_button_clicked)
 
-        # Other buttons
+        #--- other buttons
 
         self.ui.flush_result_button.clicked.connect(self.flush_results)
 
-        # Final
+        #--- FINAL
         self.refresh_fit_settings(None)
         self.refresh_gui_settings(None)
 
         self.update_file_list()
 
-        # Dock console
+        #--- Dock console
         # XXX remove for debug
 
         name_space = {'gui': self, 'plt':plt, 'np':np, 'fit':self.fit()}
@@ -346,9 +349,9 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         self.ui.console_dock.setWidget(self.pythonshell)
 
 
-    ##### GUI General functions
+    #--- >>> GUI General functions <<<
 
-    ### File management and display
+    #--- >> File management and display ----------------------------------------------------
 
     def update_file_list(self):
         """
@@ -532,8 +535,15 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         self.draw_HOLE()
         self.draw_background()
 
-    ### ROI and background
-    # ROI ----------------------------------
+    
+    
+    
+    
+    
+    #--- >> ROI and background 
+    
+    #--- ROI 
+    
     
     def update_scale_factor(self):
         self.display_file()
@@ -787,9 +797,8 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         self.data.current_fit.picture.ROI = r
         self.draw_ROI()
 
-    # Background  ----------------------------------
+    #--- Background  
 
-    
     def draw_background(self):
         r = self.data.current_fit.picture.background
         r_scaled = np.array([ri for ri in r])*self.data.scale_factor
@@ -814,7 +823,7 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         self.data.current_fit.picture.background = r
         self.draw_background()
 
-    ### FITS
+    #--- >> Fits
 
 
     def fit(self, index=None,update_progress_bar=True):
@@ -1049,9 +1058,7 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
             cut_x.update_plot()
             cut_y.update_plot()
             
-  
-
-    ### GUI settings management
+    #--- >> Settings management, load and save
 
     def load_fit(self, draw=True, root=None, fname=None):
         if root is None:
@@ -1484,11 +1491,10 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
                     
                 except:
                     pass
-                #self.settings = settings
-
-
-    ### Console
-
+                
+        return
+    
+    #--- >> shell init
     def init_shell(self):
         print "-----------------------"
         print "[[ Welcome to PyF!T ]]"
@@ -1497,7 +1503,7 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         print "local functions : fit"
         print "exported list : res (dict)"
 
-        
+    #--- >> Result display functions  
 
     def print_result(self, txt):
         self.ui.result_text.append(txt)
@@ -1520,7 +1526,7 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         #TODO Finir affichage
 
 
-    ### List management
+    #--- >> List management
 
     def refresh_available_parameters(self):
 
@@ -1834,7 +1840,7 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
                     for n, v in roi_params.iteritems():
                         roi_group.create_dataset(n,data=v)
                         
-    ### Cam management
+    #--- >> Cam management 
 
     def refresh_cam_list(self):
 
@@ -1932,7 +1938,7 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
     def cam_settings_changed(self):
         self.ui.update_cam_button.setDefault(True)
     
-    ##### GUI usefull functions
+    #--- >>> GUI shared and usefull functions <<<
     
     def trunc_path(self,pathstr,max_len):
         p = self.splitPath(pathstr)
@@ -1952,8 +1958,6 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         else:
             return [root]
     
-    ##### Usefull functions
-    
     def gen_calendar_path(self,y,m,d):
         
         year_fmt = self.settings.calendar_yearfolder
@@ -1971,7 +1975,9 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         
         return calendar_path
     
-    ##### GUI general callbacks
+    #--- >>> GUI callbacks <<<
+    
+    #--- >> general callbacks
 
     def closeEvent(self, event):
         '''
@@ -2062,7 +2068,7 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
             
         return result
     
-    ##### GUI components callbacks
+    #--- >> components callbacks
     
     def tree_root_button_clicked(self):
         msg = "Select folder (for tree browsing)"
@@ -2263,13 +2269,13 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         self.update_scale_factor()
 
                
-    ##### DEBUGGING
+    #--- >>> DEBUGGING <<<
 
     def debug(self):
         
         print("debug !!")
 
-
+    
     def comment_text_changed(self):
         text = self.ui.fit_comment_text.toPlainText()
         filename = self.data.current_comment_file
