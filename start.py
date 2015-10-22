@@ -1065,7 +1065,7 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
             
     #--- >> Settings management, load and save
 
-    def load_fit(self, draw=True, root=None, fname=None):
+    def load_fit(self, draw=True, root=None, fname=None, load_data=True):
         if root is None:
             root = self.data.current_file_path
             fname = self.data.current_file_name
@@ -1167,7 +1167,7 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
             self.data.current_fit.picture.background = loaded_fit.picture.background
             
             # display results
-            loaded_fit.load_data()
+            if load_data: loaded_fit.load_data()
             if old_fit:
                 loaded_fit.generate_xy_fit_mesh()
                 loaded_fit.compute_values()
@@ -1596,7 +1596,8 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
             
             loaded_fit_collection, roi_index = self.load_fit(draw=False,
                                                               root = root,
-                                                              fname = name)
+                                                              fname = name,
+                                                              load_data = False)
 
                 
 
@@ -1662,7 +1663,8 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
             
             loaded_fit_collection, roi_index = self.load_fit(draw=False,
                                                               root = root,
-                                                              fname = name)
+                                                              fname = name,
+                                                              load_data = False)
             
             
             for fit, roi in zip(loaded_fit_collection, roi_index):
@@ -1722,7 +1724,8 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
             
             loaded_fit_collection, roi_index = self.load_fit(draw=False,
                                                               root = root,
-                                                              fname = name)
+                                                              fname = name,
+                                                              load_data = False)
             
             
             for fit, roi in zip(loaded_fit_collection, roi_index):
@@ -2225,21 +2228,24 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
 
             self.data.current_file_name = name
             self.data.current_file_path = root
-
-            # 2 - load data
-
-            self.display_file(load_fit=False)
-
-            # 3 - fit
-            
-            if N>1: 
-                # if we have more than one fit to do, we let this loop handle the progress bar
-                update_progress_bar = False
-            else:
-                # if we only have one fit to do, the progress bar is handled by the fit function
-                update_progress_bar = True
+            try:
+                # 2 - load data
+    
+                self.display_file(load_fit=False)
+    
+                # 3 - fit
                 
-            self.fit(i,update_progress_bar=update_progress_bar)
+                if N>1: 
+                    # if we have more than one fit to do, we let this loop handle the progress bar
+                    update_progress_bar = False
+                else:
+                    # if we only have one fit to do, the progress bar is handled by the fit function
+                    update_progress_bar = True
+                    
+                self.fit(i,update_progress_bar=update_progress_bar)
+            except Exception, e:
+                self.print_warning(str(e))
+                pass
             n += 1.0
 
         #self.update_file_list()
