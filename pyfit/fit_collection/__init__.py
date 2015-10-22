@@ -16,3 +16,4 @@ import gaussWaist
 import Bose2D
 import boseTF2D
 import Bose2D_condensed
+import thomasFermi1D

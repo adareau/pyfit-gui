@@ -37,7 +37,8 @@ fit2D_dic = {fit_collection.gauss2D.gen().name:fit_collection.gauss2D.gen(),
 
 fit1D_dic = {fit_collection.gauss1D.gen().name:fit_collection.gauss1D.gen(),
              fit_collection.gaussDeriv1D.gen().name:fit_collection.gaussDeriv1D.gen(),
-             fit_collection.gaussWaist.gen().name:fit_collection.gaussWaist.gen()}
+             fit_collection.gaussWaist.gen().name:fit_collection.gaussWaist.gen(),
+             fit_collection.thomasFermi1D.gen().name:fit_collection.thomasFermi1D.gen()}
 
 camera_dic = {cam_collection.lumenera.gen().name:cam_collection.lumenera.gen(),
               cam_collection.pixelfly.gen().name:cam_collection.pixelfly.gen()}

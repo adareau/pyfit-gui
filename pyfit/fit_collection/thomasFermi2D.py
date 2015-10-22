@@ -6,6 +6,7 @@ Created on Tue Nov 04 09:36:45 2014
 """
 
 import numpy as np
+import pyfit as pyf
 from pyfit.pyfit_classes import Fit, Value
 
 
@@ -145,8 +146,40 @@ def Ncalc_func(pf):
 #----------------------------------------------------------------------------
 # Guess functions
 
+def guess(pf):
+     
+    d = pf.data
+    x = pf.xm[0,:]
+    y = pf.ym[:,0]
     
-def guess(pf): #takes a pyfit object as input
+    fmodel = pyf.fit1D_dic['TF']
+    
+    fitx = pyf.PyFit1D(fit=fmodel,x=x,y=d.sum(0))
+    fitx.do_fit()
+    px = fitx.fit.results
+    
+    sx = px[2]
+    cx = px[3]
+    Ax = px[1]*np.diff(x).mean()/np.sqrt(2*np.pi)/sx
+        
+    
+    fity = pyf.PyFit1D(fit=fmodel,x=y,y=d.sum(1))
+    fity.do_fit()
+    py = fity.fit.results
+    
+    sy = py[2]
+    cy = py[3]
+    Ay = py[1]*np.diff(y).mean()/np.sqrt(2*np.pi)/sy
+    
+    offset = d.min()
+    A = d.max()-d.min()
+    
+    p = [offset, A, sx, sy, cx, cy]
+    
+    
+    return p
+    
+def guess_old(pf): #takes a pyfit object as input
     
     d = pf.data
     frac = (3.0/4)**(1.5)
