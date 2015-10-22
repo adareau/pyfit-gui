@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'pyfit.ui'
 #
-# Created: Mon Jul 27 15:56:29 2015
+# Created: Thu Oct 22 17:16:40 2015
 #      by: PyQt4 UI code generator 4.9.6
 #
 # WARNING! All changes made in this file will be lost!
@@ -300,6 +300,11 @@ class Ui_PyFit(object):
         self.gen_grid_button.setDefault(False)
         self.gen_grid_button.setFlat(False)
         self.gen_grid_button.setObjectName(_fromUtf8("gen_grid_button"))
+        self.get_lattice_depth_button = QtGui.QPushButton(self.tab_5)
+        self.get_lattice_depth_button.setGeometry(QtCore.QRect(10, 37, 91, 21))
+        self.get_lattice_depth_button.setDefault(False)
+        self.get_lattice_depth_button.setFlat(False)
+        self.get_lattice_depth_button.setObjectName(_fromUtf8("get_lattice_depth_button"))
         self.fitEditorTab.addTab(self.tab_5, _fromUtf8(""))
         self.hide_variables_button = QtGui.QPushButton(self.tab_3)
         self.hide_variables_button.setGeometry(QtCore.QRect(1110, 520, 51, 21))
@@ -396,7 +401,7 @@ class Ui_PyFit(object):
 
         self.retranslateUi(PyFit)
         self.tabWidget.setCurrentIndex(0)
-        self.fitEditorTab.setCurrentIndex(2)
+        self.fitEditorTab.setCurrentIndex(4)
         QtCore.QMetaObject.connectSlotsByName(PyFit)
 
     def retranslateUi(self, PyFit):
@@ -450,6 +455,7 @@ class Ui_PyFit(object):
         self.hide_variable_txt_4.setText(_translate("PyFit", "ROI", None))
         self.fitEditorTab.setTabText(self.fitEditorTab.indexOf(self.tab_2), _translate("PyFit", "List", None))
         self.gen_grid_button.setText(_translate("PyFit", "Generate GRID", None))
+        self.get_lattice_depth_button.setText(_translate("PyFit", "Get lattice depth", None))
         self.fitEditorTab.setTabText(self.fitEditorTab.indexOf(self.tab_5), _translate("PyFit", "+", None))
         self.hide_variables_button.setText(_translate("PyFit", "choose", None))
         self.hide_variable_txt.setText(_translate("PyFit", "some variables are hidden", None))

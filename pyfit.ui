@@ -207,7 +207,7 @@
         </font>
        </property>
        <property name="currentIndex">
-        <number>2</number>
+        <number>3</number>
        </property>
        <widget class="QWidget" name="fit_settings_tab">
         <attribute name="title">
@@ -983,6 +983,25 @@
          </property>
          <property name="text">
           <string>Generate GRID</string>
+         </property>
+         <property name="default">
+          <bool>false</bool>
+         </property>
+         <property name="flat">
+          <bool>false</bool>
+         </property>
+        </widget>
+        <widget class="QPushButton" name="get_lattice_depth_button">
+         <property name="geometry">
+          <rect>
+           <x>10</x>
+           <y>37</y>
+           <width>91</width>
+           <height>21</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Get lattice depth</string>
          </property>
          <property name="default">
           <bool>false</bool>

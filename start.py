@@ -320,6 +320,11 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         #--- extra tools (+) Tab
         
         self.ui.gen_grid_button.clicked.connect(self.generate_ROI_grid)
+        self.ui.get_lattice_depth_button.clicked.connect(self.get_lattice_depth_button_clicked)
+        
+        #--- Tab Widget (global)
+
+        self.ui.fitEditorTab.setCurrentIndex(3) # set list tab visible at startup
         
         #--- fit button
 
@@ -2251,6 +2256,106 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         #self.update_file_list()
         self.ui.progressBar.setValue(100)
 
+    def get_lattice_depth_button_clicked(self):
+
+        
+        ### Gather information from selected pictures
+    
+        params = {}
+        
+        for i in reversed(self.ui.file_list.selectedIndexes()):
+
+            # 1 - Get file name
+
+            #name = str(i.data().toString())
+            name = str(self.data.current_file_list[i.row()])
+            root = str(self.settings.current_folder)
+            root = os.path.abspath(root)
+
+            name = name.replace(self.settings.isfit_str, '')
+            name = name.replace(self.settings.isnofit_str, '')
+            
+            # 2 - Load fit collection
+            
+            loaded_fit_collection, roi_index = self.load_fit(draw=False,
+                                                              root = root,
+                                                              fname = name,
+                                                              load_data = False)
+            
+            
+            for fit, roi in zip(loaded_fit_collection, roi_index):
+                fit.picture.filename = name
+                fit.picture.parseVariables()
+    
+                all_params = dict(fit.picture.variables.items()+fit.values.items())
+                
+                if not params.has_key(roi):
+                    params[roi] ={}
+                    
+                for n, v in all_params.iteritems():
+                    if params[roi].has_key(n):
+                        params[roi][n].append(v)
+                    else:
+                        params[roi][n] = [v]    
+                        
+        N_roi = len(params)
+        
+        if not N_roi%2: # if number of ROIs is even         
+            self.print_warning('You must define an odd number of ROIs (one for central peak + two for each order')
+            return
+        
+        ### Extract good quantities 
+        
+        ## Atom number and pulse duration
+        
+        if params[0].has_key('lattice_pulse'):
+            lattice_pulse_duration = params[0]['lattice_pulse']
+        else:
+            choice, ok = QtGui.QInputDialog.getItem(self,'Get lattice depth...', 
+                                                'variable for lattice pulse duration (microseconds)',
+                                                params[0].keys())
+            if not ok: return
+            self.print_result(str(choice))
+            lattice_pulse_duration = params[0][str(choice)]
+            
+        
+        if not params[0].has_key('Nint'):
+            self.print_warning('Nint not defined for this fit. We need it for the calibration...')
+            return
+        
+        ## generation order list
+        
+        N_order = (N_roi-1.0)/2.0
+        
+        atom_number = []
+        atom_number.append(params[0]['Nint']) #zeroth order
+        # other orders :
+        for index in range(int(N_order)):
+            index_plus = index+1
+            index_minus = index+2
+            Nint = np.array(params[index_plus]['Nint'])+np.array(params[index_minus]['Nint'])
+            atom_number.append(Nint)
+        
+        self.data.debug = atom_number
+        
+        ### Ask for wavelength
+
+        lbda, ok = QtGui.QInputDialog.getDouble(self,'Get lattice depth...', 
+                                                'Enter lattice wavelength (2 x lattice step, in nm)',
+                                                self.settings.lattice_wavelength)
+        if not ok: return
+        self.settings.lattice_wavelength = lbda
+        
+        ### PLOT
+        
+        plt.figure("Lattice depth calibration")
+        plt.clf()
+        for Nint in atom_number:
+            plt.plot(lattice_pulse_duration, Nint, marker='o', linestyle='')
+            
+        plt.show()
+        
+        
     def colormap_type_clicked(self, e):
         if e == -1: return
         self.settings.colormap = str(self.ui.colormap_type.currentText())
@@ -2371,6 +2476,7 @@ class GuiSettings():
         
         # Other
 
+        self.lattice_wavelength = 760 # in nm, for depth calibration
         self.isfit_str = ''
         self.isfit_wnm_str = '' # Watch and MOT fit
         self.isnofit_str = ''
