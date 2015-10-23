@@ -1990,6 +1990,16 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         
         return calendar_path
     
+    def gimmeColor(self,i):
+        edge_color_list = ['red','green','blue','#FF8807','#A700B3','#007291','#000000']
+        face_color_list = ['#FF9696','#7ABE71','#9696FF','#FE9A2E','#B56BBA','#558B9A','#797979']
+        line_color_list = ['#FF7070','#7ABE71','#7070FF','#FF8807','#A700B3','#007291','#000000']
+        symbol_list = ['o','s','^','d']
+        
+        n = len(edge_color_list)
+        choice = i%n
+        
+        return edge_color_list[choice],face_color_list[choice],line_color_list[choice]
     #--- >>> GUI callbacks <<<
     
     #--- >> general callbacks
@@ -2062,9 +2072,12 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
             if len(self.data.keylog)>max_keylog:
                 self.data.keylog = self.data.keylog[-max_keylog:]
                 
-            res = oeuf.keylog_reader(self)
+            res, action_type = oeuf.keylog_reader(self)
             if res:
                 self.data.keylog=''
+                if action_type == 'konami':
+                    self.data.xkcd = not self.data.xkcd
+                
                 
         except:
             pass
@@ -2331,12 +2344,11 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         atom_number.append(params[0]['Nint']) #zeroth order
         # other orders :
         for index in range(int(N_order)):
-            index_plus = index+1
-            index_minus = index+2
+            index_plus = 2*(index+1)
+            index_minus = 2*(index+1)-1
             Nint = np.array(params[index_plus]['Nint'])+np.array(params[index_minus]['Nint'])
             atom_number.append(Nint)
         
-        self.data.debug = atom_number
         
         ### Ask for wavelength
 
@@ -2346,13 +2358,62 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         if not ok: return
         self.settings.lattice_wavelength = lbda
         
-        ### PLOT
+        ### Fit
+        m = 174*1.66e-27 #TODO: better handling of atomic properties
+        k = 2*np.pi/lbda/1e-9
+        Er = csts.hbar**2*k**2/2/m
         
-        plt.figure("Lattice depth calibration")
+        T = np.array(lattice_pulse_duration)*1e-6*Er/csts.hbar #time in unit of hbar/Er
+        
+        alpha,Nat_norm, Nfit, T_fit = get_lattice_depth(atom_number,T,lbda = lbda*1e-9, m=m,guess=5.0,plot=False)
+
+        ### display result
+        p = self.print_result
+        p(self.settings.results_delim)
+        p("<font color=red><b>Lattice depth fit </b></font>")
+        p("<b>--> [ U0 = %.1f Er ]</b>"%alpha)
+        p("NB : Er = %.2g Hz = %.2g K"%(Er/csts.h, Er/csts.k))
+        p("==> U0 = %.2g Hz = %.2g K"%(alpha*Er/csts.h, alpha*Er/csts.k))
+        
+        ### PLOT
+        tmstp = np.array(params[0]['timestamp'])
+        tstart = str(tmstp.min())
+        tstop= str(tmstp.max())
+        
+        plt.figure('lattice depth calibration : timestamps '+tstart+'-'+tstop)
         plt.clf()
-        for Nint in atom_number:
-            plt.plot(lattice_pulse_duration, Nint, marker='o', linestyle='')
+        if self.data.xkcd:
+            rc('text', usetex=False)
+            plt.xkcd()
+        else:
+            plt.rcdefaults()
+            rc('text', usetex=True)
+        
+        ind = 0
+        for N in Nfit:
+            ec,fc,ln = self.gimmeColor(ind)
+            plt.plot(T_fit*1e6*csts.hbar/Er, N, '-',color=ln)
+            ind +=1
             
+        ind=0
+        for Nint in Nat_norm:
+            ec,fc,ln = self.gimmeColor(ind)
+            plt.plot(lattice_pulse_duration, Nint, marker='o', linestyle='',mfc=fc,mec=ec)
+            ind +=1
+        
+        plt.xlabel("lattice pulse duration ($\mu$s)")
+        plt.ylabel("atom number (normalized)")
+        
+        title = time.strftime("%Y-%m-%d")+r' : lattice depth calibration'
+        title += '\n'
+        if self.data.xkcd:
+            title += r' timestamps '+tstart+' to '+tstop
+        else:
+            title += r' {\large timestamps '+tstart+' to '+tstop+'}'
+        
+        plt.title(title)
+        plt.grid(True,alpha=0.3)
+        plt.tight_layout() 
         plt.show()
         
         
@@ -2535,6 +2596,7 @@ class GuiData():
 
         self.debug = ''
         self.keylog = ''
+        self.xkcd = False
         
         
         
@@ -2799,6 +2861,7 @@ if __name__ == "__main__":
     import datetime
     import calendar
     import re
+    import scipy.constants as csts
     from subprocess import check_call
     
     from functools import partial
@@ -2820,8 +2883,18 @@ if __name__ == "__main__":
     
     from matplotlib.patches import Rectangle
     
+    ##### GENERAL FIGURE PROPERTIES
+    from matplotlib import rc
+    rc('text', usetex=True)
+    
+    #################################################
+    
     from cPickle import dump, load
     #from sqlalchemy.sql.functions import current_date # not sure why this was here
+    
+    update_message("Importing local libraries...")
+    
+    from lib.lattice_depth import get_lattice_depth
     
     update_message("Finding eggs...")
     #import oeuf

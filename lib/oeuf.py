@@ -17,5 +17,6 @@ def keylog_reader(gui):
     if keylog.find('upupdowndownleftrightleftrightbareturn')>-1:
         gui.print_result('KONAMI !!!!!!!!!!')
         action_triggered = True
+        action_type = 'konami'
         
-    return action_triggered
+    return action_triggered, action_type
