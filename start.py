@@ -2811,7 +2811,7 @@ if __name__ == "__main__":
     update_message("loading screen (guiqwt)...")
     from GuiqwtScreen import ROISelectTool, BKGNDSelectTool, HOLESelectTool, MultipleROISelectTool
     from guiqwt.tools import AnnotatedSegmentTool, XCursorTool
-    from import_WNM_fit import import_WNM_fit
+    from lib.import_WNM_fit import import_WNM_fit
     update_message("loading internal shell (spyderlib)...")
     from spyderlib.widgets import internalshell
     
@@ -2824,8 +2824,9 @@ if __name__ == "__main__":
     #from sqlalchemy.sql.functions import current_date # not sure why this was here
     
     update_message("Finding eggs...")
-    import oeuf
-
+    #import oeuf
+    import lib.oeuf as oeuf
+    
     # start programm
     update_message("loading finished : starting app !")
     myapp = StartQT4()

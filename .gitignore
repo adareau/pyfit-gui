@@ -9,3 +9,4 @@ fringeater/*.m
 .project
 .pydevproject
 .settings/*
+deprecated/*
