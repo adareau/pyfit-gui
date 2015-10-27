@@ -7,7 +7,6 @@ import sys
 from PyQt4 import QtCore, QtGui
 import os
 from PyQt4.QtGui import QMessageBox
-from sympy.physics.vector.dyadic import Dyadic
 
 
 class StartQT4(QtGui.QMainWindow): #TODO : rename
@@ -62,8 +61,8 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         multiple_roi_action.setText("add ROI")
         multiple_roi_action.setToolTip("Select ROIs")
         multiple_roi_action.setStatusTip("click and draw a new region of interest")
-        icon = QtGui.QIcon.fromTheme("edit-cut")
-        multiple_roi_action.setIcon(icon)
+        #icon = QtGui.QIcon.fromTheme("edit-cut")
+        #multiple_roi_action.setIcon(icon)
         #TODO : trouver icones dans http://standards.freedesktop.org/icon-naming-spec/icon-naming-spec-latest.html#names
         self.multiple_roi_action = self.ui.plotWindow.manager.get_tool(MultipleROISelectTool)
         self.data.ROI_rect_list = self.multiple_roi_action.rect_list
@@ -75,8 +74,8 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         roi_action.setText("edit ROI")
         roi_action.setToolTip("edit ROI")
         roi_action.setStatusTip("click and draw to edit region of interest")
-        icon = QtGui.QIcon.fromTheme("edit-cut")
-        roi_action.setIcon(icon)
+        #icon = QtGui.QIcon.fromTheme("edit-cut")
+        #roi_action.setIcon(icon)
         #TODO : trouver icones dans http://standards.freedesktop.org/icon-naming-spec/icon-naming-spec-latest.html#names
         self.roi_tool = self.ui.plotWindow.manager.get_tool(ROISelectTool)
         self.ui.plotWindow.screen.plot.add_item(self.roi_tool.rect)
@@ -99,8 +98,8 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         bkgnd_action.setText("BKGND")
         bkgnd_action.setToolTip("Select BACKGROUND")
         bkgnd_action.setStatusTip("click and draw new background region")
-        icon = QtGui.QIcon.fromTheme("edit-cut")
-        bkgnd_action.setIcon(icon)
+        #icon = QtGui.QIcon.fromTheme("edit-cut")
+        #bkgnd_action.setIcon(icon)
         self.bkgnd_tool = self.ui.plotWindow.manager.get_tool(BKGNDSelectTool)
         self.ui.plotWindow.screen.plot.add_item(self.bkgnd_tool.rect)
         self.data.rectBackground = self.bkgnd_tool.rect
@@ -111,8 +110,8 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         hole_action.setText("HOLE")
         hole_action.setToolTip("Select HOLE")
         hole_action.setStatusTip("click and draw new hole region")
-        icon = QtGui.QIcon.fromTheme("edit-cut")
-        hole_action.setIcon(icon)
+        #icon = QtGui.QIcon.fromTheme("edit-cut")
+        #hole_action.setIcon(icon)
         self.hole_tool = self.ui.plotWindow.manager.get_tool(HOLESelectTool)
         self.ui.plotWindow.screen.plot.add_item(self.hole_tool.rect)
         self.data.rectHOLE = self.hole_tool.rect

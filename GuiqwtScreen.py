@@ -5,9 +5,9 @@ Created on Thu Jan 22 17:05:06 2015
 @author: Alexandre DAREAU
 """
 
-from guidata.qt.QtGui import (QWidget, QVBoxLayout, QHBoxLayout, QPushButton,
+from PyQt4.QtGui import (QWidget, QVBoxLayout, QHBoxLayout, QPushButton,
                               QMainWindow, QGridLayout,QSizePolicy)
-from guidata.qt.QtCore import QRect
+from PyQt4.QtCore import QRect
 import numpy as np
 
 import weakref
