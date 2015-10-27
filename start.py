@@ -58,12 +58,13 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
     
         self.ui.plotWindow.manager.add_tool(MultipleROISelectTool)
         multiple_roi_action = toolbar.actions()[-1]
-        multiple_roi_action.setText("add ROI")
-        multiple_roi_action.setToolTip("Select ROIs")
+        multiple_roi_action.setToolTip("add ROIs")
         multiple_roi_action.setStatusTip("click and draw a new region of interest")
-        #icon = QtGui.QIcon.fromTheme("edit-cut")
-        #multiple_roi_action.setIcon(icon)
-        #TODO : trouver icones dans http://standards.freedesktop.org/icon-naming-spec/icon-naming-spec-latest.html#names
+        icon_file = os.path.join('.','img','icons','add_ROI.png')
+        icon = QtGui.QIcon(icon_file)
+        multiple_roi_action.setIcon(icon)
+        multiple_roi_action.setText("add ROI")
+        
         self.multiple_roi_action = self.ui.plotWindow.manager.get_tool(MultipleROISelectTool)
         self.data.ROI_rect_list = self.multiple_roi_action.rect_list
         
@@ -71,12 +72,13 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
     
         self.ui.plotWindow.manager.add_tool(ROISelectTool)
         roi_action = toolbar.actions()[-1]
-        roi_action.setText("edit ROI")
         roi_action.setToolTip("edit ROI")
         roi_action.setStatusTip("click and draw to edit region of interest")
-        #icon = QtGui.QIcon.fromTheme("edit-cut")
-        #roi_action.setIcon(icon)
-        #TODO : trouver icones dans http://standards.freedesktop.org/icon-naming-spec/icon-naming-spec-latest.html#names
+        icon_file = os.path.join('.','img','icons','edit_ROI.png')
+        icon = QtGui.QIcon(icon_file)
+        roi_action.setIcon(icon)
+        roi_action.setText("edit ROI")
+        
         self.roi_tool = self.ui.plotWindow.manager.get_tool(ROISelectTool)
         self.ui.plotWindow.screen.plot.add_item(self.roi_tool.rect)
         self.data.rectROI = self.roi_tool.rect
@@ -89,7 +91,10 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         # clear ROI
         toolbar.addWidget(self.ui.clear_ROI_button)
         self.ui.clear_ROI_button.clicked.connect(self.clear_ROIs)
-        
+        icon_file = os.path.join('.','img','icons','clear_ROI.png')
+        icon = QtGui.QIcon(icon_file)
+        self.ui.clear_ROI_button.setIcon(icon)
+        self.ui.clear_ROI_button.setText('clear ROI')
         toolbar.addSeparator()
         
         #--- Background management
@@ -98,8 +103,9 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         bkgnd_action.setText("BKGND")
         bkgnd_action.setToolTip("Select BACKGROUND")
         bkgnd_action.setStatusTip("click and draw new background region")
-        #icon = QtGui.QIcon.fromTheme("edit-cut")
-        #bkgnd_action.setIcon(icon)
+        icon_file = os.path.join('.','img','icons','edit_BKND.png')
+        icon = QtGui.QIcon(icon_file)
+        bkgnd_action.setIcon(icon)
         self.bkgnd_tool = self.ui.plotWindow.manager.get_tool(BKGNDSelectTool)
         self.ui.plotWindow.screen.plot.add_item(self.bkgnd_tool.rect)
         self.data.rectBackground = self.bkgnd_tool.rect
@@ -110,8 +116,9 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         hole_action.setText("HOLE")
         hole_action.setToolTip("Select HOLE")
         hole_action.setStatusTip("click and draw new hole region")
-        #icon = QtGui.QIcon.fromTheme("edit-cut")
-        #hole_action.setIcon(icon)
+        icon_file = os.path.join('.','img','icons','edit_HOLE.png')
+        icon = QtGui.QIcon(icon_file)
+        hole_action.setIcon(icon)
         self.hole_tool = self.ui.plotWindow.manager.get_tool(HOLESelectTool)
         self.ui.plotWindow.screen.plot.add_item(self.hole_tool.rect)
         self.data.rectHOLE = self.hole_tool.rect
