@@ -547,6 +547,8 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         self.draw_ROI()
         self.draw_HOLE()
         self.draw_background()
+        
+        if self.settings.zoom_to_ROI:self.zoom_to_ROI()
 
     
     
@@ -802,13 +804,47 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         self.data.current_fit.picture.hole = (r_scaled[0], r_scaled[2], r_scaled[1], r_scaled[3])
 
     def zoom_to_ROI(self):
+        
+        # get camera aspect ratio (to keep it)
+        image_size = self.data.current_fit.camera.image_size
+        
+        # get current ROI(s)
+        ROI_list = self.data.ROI_list
+        
+        if len(ROI_list)>0:
+            
+            r1=[]
+            r2=[]
+            r3=[]
+            r4=[]
+            
+            # if several ROIs, take extrema values
+            for roi in ROI_list:
+                r_buff = [np.float(r) for r in roi]
+                r1.append(np.min(r_buff[:2]))
+                r2.append(np.max(r_buff[:2]))
+                r3.append(np.min(r_buff[2:]))
+                r4.append(np.max(r_buff[2:]))
+                
+            r = np.array([np.min(r1),np.max(r2),np.min(r3),np.max(r4)])    
+            # keep aspect ratio
+            dx = np.abs(r[0]-r[1])
+            dy = np.abs(r[3]-r[2])
+            cx = np.min(r[:2])+dx/2.
+            cy = np.min(r[2:])+dy/2.
+            
+            ratio = image_size[1]*1.0/image_size[0]
+            if dx*ratio>dy:
+                dy = dx*ratio
+            else:
+                dx = dy/ratio
 
-        xlim = self.ui.plotWindow.main_axes.get_xlim()
-        ylim = self.ui.plotWindow.main_axes.get_ylim()
+            
+            # update zoom
+            screen = self.ui.plotWindow.screen
+            screen.plot.set_plot_limits(cx-dx/2,cx+dx/2,cy+dy/2,cy-dy/2)
+            screen.update_image()
 
-        r = (xlim[0], xlim[1], ylim[0], ylim[1])
-        self.data.current_fit.picture.ROI = r
-        self.draw_ROI()
 
     #--- Background  
 
@@ -826,16 +862,7 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         r_scaled = np.array([ri for ri in r])/self.data.scale_factor
         self.data.current_fit.picture.background = (r_scaled[0], r_scaled[2], r_scaled[1], r_scaled[3])
 
-
-    def zoom_to_BKGND(self):
-
-        xlim = self.ui.plotWindow.main_axes.get_xlim()
-        ylim = self.ui.plotWindow.main_axes.get_ylim()
-
-        r = (xlim[0], xlim[1], ylim[0], ylim[1])
-        self.data.current_fit.picture.background = r
-        self.draw_background()
-
+    
     #--- >> Fits
 
 
