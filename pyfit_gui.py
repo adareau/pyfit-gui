@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'pyfit.ui'
 #
-# Created: Wed Oct 28 14:48:53 2015
+# Created: Wed Oct 28 15:22:51 2015
 #      by: PyQt4 UI code generator 4.9.6
 #
 # WARNING! All changes made in this file will be lost!
@@ -243,6 +243,9 @@ class Ui_PyFit(object):
         self.axes_in_microns_box = QtGui.QCheckBox(self.tab)
         self.axes_in_microns_box.setGeometry(QtCore.QRect(10, 120, 101, 17))
         self.axes_in_microns_box.setObjectName(_fromUtf8("axes_in_microns_box"))
+        self.zoom_to_ROI = QtGui.QCheckBox(self.tab)
+        self.zoom_to_ROI.setGeometry(QtCore.QRect(11, 170, 101, 17))
+        self.zoom_to_ROI.setObjectName(_fromUtf8("zoom_to_ROI"))
         self.fitEditorTab.addTab(self.tab, _fromUtf8(""))
         self.tab_2 = QtGui.QWidget()
         self.tab_2.setObjectName(_fromUtf8("tab_2"))
@@ -454,6 +457,7 @@ class Ui_PyFit(object):
         self.fit_binning_label2_9.setText(_translate("PyFit", "interpolation", None))
         self.display_hole_box.setText(_translate("PyFit", "show hole rect.", None))
         self.axes_in_microns_box.setText(_translate("PyFit", "axes in microns", None))
+        self.zoom_to_ROI.setText(_translate("PyFit", "display = ROI", None))
         self.fitEditorTab.setTabText(self.fitEditorTab.indexOf(self.tab), _translate("PyFit", "Disp", None))
         self.label_3.setText(_translate("PyFit", "X :", None))
         self.label_4.setText(_translate("PyFit", "Y :", None))

@@ -795,6 +795,19 @@
           <string>axes in microns</string>
          </property>
         </widget>
+        <widget class="QCheckBox" name="zoom_to_ROI">
+         <property name="geometry">
+          <rect>
+           <x>11</x>
+           <y>170</y>
+           <width>101</width>
+           <height>17</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>display = ROI</string>
+         </property>
+        </widget>
        </widget>
        <widget class="QWidget" name="tab_2">
         <attribute name="title">

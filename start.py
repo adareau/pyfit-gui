@@ -35,7 +35,6 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         #--- GUI data and settings
         self.settings = GuiSettings()
         self.load_settings()
-
         self.data = GuiData(self)
         self.data.gui_root = QtCore.QDir.currentPath()
 
@@ -193,7 +192,6 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         self.ui.refresh_file_list.clicked.connect(self.update_file_list)
         self.ui.hide_variables_button.clicked.connect(self.choose_variables_to_hide)
         
-        
         #--- context menu actions for list
         # open current folder
         
@@ -241,7 +239,7 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         screen.plot.set_axis_unit(y_axis,'pixels')
         screen.plot.set_axis_unit(x_axis,'pixels')
         
-        self.axes_in_microns_box_clicked('')
+        self.axes_in_microns_box_clicked('',refresh=False)
         
         #--- fit settings Tab
 
@@ -304,7 +302,7 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
                                             self.display_interpolation_clicked)
 
         self.ui.axes_in_microns_box.clicked.connect(self.axes_in_microns_box_clicked)
-        
+        self.ui.zoom_to_ROI.clicked.connect(self.zoom_to_ROI_clicked)
         #--- comment editing/displaying zone
         
         self.ui.fit_comment_text.textChanged.connect(self.comment_text_changed)
@@ -354,7 +352,7 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         #--- Dock console
         # XXX remove for debug
 
-        name_space = {'gui': self, 'plt':plt, 'np':np, 'fit':self.fit()}
+        name_space = {'gui': self, 'plt':plt, 'np':np, 'fit':self.fit(), 'self':self}
         self.pythonshell = internalshell.InternalShell(self.ui.console_dock,
                                                        namespace=name_space,
                                                        commands=['gui.init_shell()'],
@@ -363,7 +361,6 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         self.pythonshell.set_codecompletion_auto(True)
         self.pythonshell.interpreter.namespace['res'] = {}
         self.ui.console_dock.setWidget(self.pythonshell)
-
 
     #--- >>> GUI General functions <<<
 
@@ -1405,6 +1402,7 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
                  ['display_hole', self.ui.display_hole_box],
                  ['disable_comment', self.ui.disable_comment_box],
                  ['fit_list', self.ui.fit_list_box],
+                 ['zoom_to_ROI', self.ui.zoom_to_ROI],
                  ['axes_in_microns',self.ui.axes_in_microns_box]] 
 
         params = [['colormap_min', self.ui.colormap_min],
@@ -1460,7 +1458,7 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
             self.ui.fit_comment_text.setEnabled(False)
         else:
             self.ui.fit_comment_text.setEnabled(True)
-            
+         
         self.settings = settings
         
 
@@ -1496,7 +1494,7 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
 
         fname = 'current.set'
         f = os.path.join(f, fname)
-
+        
         if os.path.isfile(f):
             with open(f, 'rb') as output:
                 try:
@@ -1505,9 +1503,11 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
                         settings.cam_list[cname].update_OD_conversion()
                     self.settings.load_old_version(settings)
                     
-                except:
+                    
+                except Exception, e:
+                    self.print_warning(str(e))
                     pass
-                
+              
         return
     
     #--- >> shell init
@@ -2023,6 +2023,8 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
             event.ignore()
         '''
         self.save_settings()
+        # uncomment to get a message before closing (and debug errors in the function)
+        #reply = QtGui.QMessageBox.question(self, 'Message','Just buying some time...', QtGui.QMessageBox.Ok)
         event.accept()
 
     '''
@@ -2437,8 +2439,8 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
     def fit_from_event(self,e): # some buffer function to call fit from event
         self.fit_button_clicked()
 
-    def axes_in_microns_box_clicked(self,e):
-        self.refresh_gui_settings(e)
+    def axes_in_microns_box_clicked(self,e,refresh=True):
+        if refresh: self.refresh_gui_settings(e)
         
         screen = self.ui.plotWindow.screen
         y_axis = screen.image.yAxis()
@@ -2459,12 +2461,14 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         
         self.update_scale_factor()
 
+    def zoom_to_ROI_clicked(self,e):
+        self.refresh_gui_settings(e)
                
     #--- >>> DEBUGGING <<<
 
-    def debug(self):
-        
-        print("debug !!")
+    def debug(self,msg='--debug'):
+        print(msg)
+        print(self.settings.zoom_to_ROI)
 
     
     def comment_text_changed(self):
@@ -2533,6 +2537,7 @@ class GuiSettings():
         self.display_interpolation = 'none'
         self.display_hole = False
         self.axes_in_microns = False
+        self.zoom_to_ROI = False
         
         # Lists
 
