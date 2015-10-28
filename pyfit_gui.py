@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'pyfit.ui'
 #
-# Created: Thu Oct 22 17:16:40 2015
+# Created: Wed Oct 28 14:48:53 2015
 #      by: PyQt4 UI code generator 4.9.6
 #
 # WARNING! All changes made in this file will be lost!
@@ -74,7 +74,7 @@ class Ui_PyFit(object):
         self.plotWindow.setGeometry(QtCore.QRect(0, 7, 711, 491))
         self.plotWindow.setObjectName(_fromUtf8("plotWindow"))
         self.groupBox_3 = QtGui.QGroupBox(self.tab_3)
-        self.groupBox_3.setGeometry(QtCore.QRect(710, 190, 221, 261))
+        self.groupBox_3.setGeometry(QtCore.QRect(710, 230, 221, 261))
         self.groupBox_3.setObjectName(_fromUtf8("groupBox_3"))
         self.fitEditorTab = QtGui.QTabWidget(self.groupBox_3)
         self.fitEditorTab.setGeometry(QtCore.QRect(7, 20, 211, 231))
@@ -104,9 +104,6 @@ class Ui_PyFit(object):
         self.fit_binning_label2 = QtGui.QLabel(self.fit_settings_tab)
         self.fit_binning_label2.setGeometry(QtCore.QRect(83, 39, 31, 16))
         self.fit_binning_label2.setObjectName(_fromUtf8("fit_binning_label2"))
-        self.fit_type = QtGui.QComboBox(self.fit_settings_tab)
-        self.fit_type.setGeometry(QtCore.QRect(8, 7, 121, 22))
-        self.fit_type.setObjectName(_fromUtf8("fit_type"))
         self.fit_exclude_hole_box = QtGui.QCheckBox(self.fit_settings_tab)
         self.fit_exclude_hole_box.setGeometry(QtCore.QRect(10, 90, 141, 22))
         self.fit_exclude_hole_box.setObjectName(_fromUtf8("fit_exclude_hole_box"))
@@ -126,6 +123,16 @@ class Ui_PyFit(object):
         self.fit_remove_background_box = QtGui.QCheckBox(self.fit_settings_tab)
         self.fit_remove_background_box.setGeometry(QtCore.QRect(10, 110, 101, 22))
         self.fit_remove_background_box.setObjectName(_fromUtf8("fit_remove_background_box"))
+        self.hide_variable_txt_5 = QtGui.QLabel(self.fit_settings_tab)
+        self.hide_variable_txt_5.setGeometry(QtCore.QRect(9, 6, 101, 20))
+        font = QtGui.QFont()
+        font.setBold(False)
+        font.setWeight(50)
+        font.setKerning(True)
+        self.hide_variable_txt_5.setFont(font)
+        self.hide_variable_txt_5.setTextFormat(QtCore.Qt.AutoText)
+        self.hide_variable_txt_5.setWordWrap(False)
+        self.hide_variable_txt_5.setObjectName(_fromUtf8("hide_variable_txt_5"))
         self.fitEditorTab.addTab(self.fit_settings_tab, _fromUtf8(""))
         self.cam_settings_tab = QtGui.QWidget()
         self.cam_settings_tab.setObjectName(_fromUtf8("cam_settings_tab"))
@@ -333,7 +340,7 @@ class Ui_PyFit(object):
         self.progressBar.setProperty("value", 100)
         self.progressBar.setObjectName(_fromUtf8("progressBar"))
         self.fitButton = QtGui.QPushButton(self.tab_3)
-        self.fitButton.setGeometry(QtCore.QRect(716, 450, 75, 41))
+        self.fitButton.setGeometry(QtCore.QRect(730, 190, 51, 31))
         self.fitButton.setDefault(False)
         self.fitButton.setFlat(False)
         self.fitButton.setObjectName(_fromUtf8("fitButton"))
@@ -342,6 +349,9 @@ class Ui_PyFit(object):
         self.clear_ROI_button.setDefault(False)
         self.clear_ROI_button.setFlat(True)
         self.clear_ROI_button.setObjectName(_fromUtf8("clear_ROI_button"))
+        self.fit_type = QtGui.QComboBox(self.tab_3)
+        self.fit_type.setGeometry(QtCore.QRect(796, 195, 121, 22))
+        self.fit_type.setObjectName(_fromUtf8("fit_type"))
         self.tabWidget.addTab(self.tab_3, _fromUtf8(""))
         self.tab_4 = QtGui.QWidget()
         self.tab_4.setObjectName(_fromUtf8("tab_4"))
@@ -401,7 +411,7 @@ class Ui_PyFit(object):
 
         self.retranslateUi(PyFit)
         self.tabWidget.setCurrentIndex(0)
-        self.fitEditorTab.setCurrentIndex(4)
+        self.fitEditorTab.setCurrentIndex(2)
         QtCore.QMetaObject.connectSlotsByName(PyFit)
 
     def retranslateUi(self, PyFit):
@@ -412,7 +422,7 @@ class Ui_PyFit(object):
         self.tree_root_button.setText(_translate("PyFit", "....", None))
         self.current_dir_txt.setToolTip(_translate("PyFit", "C\\:complete\\path\\to\\our\\folder", None))
         self.current_dir_txt.setText(_translate("PyFit", "...\\path\\to\\our\\folder", None))
-        self.groupBox_3.setTitle(_translate("PyFit", "Fit options", None))
+        self.groupBox_3.setTitle(_translate("PyFit", "Quick menu", None))
         self.fit_binning_box.setText(_translate("PyFit", "Binning ->", None))
         self.fit_autobin_box.setText(_translate("PyFit", "Auto binning ->", None))
         self.fit_binning_label1.setText(_translate("PyFit", "Max :", None))
@@ -420,6 +430,7 @@ class Ui_PyFit(object):
         self.fit_exclude_hole_box.setText(_translate("PyFit", "exclude hole (simple fit)", None))
         self.hide_variable_txt_3.setText(_translate("PyFit", "fit order (double fit)", None))
         self.fit_remove_background_box.setText(_translate("PyFit", "rem. background", None))
+        self.hide_variable_txt_5.setText(_translate("PyFit", "Options for fit :", None))
         self.fitEditorTab.setTabText(self.fitEditorTab.indexOf(self.fit_settings_tab), _translate("PyFit", "Fit", None))
         self.remove_cam_button.setText(_translate("PyFit", "del", None))
         self.add_cam_button.setText(_translate("PyFit", "new", None))
