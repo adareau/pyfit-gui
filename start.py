@@ -1518,6 +1518,7 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         print "modules : numpy as 'np', matplotlip.pyplot as 'plt' "
         print "local functions : fit"
         print "exported list : res (dict)"
+        plt.ion()
 
     #--- >> Result display functions  
 
