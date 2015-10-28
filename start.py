@@ -320,6 +320,7 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         for fit in self.data.fit1D_dic:
             self.ui.list_fit_type.addItem(fit)
         
+        self.ui.orderby_list_box.clicked.connect(self.refresh_gui_settings)
         
         #--- extra tools (+) Tab
         
@@ -1428,6 +1429,7 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         bools = [['display_fit_contour', self.ui.disp_fit_contour_box],
                  ['display_hole', self.ui.display_hole_box],
                  ['disable_comment', self.ui.disable_comment_box],
+                 ['list_orderby', self.ui.orderby_list_box],
                  ['fit_list', self.ui.fit_list_box],
                  ['zoom_to_ROI', self.ui.zoom_to_ROI],
                  ['axes_in_microns',self.ui.axes_in_microns_box]] 
@@ -1590,14 +1592,17 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
 
         x_current = self.ui.list_plot_x.currentText()
         y_current = self.ui.list_plot_y.currentText()
-
+        order_current = self.ui.list_plot_order.currentText()
+        
         self.ui.list_plot_x.clear()
         self.ui.list_plot_y.clear()
-
+        self.ui.list_plot_order.clear()
+        
         for p in params:
             self.ui.list_plot_x.addItem(p)
             self.ui.list_plot_y.addItem(p)
-
+            self.ui.list_plot_order.addItem(p)
+            
         # 3 - if previous x,y variables still available, select them
 
         for i in range(self.ui.list_plot_x.count()):
@@ -1607,14 +1612,19 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
 
             if self.ui.list_plot_y.itemText(i) == y_current:
                 self.ui.list_plot_y.setCurrentIndex(i)
-
+            
+            if self.ui.list_plot_order.itemText(i) == order_current:
+                self.ui.list_plot_order.setCurrentIndex(i)
 
     def plot_list(self):
 
         X = []
         Y = []
+        order_param = []
+        
         x_name = str(self.ui.list_plot_x.currentText())
         y_name = str(self.ui.list_plot_y.currentText())
+        order_name = str(self.ui.list_plot_order.currentText())
         
         roi_to_plot = int(self.ui.ROI_quickplot_spinbox.value()) #TODO : changer
         params = {}
@@ -1647,13 +1657,42 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
                 fit.picture.parseVariables()
                 all_params = dict(fit.picture.variables.items()+fit.values.items())
                 
-                if all_params.has_key(x_name) and all_params.has_key(y_name):
-                    X.append(all_params[x_name])
-                    Y.append(all_params[y_name])
+                if self.settings.list_orderby:
+                    if all_params.has_key(x_name) and all_params.has_key(y_name) and all_params.has_key(order_name):
+                        X.append(all_params[x_name])
+                        Y.append(all_params[y_name])
+                        order_param.append(all_params[order_name])
 
-
+                else:
+                    if all_params.has_key(x_name) and all_params.has_key(y_name):
+                        X.append(all_params[x_name])
+                        Y.append(all_params[y_name])
+                    
+                        
+        
+        # Fit, display result and plot
+        if X:
+            plt.figure()
+            
+            if not self.settings.list_orderby:
+                self.fit_and_plot_fromlist(X,Y)
+            else:
+                X = np.array(X)
+                Y = np.array(Y)
+                order_param = np.array(order_param)
+                for o in np.unique(order_param):
+                    x_buff = X[order_param==o]
+                    y_buff = Y[order_param==o]
+                    msg = order_name.replace('_', ' ')+' = '+str(o)
+                    self.fit_and_plot_fromlist(x_buff,y_buff,extra_msg=msg)                   
+                
+            plt.xlabel(x_name.replace('_', ' '))
+            plt.ylabel(y_name.replace('_', ' '))
+            plt.show()
+        
+        ''' # OLD VERSION
         if X and self.settings.fit_list:
-
+            
             fit_name = str(self.ui.list_fit_type.currentText())
             fmodel = self.data.fit1D_dic[fit_name]
 
@@ -1670,7 +1709,7 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
 
         if X:
             plt.figure()
-            plt.plot(X, Y, 'or')
+            plt.plot(X, Y, 'o')
             if self.settings.fit_list:
                 x_fit = np.linspace(np.min(X), np.max(X), 1e3)
                 y_fit = fit.fit.formula(x_fit, *fit.fit.results)
@@ -1680,8 +1719,41 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
             plt.xlabel(x_name.replace('_', ' '))
             plt.ylabel(y_name.replace('_', ' '))
             plt.show()
+        '''
+        
 
 
+    def fit_and_plot_fromlist(self,X,Y,extra_msg=None):
+        
+        #-- 1 Fit
+        if self.settings.fit_list:
+            fit_name = str(self.ui.list_fit_type.currentText())
+            fmodel = self.data.fit1D_dic[fit_name]
+
+            self.print_result(self.settings.results_delim)
+            self.print_result("<b>     Fit from quicklist :</b>")
+            if extra_msg is not None:
+                self.print_result(extra_msg)
+            self.print_result("")
+
+            fit = pf.PyFit1D(fit=fmodel, x=np.array(X), y=np.array(Y))
+            fit.do_fit()
+
+            res = fit.values_to_str()
+            self.print_result(res)
+        
+        #-- 2 Plot
+        
+        plt.plot(X, Y, 'o')
+        
+        if self.settings.fit_list:
+            x_fit = np.linspace(np.min(X), np.max(X), 1e3)
+            y_fit = fit.fit.formula(x_fit, *fit.fit.results)
+
+            plt.plot(x_fit, y_fit, 'b')
+        
+            
+        
     def stat_list(self):
 
         params = {}
@@ -2569,6 +2641,7 @@ class GuiSettings():
         # Lists
 
         self.fit_list = False
+        self.list_orderby = False
         
         # Comments
         

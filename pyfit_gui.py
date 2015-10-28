@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'pyfit.ui'
 #
-# Created: Wed Oct 28 15:22:51 2015
+# Created: Wed Oct 28 18:14:33 2015
 #      by: PyQt4 UI code generator 4.9.6
 #
 # WARNING! All changes made in this file will be lost!
@@ -265,19 +265,19 @@ class Ui_PyFit(object):
         self.quickPlotButton.setGeometry(QtCore.QRect(149, 8, 51, 31))
         self.quickPlotButton.setObjectName(_fromUtf8("quickPlotButton"))
         self.quickStatsButton = QtGui.QPushButton(self.tab_2)
-        self.quickStatsButton.setGeometry(QtCore.QRect(10, 141, 51, 31))
+        self.quickStatsButton.setGeometry(QtCore.QRect(10, 154, 51, 31))
         self.quickStatsButton.setObjectName(_fromUtf8("quickStatsButton"))
         self.list_fit_type = QtGui.QComboBox(self.tab_2)
-        self.list_fit_type.setGeometry(QtCore.QRect(47, 80, 151, 22))
+        self.list_fit_type.setGeometry(QtCore.QRect(47, 110, 151, 22))
         self.list_fit_type.setObjectName(_fromUtf8("list_fit_type"))
         self.fit_list_box = QtGui.QCheckBox(self.tab_2)
-        self.fit_list_box.setGeometry(QtCore.QRect(7, 80, 61, 22))
+        self.fit_list_box.setGeometry(QtCore.QRect(7, 110, 61, 22))
         self.fit_list_box.setObjectName(_fromUtf8("fit_list_box"))
         self.send_to_console_button = QtGui.QPushButton(self.tab_2)
-        self.send_to_console_button.setGeometry(QtCore.QRect(70, 141, 61, 31))
+        self.send_to_console_button.setGeometry(QtCore.QRect(70, 154, 61, 31))
         self.send_to_console_button.setObjectName(_fromUtf8("send_to_console_button"))
         self.hide_variable_txt_2 = QtGui.QLabel(self.tab_2)
-        self.hide_variable_txt_2.setGeometry(QtCore.QRect(72, 127, 61, 16))
+        self.hide_variable_txt_2.setGeometry(QtCore.QRect(72, 140, 61, 16))
         font = QtGui.QFont()
         font.setBold(False)
         font.setWeight(50)
@@ -287,7 +287,7 @@ class Ui_PyFit(object):
         self.hide_variable_txt_2.setWordWrap(False)
         self.hide_variable_txt_2.setObjectName(_fromUtf8("hide_variable_txt_2"))
         self.save_quicklist_button = QtGui.QPushButton(self.tab_2)
-        self.save_quicklist_button.setGeometry(QtCore.QRect(140, 140, 61, 31))
+        self.save_quicklist_button.setGeometry(QtCore.QRect(140, 153, 61, 31))
         self.save_quicklist_button.setObjectName(_fromUtf8("save_quicklist_button"))
         self.ROI_quickplot_spinbox = QtGui.QSpinBox(self.tab_2)
         self.ROI_quickplot_spinbox.setGeometry(QtCore.QRect(170, 39, 31, 22))
@@ -302,6 +302,12 @@ class Ui_PyFit(object):
         self.hide_variable_txt_4.setTextFormat(QtCore.Qt.AutoText)
         self.hide_variable_txt_4.setWordWrap(False)
         self.hide_variable_txt_4.setObjectName(_fromUtf8("hide_variable_txt_4"))
+        self.orderby_list_box = QtGui.QCheckBox(self.tab_2)
+        self.orderby_list_box.setGeometry(QtCore.QRect(7, 70, 81, 22))
+        self.orderby_list_box.setObjectName(_fromUtf8("orderby_list_box"))
+        self.list_plot_order = QtGui.QComboBox(self.tab_2)
+        self.list_plot_order.setGeometry(QtCore.QRect(80, 70, 111, 22))
+        self.list_plot_order.setObjectName(_fromUtf8("list_plot_order"))
         self.fitEditorTab.addTab(self.tab_2, _fromUtf8(""))
         self.tab_5 = QtGui.QWidget()
         self.tab_5.setObjectName(_fromUtf8("tab_5"))
@@ -414,7 +420,7 @@ class Ui_PyFit(object):
 
         self.retranslateUi(PyFit)
         self.tabWidget.setCurrentIndex(0)
-        self.fitEditorTab.setCurrentIndex(2)
+        self.fitEditorTab.setCurrentIndex(3)
         QtCore.QMetaObject.connectSlotsByName(PyFit)
 
     def retranslateUi(self, PyFit):
@@ -468,6 +474,7 @@ class Ui_PyFit(object):
         self.hide_variable_txt_2.setText(_translate("PyFit", "--> res", None))
         self.save_quicklist_button.setText(_translate("PyFit", "Save", None))
         self.hide_variable_txt_4.setText(_translate("PyFit", "ROI", None))
+        self.orderby_list_box.setText(_translate("PyFit", "group by :", None))
         self.fitEditorTab.setTabText(self.fitEditorTab.indexOf(self.tab_2), _translate("PyFit", "List", None))
         self.gen_grid_button.setText(_translate("PyFit", "Generate GRID", None))
         self.get_lattice_depth_button.setText(_translate("PyFit", "Get lattice depth", None))
