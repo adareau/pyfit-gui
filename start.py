@@ -2088,9 +2088,31 @@ class StartQT4(QtGui.QMainWindow): #TODO : rename
         pic_folder = self.settings.calendar_picturefolder
         date = datetime.datetime(year=y, month=m, day=d)
         
+        
         day_folder = date.strftime(day_fmt)
         month_folder = date.strftime(month_fmt)
         year_folder = date.strftime(year_fmt)
+        
+        ## QUICKFIX : fixing the calendar issue for linux
+        # our folder tree looks like "root/2015/Oct2015/01Oct2015/"
+        # with windows we get the "Oct" using the string formatting "%b" (Locale’s abbreviated month name)
+        # on linux (tested on Ubuntu 14.04) it returns 'oct.' => wee need uppercase + remove the dot
+        # [temporary (?) fix] => test if january returns "Jan", otherwise fix the month
+        
+        test_month = datetime.date(2000,1,1).strftime('%b')
+        if test_month != 'Jan':
+            bad_month = date.strftime('%b')
+            good_month = bad_month[:]
+            
+            if good_month[-1]=='.':
+                good_month = good_month[:-1]
+            if good_month[0].islower():
+                good_month = good_month[0].upper()+good_month[1:]
+            
+            day_folder = day_folder.replace(bad_month,good_month)
+            month_folder = month_folder.replace(bad_month,good_month)
+        ### END OF QUICKFIX
+        ## TODO : improve ?
         
         calendar_path = os.path.join(root, year_folder, month_folder, day_folder,pic_folder)
         
