@@ -68,8 +68,8 @@ def gen():
      
     cx = Value(name='cx',unit='px',formula=cx_func)
     cy = Value(name='cy',unit='px',formula=cy_func)
-    
-    fit.values=(Ncalc,Nint,Nfit,sigma_x,sigma_x_mic,sigma_y,sigma_y_mic,cx,cy)
+    peak_value = Value(name='Amplitude',unit='',formula=peak_value_func)
+    fit.values=(Ncalc,Nint,Nfit,sigma_x,sigma_x_mic,sigma_y,sigma_y_mic,cx,cy,peak_value)
     
     
     return fit
@@ -104,6 +104,10 @@ def Ncalc_func(pf):
     Ncalc = 2*np.pi*sx*sy*A/sigma0
     
     return Ncalc
+
+def peak_value_func(pf):
+    A = pf.fit.results[1]
+    return A
 
 def Nint_func(pf):
     
