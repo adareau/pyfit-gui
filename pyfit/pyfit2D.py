@@ -9,7 +9,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import os 
-import pylab as pl
+#import pylab as pl
+import scipy.misc as misc
 import scipy.optimize as opt
 import copy
 import h5py
@@ -335,7 +336,7 @@ class PyFit2D():
             self.picture.filename = os.path.split(f)[1]
             
         if not os.path.isfile(f): return 0
-        data = pl.imread(f)
+        data = misc.imread(f)
         
         # HINT : some pictures are saved in RGB, then we only take one layer
         if len(data.shape)>2: data = data[:,:,0]
